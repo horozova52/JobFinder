@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>aspnet-JobFinder-0adfedb3-d534-4e81-a4c6-4b722ae2ae42</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\JobFinder.Client\JobFinder.Client.csproj" />
+    <ProjectReference Include="..\JobFinder.Infrastructure\JobFinder.Infrastructure.csproj" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="9.0.11" />
+  </ItemGroup>
+
+</Project>

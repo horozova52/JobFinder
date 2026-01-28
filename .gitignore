@@ -1,0 +1,37 @@
+# Build
+bin/
+obj/
+publish/
+
+# User-specific
+*.user
+*.suo
+*.vs/
+*.vscode/
+
+# Logs and cache
+*.log
+*.db
+*.db-shm
+*.db-wal
+
+# Visual Studio files
+.vs/
+*.ncrunchproject
+_ReSharper.*
+*.DotSettings.user
+
+# Nu versionăm fișiere secrete sau locale
+**/appsettings.Development.json
+**/appsettings.Local.json
+.env
+
+# Test logs
+TestResults/
+coverage/
+
+# Node/NPM (dacă vei avea JS tools în viitor)
+node_modules/
+
+# IDE JetBrains (ex: Rider)
+.idea/

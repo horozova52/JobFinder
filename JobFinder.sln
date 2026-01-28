@@ -1,0 +1,61 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36705.20
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JobFinder.Client", "JobFinder.Client\JobFinder.Client.csproj", "{B8EEE4E8-1C94-401B-8170-F88ACF78614F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JobFinder.Server", "JobFinder.Server\JobFinder.Server.csproj", "{CA509D52-3BF1-CE0A-EB23-5293FFFCA192}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JobFinder.Shared", "JobFinder.Shared\JobFinder.Shared.csproj", "{5495E94B-CAA4-4FBA-861C-D9155C113306}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JobFinder.Core", "JobFinder.Core\JobFinder.Core.csproj", "{D506C197-046E-4E88-9707-9CF2FC2D41D8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JobFinder.UseCases", "JobFinder.UseCases\JobFinder.UseCases.csproj", "{2B9313FF-40D2-49B5-9345-6245FFF12709}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JobFinder.Infrastructure", "JobFinder.Infrastructure\JobFinder.Infrastructure.csproj", "{EB5F5BF8-AEBD-48D5-9E30-B9D63FA65FEA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JobFinder.Tests", "JobFinder.Tests\JobFinder.Tests.csproj", "{63238C04-81FC-43DC-991F-9794EC17A051}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B8EEE4E8-1C94-401B-8170-F88ACF78614F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B8EEE4E8-1C94-401B-8170-F88ACF78614F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B8EEE4E8-1C94-401B-8170-F88ACF78614F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B8EEE4E8-1C94-401B-8170-F88ACF78614F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CA509D52-3BF1-CE0A-EB23-5293FFFCA192}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CA509D52-3BF1-CE0A-EB23-5293FFFCA192}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CA509D52-3BF1-CE0A-EB23-5293FFFCA192}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CA509D52-3BF1-CE0A-EB23-5293FFFCA192}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5495E94B-CAA4-4FBA-861C-D9155C113306}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5495E94B-CAA4-4FBA-861C-D9155C113306}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5495E94B-CAA4-4FBA-861C-D9155C113306}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5495E94B-CAA4-4FBA-861C-D9155C113306}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D506C197-046E-4E88-9707-9CF2FC2D41D8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D506C197-046E-4E88-9707-9CF2FC2D41D8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D506C197-046E-4E88-9707-9CF2FC2D41D8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D506C197-046E-4E88-9707-9CF2FC2D41D8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2B9313FF-40D2-49B5-9345-6245FFF12709}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2B9313FF-40D2-49B5-9345-6245FFF12709}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2B9313FF-40D2-49B5-9345-6245FFF12709}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2B9313FF-40D2-49B5-9345-6245FFF12709}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EB5F5BF8-AEBD-48D5-9E30-B9D63FA65FEA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EB5F5BF8-AEBD-48D5-9E30-B9D63FA65FEA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EB5F5BF8-AEBD-48D5-9E30-B9D63FA65FEA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EB5F5BF8-AEBD-48D5-9E30-B9D63FA65FEA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{63238C04-81FC-43DC-991F-9794EC17A051}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{63238C04-81FC-43DC-991F-9794EC17A051}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{63238C04-81FC-43DC-991F-9794EC17A051}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{63238C04-81FC-43DC-991F-9794EC17A051}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {2370DD08-E755-4B72-B561-22214204E0DF}
+	EndGlobalSection
+EndGlobal
