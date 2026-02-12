@@ -3,6 +3,7 @@ using JobFinder.Server.Components;
 using JobFinder.Server.Components.Account;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using JobFinder.Core.Entities.Identity;
 
 namespace JobFinder
 {

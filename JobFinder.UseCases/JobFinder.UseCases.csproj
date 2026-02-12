@@ -1,16 +1,23 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Ardalis.GuardClauses" Version="5.0.0" />
-    <PackageReference Include="FluentValidation" Version="12.1.1" />
-    <PackageReference Include="MediatR" Version="14.0.0" />
+    <Folder Include="Contracts\" />
+    <Folder Include="Features\Candidates\Commands\" />
+    <Folder Include="Features\Candidates\" />
+    <Folder Include="Features\Candidates\Queries\" />
+    <Folder Include="Features\Employers\Commands\" />
+    <Folder Include="Features\Employers\Queries\" />
+    <Folder Include="Features\Jobs\Commands\" />
+    <Folder Include="Features\Jobs\Queries\" />
+    <Folder Include="MappingProfiles\" />
+    <Folder Include="Behaviors\" />
+    <Folder Include="Exceprions\" />
   </ItemGroup>
 
 </Project>

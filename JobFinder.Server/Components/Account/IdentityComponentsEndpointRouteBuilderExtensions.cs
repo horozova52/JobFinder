@@ -9,6 +9,8 @@ using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Primitives;
+using JobFinder.Core.Entities.Identity;
+
 
 namespace Microsoft.AspNetCore.Routing
 {
