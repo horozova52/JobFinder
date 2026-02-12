@@ -1,3 +1,4 @@
+using JobFinder.Core.Entities.Identity;
 using JobFinder.Infrastructure.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;

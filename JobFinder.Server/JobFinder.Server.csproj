@@ -7,10 +7,29 @@
     <UserSecretsId>aspnet-JobFinder-0adfedb3-d534-4e81-a4c6-4b722ae2ae42</UserSecretsId>
   </PropertyGroup>
 
+  <!--
+    Prevent build-time RuntimeIdentifier escalation from a referenced Blazor WASM project.
+    If the solution is built with RuntimeIdentifier=browser-wasm, server projects that
+    reference Microsoft.AspNetCore.App will attempt to resolve a runtime pack for that RID
+    which does not exist. Clear the RID for server builds to avoid the error.
+  -->
+  <PropertyGroup>
+    <RuntimeIdentifier Condition="'$(RuntimeIdentifier)' == 'browser-wasm'">$(MSBuildRuntimeId)</RuntimeIdentifier>
+  </PropertyGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\JobFinder.Client\JobFinder.Client.csproj" />
+    <ProjectReference Include="..\JobFinder.Core\JobFinder.Core.csproj" />
     <ProjectReference Include="..\JobFinder.Infrastructure\JobFinder.Infrastructure.csproj" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="9.0.11" />
+    <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="9.0.11" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.11" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.11">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="10.1.2" />
+    <PackageReference Include="Swashbuckle.AspNetCore.Swagger" Version="10.1.2" />
   </ItemGroup>
 
 </Project>
