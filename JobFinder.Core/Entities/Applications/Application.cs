@@ -12,12 +12,12 @@ public class Application
     public int CandidateProfileId { get; set; }
 
     public DateTime AppliedAt { get; set; }
-    public ApplicationStatus Status { get; set; }
+    public Shared.Enums.ApplicationState Status { get; set; }
 
     public string? CoverLetter { get; set; }
     public string? Notes { get; set; }    
     public JobPosting JobPosting { get; set; } = null!;
     public CandidateProfile CandidateProfile { get; set; } = null!;
 
-    public ICollection<ApplicationStatus> StatusHistory { get; set; } = new List<ApplicationStatus>();
+    public ICollection<ApplicationStatusHistory> StatusHistory { get; set; } = new List<ApplicationStatusHistory>();
 }

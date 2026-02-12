@@ -1,6 +1,6 @@
 ﻿namespace JobFinder.Shared.Enums;
 
-public enum ApplicationStatus
+public enum ApplicationState
 {
     Pending = 0,
     InReview = 1,
