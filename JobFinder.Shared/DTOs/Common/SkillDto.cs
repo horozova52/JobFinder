@@ -6,7 +6,9 @@ using System.Threading.Tasks;
 
 namespace JobFinder.Shared.DTOs.Common
 {
-    internal class SkillDto
+    public  class SkillDto
     {
+        public string Name { get; set; } = null!;
+        public string? Category { get; set; }
     }
 }

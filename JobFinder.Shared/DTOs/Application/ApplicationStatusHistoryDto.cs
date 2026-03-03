@@ -2,7 +2,7 @@
 
 namespace JobFinder.Shared.DTOs.Applications;
 
-public class ApplicationStateDto
+public class ApplicationStatusHistoryDto
 {
     public ApplicationState Status { get; set; }
     public DateTime ChangedAt { get; set; }
