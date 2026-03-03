@@ -7,6 +7,7 @@ using JobFinder.UseCases;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
+using JobFinder.UseCases;
 
 namespace JobFinder;
 
