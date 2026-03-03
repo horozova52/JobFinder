@@ -10,11 +10,11 @@ using JobFinder.Shared.DTOs.Candidates;
 
 namespace JobFinder.UseCases.MappingProfiles.Profiles
 {
-    public class CandidateProfile : Profile
+    public class CandidateMappingProfile : Profile
     {
-        public CandidateProfile()
+        public CandidateMappingProfile()
         {
-            CreateMap<CandidateProfile, CandidateProfileDto>();
+            CreateMap<CandidateMappingProfile, CandidateProfileDto>();
 
             CreateMap<Experience, ExperienceDto>().ReverseMap();
             CreateMap<Education, EducationDto>().ReverseMap();

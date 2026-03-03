@@ -13,10 +13,6 @@
     <Folder Include="Features\Employers\Commands\" />
     <Folder Include="Features\Employers\Queries\" />
     <Folder Include="Features\Jobs\Commands\" />
-    <Folder Include="Features\Jobs\Queries\" />
-    <Folder Include="Contracts\" />
-    <Folder Include="Common\" />
-    <Folder Include="Behaivors\" />
   </ItemGroup>
 
   <ItemGroup>
