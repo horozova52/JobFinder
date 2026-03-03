@@ -1,12 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using AutoMapper;
+using JobFinder.Core.Entities.Common;
+using JobFinder.Shared.DTOs.Common;
 
 namespace JobFinder.UseCases.MappingProfiles.Profiles
 {
-    internal class CommonProfile
+    public class CommonProfile : Profile
     {
+        public CommonProfile()
+        {
+            CreateMap<Skill, SkillDto>().ReverseMap();
+            CreateMap<Language, LanguageDto>().ReverseMap();
+        }
     }
 }

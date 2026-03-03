@@ -7,7 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Contracts\" />
     <Folder Include="Features\Candidates\Commands\" />
     <Folder Include="Features\Candidates\" />
     <Folder Include="Features\Candidates\Queries\" />
@@ -15,9 +14,22 @@
     <Folder Include="Features\Employers\Queries\" />
     <Folder Include="Features\Jobs\Commands\" />
     <Folder Include="Features\Jobs\Queries\" />
-    <Folder Include="MappingProfiles\" />
-    <Folder Include="Behaviors\" />
-    <Folder Include="Exceprions\" />
+    <Folder Include="Contracts\" />
+    <Folder Include="Common\" />
+    <Folder Include="Behaivors\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AutoMapper" Version="16.0.0" />
+    <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.0" />
+    <PackageReference Include="FluentValidation" Version="12.1.1" />
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />
+    <PackageReference Include="MediatR" Version="12.4.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\JobFinder.Core\JobFinder.Core.csproj" />
+    <ProjectReference Include="..\JobFinder.Shared\JobFinder.Shared.csproj" />
   </ItemGroup>
 
 </Project>
