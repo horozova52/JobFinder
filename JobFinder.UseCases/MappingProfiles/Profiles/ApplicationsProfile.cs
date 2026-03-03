@@ -17,3 +17,4 @@ namespace JobFinder.UseCases.MappingProfiles.Profiles
         }
 
     }
+}

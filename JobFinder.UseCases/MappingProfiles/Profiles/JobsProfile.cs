@@ -8,10 +8,11 @@ namespace JobFinder.UseCases.MappingProfiles.Profiles
     {
         public JobsProfile()
         {
-            CreateMap<JobPosting, JobPostingDto>();
+            CreateMap<JobPosting, JobPostingDto>()
+                .ForMember(d => d.Skills, opt => opt.MapFrom(s => s.Skills));
+
             CreateMap<JobSkill, JobSkillDto>()
                 .ForMember(d => d.SkillName, opt => opt.MapFrom(s => s.Skill.Name));
-            CreateMap<JobCategory, JobCategoryDto>().ReverseMap();
         }
     }
 }
