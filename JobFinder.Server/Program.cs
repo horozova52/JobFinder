@@ -5,6 +5,7 @@ using JobFinder.Server.Components.Account;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
+using JobFinder.UseCases;
 
 namespace JobFinder;
 
@@ -49,6 +50,7 @@ public class Program
             .AddDefaultTokenProviders();
 
         builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
+        builder.Services.AddAutoMapper(typeof(Program));
 
         var app = builder.Build();
 
