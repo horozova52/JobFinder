@@ -15,7 +15,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JobFinder.Infrastructure", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JobFinder.Tests", "JobFinder.Tests\JobFinder.Tests.csproj", "{63238C04-81FC-43DC-991F-9794EC17A051}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JobFinder.UseCases", "JobFinder.UseCases\JobFinder.UseCases.csproj", "{510CC693-7A47-4753-B168-E737CFEBCC49}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JobFinder.UseCases", "JobFinder.UseCases\JobFinder.UseCases.csproj", "{C51B4798-E080-CDAE-6B29-84E5C4886DF3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -47,10 +47,10 @@ Global
 		{63238C04-81FC-43DC-991F-9794EC17A051}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{63238C04-81FC-43DC-991F-9794EC17A051}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{63238C04-81FC-43DC-991F-9794EC17A051}.Release|Any CPU.Build.0 = Release|Any CPU
-		{510CC693-7A47-4753-B168-E737CFEBCC49}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{510CC693-7A47-4753-B168-E737CFEBCC49}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{510CC693-7A47-4753-B168-E737CFEBCC49}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{510CC693-7A47-4753-B168-E737CFEBCC49}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C51B4798-E080-CDAE-6B29-84E5C4886DF3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C51B4798-E080-CDAE-6B29-84E5C4886DF3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C51B4798-E080-CDAE-6B29-84E5C4886DF3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C51B4798-E080-CDAE-6B29-84E5C4886DF3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
