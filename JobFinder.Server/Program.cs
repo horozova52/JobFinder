@@ -1,11 +1,12 @@
 using JobFinder.Core.Entities.Identity;
+using JobFinder.Infrastructure;
 using JobFinder.Infrastructure.Data;
 using JobFinder.Server.Components;
 using JobFinder.Server.Components.Account;
+using JobFinder.UseCases;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
-using JobFinder.UseCases;
 
 namespace JobFinder;
 
@@ -30,7 +31,8 @@ public class Program
         builder.Services.AddDbContext<ApplicationDbContext>(options =>
             options.UseSqlServer(connectionString));
         builder.Services.AddDatabaseDeveloperPageExceptionFilter();
-
+        
+        builder.Services.AddInfrastructure();
         // Identity
         builder.Services.AddAuthentication(options =>
         {
