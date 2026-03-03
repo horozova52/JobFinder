@@ -12,7 +12,6 @@
     <Folder Include="Features\Candidates\Queries\" />
     <Folder Include="Features\Employers\Commands\" />
     <Folder Include="Features\Employers\Queries\" />
-    <Folder Include="Features\Jobs\Commands\" />
   </ItemGroup>
 
   <ItemGroup>
