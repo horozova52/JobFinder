@@ -37,6 +37,10 @@ public class Program
         builder.Services.AddUseCases();
         builder.Services.AddControllers();
 
+        // Add Swagger/OpenAPI
+        builder.Services.AddEndpointsApiExplorer();
+        builder.Services.AddSwaggerGen();
+
         // Identity
         builder.Services.AddAuthentication(options =>
         {
@@ -65,6 +69,13 @@ public class Program
         {
             app.UseWebAssemblyDebugging();
             app.UseMigrationsEndPoint();
+            // Enable Swagger UI in Development
+            app.UseSwagger();
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "JobFinder API V1");
+                // default RoutePrefix is "swagger" -> UI available at /swagger
+            });
         }
         else
         {
