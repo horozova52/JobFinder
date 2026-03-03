@@ -34,6 +34,9 @@ public class Program
         builder.Services.AddDatabaseDeveloperPageExceptionFilter();
         
         builder.Services.AddInfrastructure();
+        builder.Services.AddUseCases();
+        builder.Services.AddControllers();
+
         // Identity
         builder.Services.AddAuthentication(options =>
         {
@@ -75,7 +78,7 @@ public class Program
 
         app.UseAuthentication();
         app.UseAuthorization();
-
+        app.MapControllers();
         app.MapStaticAssets();
         app.MapRazorComponents<App>()
             .AddInteractiveWebAssemblyRenderMode()
