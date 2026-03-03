@@ -28,6 +28,7 @@
 	<ItemGroup>
 	  <ProjectReference Include="..\JobFinder.Core\JobFinder.Core.csproj" />
 	  <ProjectReference Include="..\JobFinder.Shared\JobFinder.Shared.csproj" />
+	  <ProjectReference Include="..\JobFinder.UseCases\JobFinder.UseCases.csproj" />
 	</ItemGroup>
 
 </Project>
