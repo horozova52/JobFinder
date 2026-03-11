@@ -1,0 +1,158 @@
+﻿@page "/candidate/profile"
+@layout CandidateLayout
+@rendermode InteractiveWebAssembly
+
+<PageTitle>Profil profesional - JobFinder</PageTitle>
+
+<PageHeader Title="Profil profesional"
+            Description="Completează-ți profilul pentru a primi recomandări mai bune." />
+
+<div style="max-width:640px;">
+
+    <!-- Date personale -->
+    <section style="margin-bottom:32px;">
+        <h2 style="font-size:14px; font-weight:700; color:#111827; margin-bottom:16px;">
+            Date personale
+        </h2>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+            <div>
+                <label style="display:block; font-size:11px; font-weight:600; letter-spacing:2px;
+                              text-transform:uppercase; color:#6b7280; margin-bottom:8px;">Nume</label>
+                <MudTextField @bind-Value="_profile.Name" Variant="Variant.Outlined"
+                              FullWidth="true" Margin="Margin.Dense" Style="border-radius:0;" />
+            </div>
+            <div>
+                <label style="display:block; font-size:11px; font-weight:600; letter-spacing:2px;
+                              text-transform:uppercase; color:#6b7280; margin-bottom:8px;">Email</label>
+                <MudTextField @bind-Value="_profile.Email" Variant="Variant.Outlined"
+                              FullWidth="true" Margin="Margin.Dense" Style="border-radius:0;" />
+            </div>
+            <div>
+                <label style="display:block; font-size:11px; font-weight:600; letter-spacing:2px;
+                              text-transform:uppercase; color:#6b7280; margin-bottom:8px;">Telefon</label>
+                <MudTextField @bind-Value="_profile.Phone" Variant="Variant.Outlined"
+                              FullWidth="true" Margin="Margin.Dense" Style="border-radius:0;" />
+            </div>
+            <div>
+                <label style="display:block; font-size:11px; font-weight:600; letter-spacing:2px;
+                              text-transform:uppercase; color:#6b7280; margin-bottom:8px;">Locație</label>
+                <MudTextField @bind-Value="_profile.Location" Variant="Variant.Outlined"
+                              FullWidth="true" Margin="Margin.Dense" Style="border-radius:0;" />
+            </div>
+        </div>
+        <div style="margin-top:16px;">
+            <label style="display:block; font-size:11px; font-weight:600; letter-spacing:2px;
+                          text-transform:uppercase; color:#6b7280; margin-bottom:8px;">
+                Despre mine
+            </label>
+            <MudTextField @bind-Value="_profile.About" Lines="3"
+                          Variant="Variant.Outlined" FullWidth="true"
+                          Margin="Margin.Dense" Style="border-radius:0;" />
+        </div>
+    </section>
+
+    <div style="border-bottom:1px solid #e5e7eb; margin-bottom:32px;"></div>
+
+    <!-- Educație -->
+    <section style="margin-bottom:32px;">
+        <h2 style="font-size:14px; font-weight:700; color:#111827; margin-bottom:16px;">
+            Educație
+        </h2>
+        <div style="border:1px solid #e5e7eb; padding:16px; margin-bottom:12px;">
+            <p style="font-size:14px; font-weight:600; color:#111827; margin:0 0 4px 0;">
+                Universitatea Politehnica București
+            </p>
+            <p style="font-size:14px; color:#6b7280; margin:0;">
+                Informatică · 2018 - 2022
+            </p>
+        </div>
+        <button style="font-size:12px; font-weight:600; color:#6366f1;
+                       background:none; border:none; cursor:pointer; padding:0;">
+            + Adaugă educație
+        </button>
+    </section>
+
+    <div style="border-bottom:1px solid #e5e7eb; margin-bottom:32px;"></div>
+
+    <!-- Experiență -->
+    <section style="margin-bottom:32px;">
+        <h2 style="font-size:14px; font-weight:700; color:#111827; margin-bottom:16px;">
+            Experiență
+        </h2>
+        <div style="border:1px solid #e5e7eb; padding:16px; margin-bottom:12px;">
+            <p style="font-size:14px; font-weight:600; color:#111827; margin:0 0 4px 0;">
+                Frontend Developer — TechCorp
+            </p>
+            <p style="font-size:14px; color:#6b7280; margin:0;">
+                2022 - Prezent · București
+            </p>
+        </div>
+        <button style="font-size:12px; font-weight:600; color:#6366f1;
+                       background:none; border:none; cursor:pointer; padding:0;">
+            + Adaugă experiență
+        </button>
+    </section>
+
+    <div style="border-bottom:1px solid #e5e7eb; margin-bottom:32px;"></div>
+
+    <!-- Competențe -->
+    <section style="margin-bottom:32px;">
+        <h2 style="font-size:14px; font-weight:700; color:#111827; margin-bottom:16px;">
+            Competențe (Tags)
+        </h2>
+        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px;">
+            @foreach (var tag in _tags)
+            {
+                <span style="font-size:11px; font-weight:600; color:#6b7280;
+                             border:1px solid #e5e7eb; padding:4px 12px;
+                             display:flex; align-items:center; gap:8px;">
+                    @tag
+                    <button @onclick="() => RemoveTag(tag)"
+                            style="color:#9ca3af; background:none; border:none;
+                                   cursor:pointer; font-size:14px; padding:0; line-height:1;">
+                        ×
+                    </button>
+                </span>
+            }
+        </div>
+        <button style="font-size:12px; font-weight:600; color:#6366f1;
+                       background:none; border:none; cursor:pointer; padding:0;">
+            + Adaugă competență
+        </button>
+    </section>
+
+    <div style="border-bottom:1px solid #e5e7eb; margin-bottom:32px;"></div>
+
+    <MudButton Variant="Variant.Filled" OnClick="HandleSave"
+               Style="background:#6366f1; color:#fff; border-radius:0;
+                      font-size:11px; font-weight:600; letter-spacing:2px;
+                      text-transform:uppercase; padding:12px 24px;">
+        Salvează profilul
+    </MudButton>
+</div>
+
+@code {
+    private ProfileForm _profile = new()
+    {
+        Name     = "Ion Popescu",
+        Email    = "ion.popescu@email.com",
+        Phone    = "+40 721 000 000",
+        Location = "București",
+        About    = "Dezvoltator software cu 4 ani de experiență în aplicații web moderne.",
+    };
+
+    private List<string> _tags = new()
+        { "React", "TypeScript", "CSS", "Git", "REST API" };
+
+    private void RemoveTag(string tag) => _tags.Remove(tag);
+    private void HandleSave() { /* logica vine mai târziu */ }
+
+    private class ProfileForm
+    {
+        public string Name     { get; set; } = "";
+        public string Email    { get; set; } = "";
+        public string Phone    { get; set; } = "";
+        public string Location { get; set; } = "";
+        public string About    { get; set; } = "";
+    }
+}

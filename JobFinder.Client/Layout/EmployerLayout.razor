@@ -1,0 +1,25 @@
+﻿@inherits LayoutComponentBase
+
+<div style="min-height:100vh; background:#f9fafb; display:flex;">
+
+    <AppSidebar Title="RecruitBoard"
+                Subtitle="Panou angajator"
+                Links="_links" />
+
+    <main style="margin-left:256px; min-height:100vh; flex:1;">
+        <div style="max-width:896px; margin:0 auto; padding:40px 32px;">
+            @Body
+        </div>
+    </main>
+
+</div>
+
+@code {
+    private readonly List<AppSidebar.SidebarLink> _links = new()
+    {
+        new() { Label = "Dashboard",  Href = "/employer/dashboard", Icon = "⊞" },
+        new() { Label = "Anunțuri",   Href = "/employer/jobs",      Icon = "◈" },
+        new() { Label = "Mesagerie",  Href = "/employer/messages",  Icon = "✉" },
+        new() { Label = "Profil",     Href = "/employer/profile",   Icon = "◉" },
+    };
+}

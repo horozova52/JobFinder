@@ -1,0 +1,84 @@
+﻿@page "/candidate/jobs/{Id:int}"
+@layout CandidateLayout
+@rendermode InteractiveWebAssembly
+
+<PageTitle>React Developer - JobFinder</PageTitle>
+
+<a href="/candidate/jobs"
+   style="font-size:12px; font-weight:600; letter-spacing:1px; text-transform:uppercase;
+          color:#6b7280; text-decoration:none; display:inline-block; margin-bottom:24px;">
+    ← Înapoi la joburi
+</a>
+
+<div style="display:flex; justify-content:space-between; align-items:flex-start;
+            margin-top:16px; margin-bottom:8px;">
+    <h1 style="font-size:24px; font-weight:700; color:#111827; margin:0;">
+        React Developer
+    </h1>
+    <StatusBadge Status="85% match" Variant="default" />
+</div>
+<p style="font-size:14px; color:#6b7280; margin:0 0 32px 0;">
+    TechCorp · București · Full-time
+</p>
+
+<div style="border-bottom:1px solid #e5e7eb; margin-bottom:32px;"></div>
+
+<div style="display:flex; flex-direction:column; gap:32px;">
+    <section>
+        <h2 style="font-size:14px; font-weight:700; color:#111827; margin-bottom:12px;">
+            Descriere
+        </h2>
+        <p style="font-size:14px; color:#111827; line-height:1.7; margin:0;">
+            Dezvoltă interfețe moderne pentru platforma noastră SaaS. Vei colabora îndeaproape
+            cu echipa de design și backend pentru a livra funcționalități de calitate.
+        </p>
+    </section>
+
+    <section>
+        <h2 style="font-size:14px; font-weight:700; color:#111827; margin-bottom:12px;">
+            Cerințe
+        </h2>
+        <div style="display:flex; flex-direction:column; gap:8px;">
+            @foreach (var req in _requirements)
+            {
+                <p style="font-size:14px; color:#111827; margin:0;">— @req</p>
+            }
+        </div>
+    </section>
+
+    <section>
+        <h2 style="font-size:14px; font-weight:700; color:#111827; margin-bottom:12px;">
+            Competențe
+        </h2>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            @foreach (var tag in _tags)
+            {
+                <span style="font-size:11px; font-weight:600; color:#6b7280;
+                             border:1px solid #e5e7eb; padding:4px 12px;">@tag</span>
+            }
+        </div>
+    </section>
+
+    <div style="border-bottom:1px solid #e5e7eb;"></div>
+
+    <div>
+        <MudButton Variant="Variant.Filled" OnClick="HandleApply"
+                   Style="background:#6366f1; color:#fff; border-radius:0;
+                          font-size:11px; font-weight:600; letter-spacing:2px;
+                          text-transform:uppercase; padding:12px 24px;">
+            Aplică la acest job
+        </MudButton>
+    </div>
+</div>
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    private readonly List<string> _requirements = new()
+        { "3+ ani experiență React", "TypeScript avansat", "Experiență cu REST API" };
+
+    private readonly List<string> _tags = new()
+        { "React", "TypeScript", "CSS", "Tailwind", "Git" };
+
+    private void HandleApply() { /* logica vine mai târziu */ }
+}

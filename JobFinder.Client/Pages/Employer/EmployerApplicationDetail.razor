@@ -1,0 +1,141 @@
+﻿@page "/employer/applications/{Id:int}"
+@layout EmployerLayout
+@rendermode InteractiveWebAssembly
+
+<PageTitle>Detalii aplicare - JobFinder</PageTitle>
+
+<!-- Back -->
+<a href="/employer/jobs"
+   style="font-size:12px; font-weight:600; letter-spacing:1px; text-transform:uppercase;
+          color:#6b7280; text-decoration:none; display:inline-block; margin-bottom:24px;">
+    ← Înapoi
+</a>
+
+<!-- Header -->
+<div style="display:flex; justify-content:space-between; align-items:flex-start;
+            margin-top:16px; margin-bottom:8px;">
+    <h1 style="font-size:24px; font-weight:700; color:#111827; margin:0;">
+        Ion Popescu
+    </h1>
+    <StatusBadge Status="@_status" Variant="warning" />
+</div>
+<p style="font-size:14px; color:#6b7280; margin:0 0 32px 0;">
+    A aplicat la Frontend Developer · 85% match
+</p>
+
+<div style="border-bottom:1px solid #e5e7eb; margin-bottom:32px;"></div>
+
+<!-- Profil candidat -->
+<section style="margin-bottom:32px;">
+    <h2 style="font-size:14px; font-weight:700; color:#111827; margin-bottom:16px;">
+        Profil candidat
+    </h2>
+    <div style="border:1px solid #e5e7eb; padding:16px; display:flex; flex-direction:column; gap:12px;">
+        <p style="font-size:14px; margin:0;">
+            <span style="color:#6b7280;">Email:</span> ion.popescu@email.com
+        </p>
+        <p style="font-size:14px; margin:0;">
+            <span style="color:#6b7280;">Locație:</span> București
+        </p>
+        <p style="font-size:14px; margin:0;">
+            <span style="color:#6b7280;">Experiență:</span> Frontend Developer la TechCorp (2022-Prezent)
+        </p>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            @foreach (var tag in new[] { "React", "TypeScript", "CSS", "Git" })
+            {
+                <span style="font-size:11px; font-weight:600; color:#6b7280;
+                             border:1px solid #e5e7eb; padding:2px 8px;">
+                    @tag
+                </span>
+            }
+        </div>
+    </div>
+</section>
+
+<!-- Actualizare status -->
+<section style="margin-bottom:32px;">
+    <h2 style="font-size:14px; font-weight:700; color:#111827; margin-bottom:16px;">
+        Actualizare status
+    </h2>
+    <div style="display:flex; gap:12px; flex-wrap:wrap;">
+        @foreach (var s in _statusOptions)
+        {
+            <button @onclick="() => _status = s"
+                    style="font-size:11px; font-weight:600; letter-spacing:1px;
+                           text-transform:uppercase; padding:8px 16px; cursor:pointer;
+                           border:1px solid @(_status == s ? "#6366f1" : "#e5e7eb");
+                           color:@(_status == s ? "#6366f1" : "#6b7280");
+                           background:@(_status == s ? "#ede9fe" : "transparent");
+                           transition:all 0.15s;">
+                @s
+            </button>
+        }
+    </div>
+    @if (_status == "Acceptat")
+    {
+        <button style="margin-top:16px; background:#16a34a; color:#fff; padding:12px 24px;
+                       font-size:11px; font-weight:600; letter-spacing:2px;
+                       text-transform:uppercase; border:none; cursor:pointer;">
+            Confirmă angajarea
+        </button>
+    }
+</section>
+
+<div style="border-bottom:1px solid #e5e7eb; margin-bottom:32px;"></div>
+
+<!-- Chat / Mesagerie -->
+<section>
+    <h2 style="font-size:14px; font-weight:700; color:#111827; margin-bottom:16px;">
+        Mesagerie
+    </h2>
+
+    <div style="display:flex; flex-direction:column; gap:16px; margin-bottom:24px;">
+        <!-- Mesaj propriu -->
+        <div style="border:1px solid #c7d2fe; background:#ede9fe; padding:16px;">
+            <p style="font-size:11px; font-weight:600; color:#6366f1; margin:0 0 4px 0;">
+                Tu — 12 Ian
+            </p>
+            <p style="font-size:14px; color:#111827; margin:0;">
+                Bună ziua! Am primit aplicarea și o analizăm.
+            </p>
+        </div>
+        <!-- Mesaj candidat -->
+        <div style="border:1px solid #e5e7eb; padding:16px;">
+            <p style="font-size:11px; font-weight:600; color:#6b7280; margin:0 0 4px 0;">
+                Ion Popescu — 12 Ian
+            </p>
+            <p style="font-size:14px; color:#111827; margin:0;">
+                Mulțumesc! Aștept cu interes un răspuns.
+            </p>
+        </div>
+    </div>
+
+    <!-- Input mesaj -->
+    <div style="display:flex; gap:12px;">
+        <MudTextField @bind-Value="_message"
+                      Placeholder="Scrie un mesaj..."
+                      Variant="Variant.Outlined"
+                      FullWidth="true"
+                      Margin="Margin.Dense"
+                      Style="border-radius:0; flex:1;" />
+        <MudButton Variant="Variant.Filled"
+                   OnClick="SendMessage"
+                   Style="background:#6366f1; color:#fff; border-radius:0;
+                          font-size:11px; font-weight:600; letter-spacing:2px;
+                          text-transform:uppercase; padding:0 24px; flex-shrink:0;">
+            Trimite
+        </MudButton>
+    </div>
+</section>
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    private string _status  = "În analiză";
+    private string _message = "";
+
+    private readonly List<string> _statusOptions = new()
+        { "În analiză", "Interviu", "Acceptat", "Respins" };
+
+    private void SendMessage() { _message = ""; }
+}

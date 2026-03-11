@@ -1,0 +1,104 @@
+﻿@page "/candidate/dashboard"
+@layout CandidateLayout
+@rendermode InteractiveWebAssembly
+
+<PageTitle>Dashboard Candidat - JobFinder</PageTitle>
+
+<PageHeader Title="Dashboard"
+            Description="Bine ai revenit. Iată ce e nou pentru tine." />
+
+<!-- Joburi recomandate -->
+<section style="margin-bottom:40px;">
+    <h2 style="font-size:14px; font-weight:700; color:#111827; margin-bottom:16px;">
+        Joburi recomandate
+    </h2>
+    @foreach (var job in _recommendedJobs)
+    {
+        <a href="/candidate/jobs/@job.Id"
+           style="display:block; border-bottom:1px solid #e5e7eb; padding:20px 16px;
+                  margin:0 -16px; text-decoration:none; color:inherit; transition:background 0.15s;"
+           onmouseover="this.style.background='#f9fafb'"
+           onmouseout="this.style.background='transparent'">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                <div>
+                    <h3 style="font-size:14px; font-weight:700; color:#111827; margin:0 0 4px 0;">
+                        @job.Title
+                    </h3>
+                    <p style="font-size:14px; color:#6b7280; margin:0 0 8px 0;">@job.Company</p>
+                    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                        @foreach (var tag in job.Tags)
+                        {
+                            <span style="font-size:11px; font-weight:600; color:#6b7280;
+                                         border:1px solid #e5e7eb; padding:2px 8px;">@tag</span>
+                        }
+                    </div>
+                </div>
+                <StatusBadge Status="@($"{job.Match} match")" Variant="default" />
+            </div>
+        </a>
+    }
+</section>
+
+<!-- Aplicări recente -->
+<section style="margin-bottom:40px;">
+    <h2 style="font-size:14px; font-weight:700; color:#111827; margin-bottom:16px;">
+        Aplicări recente
+    </h2>
+    @foreach (var app in _recentApplications)
+    {
+        <a href="/candidate/applications/@app.Id"
+           style="display:block; border-bottom:1px solid #e5e7eb; padding:20px 16px;
+                  margin:0 -16px; text-decoration:none; color:inherit; transition:background 0.15s;"
+           onmouseover="this.style.background='#f9fafb'"
+           onmouseout="this.style.background='transparent'">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                    <h3 style="font-size:14px; font-weight:700; color:#111827; margin:0 0 4px 0;">
+                        @app.Title
+                    </h3>
+                    <p style="font-size:14px; color:#6b7280; margin:0;">@app.Company</p>
+                </div>
+                <StatusBadge Status="@app.Status" Variant="@app.Variant" />
+            </div>
+        </a>
+    }
+</section>
+
+<!-- Notificări -->
+<section>
+    <h2 style="font-size:14px; font-weight:700; color:#111827; margin-bottom:16px;">
+        Notificări
+    </h2>
+    @foreach (var notif in _notifications)
+    {
+        <div style="border-bottom:1px solid #e5e7eb; padding-bottom:12px; margin-bottom:12px;">
+            <p style="font-size:14px; color:#111827; margin:0;">@notif</p>
+        </div>
+    }
+</section>
+
+@code {
+    private record RecommendedJob(int Id, string Title, string Company,
+                                  string Match, string[] Tags);
+    private record RecentApplication(int Id, string Title, string Company,
+                                     string Status, string Variant);
+
+    private readonly List<RecommendedJob> _recommendedJobs = new()
+    {
+        new(1, "React Developer",      "TechCorp", "85%", new[] {"React","TypeScript"}),
+        new(2, "Full Stack Engineer",  "BuildIt",  "72%", new[] {"React",".NET","SQL"}),
+    };
+
+    private readonly List<RecentApplication> _recentApplications = new()
+    {
+        new(1, "Frontend Developer", "DataFlow",  "În analiză", "warning"),
+        new(2, "UI Engineer",        "DesignLab", "Interviu",   "default"),
+    };
+
+    private readonly List<string> _notifications = new()
+    {
+        "Statusul aplicării tale la DataFlow a fost actualizat la «În analiză».",
+        "Ai primit un mesaj nou de la DesignLab.",
+        "3 joburi noi corespund profilului tău.",
+    };
+}

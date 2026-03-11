@@ -1,0 +1,57 @@
+﻿@page "/employer/jobs"
+@layout EmployerLayout
+@rendermode InteractiveWebAssembly
+
+<PageTitle>Anunțurile mele - JobFinder</PageTitle>
+
+<PageHeader Title="Anunțurile mele"
+            Description="Gestionează anunțurile de angajare publicate.">
+    <Actions>
+        <a href="/employer/jobs/create"
+           style="display:inline-block; background:#6366f1; color:#fff;
+                  padding:12px 24px; font-size:11px; font-weight:600;
+                  letter-spacing:2px; text-transform:uppercase; text-decoration:none;">
+            + Anunț nou
+        </a>
+    </Actions>
+</PageHeader>
+
+@foreach (var job in _jobs)
+{
+    <div style="border-bottom:1px solid #e5e7eb; padding:20px 0;
+                display:flex; justify-content:space-between; align-items:center;">
+        <div>
+            <a href="/employer/jobs/@job.Id/edit"
+               style="font-size:14px; font-weight:700; color:#111827;
+                      text-decoration:none; transition:color 0.15s;"
+               onmouseover="this.style.color='#6366f1'"
+               onmouseout="this.style.color='#111827'">
+                @job.Title
+            </a>
+            <p style="font-size:14px; color:#6b7280; margin:4px 0 0 0;">
+                @job.Applications aplicări · @job.Date
+            </p>
+        </div>
+        <div style="display:flex; align-items:center; gap:16px;">
+            <StatusBadge Status="@job.Status" Variant="@job.Variant" />
+            <a href="/employer/jobs/@job.Id/applications"
+               style="font-size:12px; font-weight:600; color:#6366f1;
+                      text-decoration:none; letter-spacing:0.5px;">
+                Vezi aplicări →
+            </a>
+        </div>
+    </div>
+}
+
+@code {
+    private record Job(int Id, string Title, string Status,
+                       string Variant, int Applications, string Date);
+
+    private readonly List<Job> _jobs = new()
+    {
+        new(1, "Frontend Developer", "Activ",   "success", 12, "2025-01-15"),
+        new(2, "Backend Engineer",   "Activ",   "success", 8,  "2025-01-10"),
+        new(3, "UX Designer",        "Inactiv", "muted",   3,  "2024-12-20"),
+        new(4, "DevOps Engineer",    "Arhivat", "muted",   15, "2024-11-05"),
+    };
+}

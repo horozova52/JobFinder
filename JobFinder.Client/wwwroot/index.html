@@ -1,0 +1,41 @@
+﻿<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>JobFinder</title>
+    <base href="/" />
+
+    <!-- MudBlazor CSS -->
+    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" rel="stylesheet" />
+    <link href="_content/MudBlazor/MudBlazor.min.css" rel="stylesheet" />
+
+    <!-- Fonturile tale (Roboto Mono + Source Sans 3) -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500;600;700&family=Source+Sans+3:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+    <!-- CSS-ul tău custom -->
+    <link rel="stylesheet" href="app.css" />
+    <link rel="stylesheet" href="JobFinder.Client.styles.css" />
+</head>
+<body>
+    <div id="app">
+        <svg class="loading-progress">
+            <circle r="40%" cx="50%" cy="50%" />
+            <circle r="40%" cx="50%" cy="50%" />
+        </svg>
+        <div class="loading-progress-text"></div>
+    </div>
+
+    <div id="blazor-error-ui">
+        A apărut o eroare.
+        <a href="" class="reload">Reîncarcă</a>
+        <a class="dismiss">🗙</a>
+    </div>
+
+    <!-- MudBlazor JS — OBLIGATORIU -->
+    <script src="_content/MudBlazor/MudBlazor.min.js"></script>
+
+    <!-- Blazor WASM -->
+    <script src="_framework/blazor.webassembly.js"></script>
+</body>
+</html>

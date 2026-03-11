@@ -1,0 +1,79 @@
+﻿@page "/candidate/jobs"
+@layout CandidateLayout
+@rendermode InteractiveWebAssembly
+
+<PageTitle>Căutare joburi - JobFinder</PageTitle>
+
+<PageHeader Title="Căutare joburi"
+            Description="Joburi ordonate după compatibilitatea cu profilul tău." />
+
+<!-- Filtre -->
+<div style="display:flex; gap:12px; margin-bottom:32px;">
+    <MudTextField @bind-Value="_search"
+                  Placeholder="Caută după titlu, companie..."
+                  Variant="Variant.Outlined"
+                  Margin="Margin.Dense"
+                  Style="border-radius:0; flex:1;" />
+    <MudSelect @bind-Value="_filterType"
+               Variant="Variant.Outlined"
+               Margin="Margin.Dense"
+               Style="border-radius:0; min-width:160px;">
+        <MudSelectItem Value="@("")">Toate tipurile</MudSelectItem>
+        <MudSelectItem Value="@("Full-time")">Full-time</MudSelectItem>
+        <MudSelectItem Value="@("Remote")">Remote</MudSelectItem>
+        <MudSelectItem Value="@("Hybrid")">Hybrid</MudSelectItem>
+    </MudSelect>
+</div>
+
+@foreach (var job in FilteredJobs)
+{
+    <a href="/candidate/jobs/@job.Id"
+       style="display:block; border-bottom:1px solid #e5e7eb; padding:24px 16px;
+              margin:0 -16px; text-decoration:none; color:inherit; transition:background 0.15s;"
+       onmouseover="this.style.background='#f9fafb'"
+       onmouseout="this.style.background='transparent'">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+            <div>
+                <h2 style="font-size:14px; font-weight:700; color:#111827; margin:0 0 4px 0;">
+                    @job.Title
+                </h2>
+                <p style="font-size:14px; color:#6b7280; margin:0 0 8px 0;">
+                    @job.Company · @job.Location
+                </p>
+                <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                    @foreach (var tag in job.Tags)
+                    {
+                        <span style="font-size:11px; font-weight:600; color:#6b7280;
+                                     border:1px solid #e5e7eb; padding:2px 8px;">@tag</span>
+                    }
+                </div>
+            </div>
+            <div style="text-align:right; flex-shrink:0; margin-left:24px;">
+                <StatusBadge Status="@($"{job.Match} match")" Variant="default" />
+                <p style="font-size:12px; color:#6b7280; margin-top:4px;">@job.Type</p>
+            </div>
+        </div>
+    </a>
+}
+
+@code {
+    private string _search     = "";
+    private string _filterType = "";
+
+    private record Job(int Id, string Title, string Company, string Location,
+                       string Match, string[] Tags, string Type);
+
+    private readonly List<Job> _jobs = new()
+    {
+        new(1, "React Developer",     "TechCorp", "București", "85%", new[]{"React","TypeScript"}, "Full-time"),
+        new(2, "Full Stack Engineer", "BuildIt",  "Remote",    "72%", new[]{"React",".NET","SQL"}, "Remote"),
+        new(3, "Frontend Engineer",   "StartupX", "Cluj",      "68%", new[]{"Vue","JavaScript"},   "Hybrid"),
+        new(4, "Software Developer",  "EntCo",    "Timișoara", "60%", new[]{"C#",".NET"},          "Full-time"),
+    };
+
+    private IEnumerable<Job> FilteredJobs => _jobs
+        .Where(j => (string.IsNullOrEmpty(_search) ||
+                     j.Title.Contains(_search, StringComparison.OrdinalIgnoreCase) ||
+                     j.Company.Contains(_search, StringComparison.OrdinalIgnoreCase))
+                 && (string.IsNullOrEmpty(_filterType) || j.Type == _filterType));
+}

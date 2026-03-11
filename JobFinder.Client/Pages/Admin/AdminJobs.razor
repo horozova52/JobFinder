@@ -1,0 +1,51 @@
+﻿@page "/admin/jobs"
+@layout AdminLayout
+@rendermode InteractiveWebAssembly
+
+<PageTitle>Moderare anunțuri - JobFinder</PageTitle>
+
+<PageHeader Title="Moderare anunțuri"
+            Description="Vizualizează, dezactivează sau șterge anunțuri." />
+
+@foreach (var job in _jobs)
+{
+    <div style="border-bottom:1px solid #e5e7eb; padding:20px 0;
+                display:flex; justify-content:space-between; align-items:center;">
+        <div>
+            <h3 style="font-size:14px; font-weight:700; color:#111827; margin:0 0 4px 0;">
+                @job.Title
+            </h3>
+            <p style="font-size:14px; color:#6b7280; margin:0;">
+                @job.Company · @job.Date
+            </p>
+        </div>
+        <div style="display:flex; align-items:center; gap:16px;">
+            <StatusBadge Status="@job.Status"
+                         Variant="@(job.Status == "Raportat" ? "destructive" : "success")" />
+            <button style="font-size:12px; font-weight:600; color:#6b7280;
+                           background:none; border:none; cursor:pointer;"
+                    onmouseover="this.style.color='#111827'"
+                    onmouseout="this.style.color='#6b7280'">
+                Dezactivează
+            </button>
+            <button style="font-size:12px; font-weight:600; color:#dc2626;
+                           background:none; border:none; cursor:pointer; text-decoration:none;"
+                    onmouseover="this.style.textDecoration='underline'"
+                    onmouseout="this.style.textDecoration='none'">
+                Șterge
+            </button>
+        </div>
+    </div>
+}
+
+@code {
+    private record Job(int Id, string Title, string Company,
+                       string Status, string Date);
+
+    private readonly List<Job> _jobs = new()
+    {
+        new(1, "Frontend Developer", "TechCorp", "Activ",    "2025-01-15"),
+        new(2, "Backend Engineer",   "DataFlow", "Activ",    "2025-01-14"),
+        new(3, "Spam Job",           "FakeCo",   "Raportat", "2025-01-13"),
+    };
+}

@@ -1,0 +1,101 @@
+﻿@page "/employer/dashboard"
+@layout EmployerLayout
+@rendermode InteractiveWebAssembly
+
+<PageTitle>Dashboard Angajator - JobFinder</PageTitle>
+
+<PageHeader Title="Dashboard"
+            Description="Activitatea companiei tale pe platformă." />
+
+<!-- Anunțuri active -->
+<section style="margin-bottom:40px;">
+    <h2 style="font-size:14px; font-weight:700; color:#111827; margin-bottom:16px;">
+        Anunțuri active
+    </h2>
+    @foreach (var job in _jobs)
+    {
+        <a href="/employer/jobs/@job.Id/applications"
+           style="display:block; border-bottom:1px solid #e5e7eb; padding:20px 16px;
+                  margin:0 -16px; text-decoration:none; color:inherit; transition:background 0.15s;"
+           onmouseover="this.style.background='#f9fafb'"
+           onmouseout="this.style.background='transparent'">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                    <h3 style="font-size:14px; font-weight:700; color:#111827; margin:0 0 4px 0;">
+                        @job.Title
+                    </h3>
+                    <p style="font-size:14px; color:#6b7280; margin:0;">
+                        @job.Applications aplicări · Publicat @job.Date
+                    </p>
+                </div>
+                <StatusBadge Status="Activ" Variant="success" />
+            </div>
+        </a>
+    }
+</section>
+
+<!-- Aplicări noi -->
+<section style="margin-bottom:40px;">
+    <h2 style="font-size:14px; font-weight:700; color:#111827; margin-bottom:16px;">
+        Aplicări noi
+    </h2>
+    @foreach (var app in _applications)
+    {
+        <a href="/employer/applications/@app.Id"
+           style="display:block; border-bottom:1px solid #e5e7eb; padding:20px 16px;
+                  margin:0 -16px; text-decoration:none; color:inherit; transition:background 0.15s;"
+           onmouseover="this.style.background='#f9fafb'"
+           onmouseout="this.style.background='transparent'">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                    <h3 style="font-size:14px; font-weight:700; color:#111827; margin:0 0 4px 0;">
+                        @app.Name
+                    </h3>
+                    <p style="font-size:14px; color:#6b7280; margin:0;">
+                        A aplicat la @app.Job
+                    </p>
+                </div>
+                <p style="font-size:12px; color:#6b7280;">@app.Date</p>
+            </div>
+        </a>
+    }
+</section>
+
+<!-- Statistici -->
+<section>
+    <h2 style="font-size:14px; font-weight:700; color:#111827; margin-bottom:16px;">
+        Statistici
+    </h2>
+    <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:24px;">
+        @foreach (var stat in _stats)
+        {
+            <div style="border:1px solid #e5e7eb; padding:16px;">
+                <p style="font-size:24px; font-weight:700; color:#6366f1; margin:0 0 4px 0;">
+                    @stat.Value
+                </p>
+                <p style="font-size:12px; color:#6b7280; margin:0;">@stat.Label</p>
+            </div>
+        }
+    </div>
+</section>
+
+@code {
+    private readonly List<(int Id, string Title, int Applications, string Date)> _jobs = new()
+    {
+        (1, "Frontend Developer", 12, "2025-01-15"),
+        (2, "Backend Engineer",   8,  "2025-01-10"),
+    };
+
+    private readonly List<(int Id, string Name, string Job, string Date)> _applications = new()
+    {
+        (1, "Ion Popescu",   "Frontend Developer", "Azi"),
+        (2, "Maria Ionescu", "Backend Engineer",   "Ieri"),
+    };
+
+    private readonly List<(string Label, string Value)> _stats = new()
+    {
+        ("Anunțuri active",      "5"),
+        ("Total aplicări",       "47"),
+        ("Candidați acceptați",  "3"),
+    };
+}

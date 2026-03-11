@@ -1,0 +1,75 @@
+﻿@page "/admin/settings"
+@layout AdminLayout
+@rendermode InteractiveWebAssembly
+
+<PageTitle>Configurări platformă - JobFinder</PageTitle>
+
+<PageHeader Title="Configurări platformă"
+            Description="Politici de acces și setări generale." />
+
+<div style="max-width:560px; display:flex; flex-direction:column; gap:32px;">
+
+    <!-- Nr. maxim aplicări -->
+    <div>
+        <label style="display:block; font-size:11px; font-weight:600; letter-spacing:2px;
+                      text-transform:uppercase; color:#6b7280; margin-bottom:8px;">
+            Nr. maxim aplicări/zi per candidat
+        </label>
+        <MudTextField @bind-Value="_maxApplications"
+                      InputType="InputType.Number"
+                      Variant="Variant.Outlined"
+                      FullWidth="true"
+                      Margin="Margin.Dense"
+                      Style="border-radius:0;" />
+    </div>
+
+    <div style="border-bottom:1px solid #e5e7eb;"></div>
+
+    <!-- Toggle-uri -->
+    @foreach (var toggle in _toggles)
+    {
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:14px; color:#111827;">@toggle.Label</span>
+            <button @onclick="() => toggle.Toggle()"
+                    style="font-size:11px; font-weight:600; letter-spacing:1px;
+                           text-transform:uppercase; padding:8px 16px; cursor:pointer;
+                           border:1px solid @(toggle.Value ? "#6366f1" : "#e5e7eb");
+                           color:@(toggle.Value ? "#6366f1" : "#6b7280");
+                           background:@(toggle.Value ? "#ede9fe" : "transparent");
+                           transition:all 0.15s;">
+                @(toggle.Value ? "Activat" : "Dezactivat")
+            </button>
+        </div>
+    }
+
+    <div style="border-bottom:1px solid #e5e7eb;"></div>
+
+    <div>
+        <MudButton Variant="Variant.Filled" OnClick="HandleSave"
+                   Style="background:#6366f1; color:#fff; border-radius:0;
+                          font-size:11px; font-weight:600; letter-spacing:2px;
+                          text-transform:uppercase; padding:12px 24px;">
+            Salvează configurările
+        </MudButton>
+    </div>
+</div>
+
+@code {
+    private string _maxApplications = "10";
+
+    private class ToggleItem
+    {
+        public string Label    { get; init; } = "";
+        public bool   Value    { get; set;  }
+        public void   Toggle() => Value = !Value;
+    }
+
+    private readonly List<ToggleItem> _toggles = new()
+    {
+        new() { Label = "Moderare automată anunțuri", Value = true  },
+        new() { Label = "Permite înregistrări noi",   Value = true  },
+        new() { Label = "Mod mentenanță",             Value = false },
+    };
+
+    private void HandleSave() { /* logica vine mai târziu */ }
+}
