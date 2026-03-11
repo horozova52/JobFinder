@@ -1,0 +1,88 @@
+﻿@page "/candidate/cv"
+@layout CandidateLayout
+@rendermode InteractiveWebAssembly
+
+<PageTitle>CV Preview - JobFinder</PageTitle>
+
+<PageHeader Title="CV — Preview"
+            Description="CV-ul tău generat automat din datele profilului.">
+    <Actions>
+        <MudButton Variant="Variant.Filled" OnClick="DownloadPdf"
+                   Style="background:#6366f1; color:#fff; border-radius:0;
+                          font-size:11px; font-weight:600; letter-spacing:2px;
+                          text-transform:uppercase; padding:12px 24px;">
+            Descarcă PDF
+        </MudButton>
+    </Actions>
+</PageHeader>
+
+<!-- CV Preview -->
+<div style="border:1px solid #e5e7eb; background:#fff; padding:40px; max-width:672px;">
+
+    <h2 style="font-size:20px; font-weight:700; color:#111827; margin:0 0 4px 0;">
+        Ion Popescu
+    </h2>
+    <p style="font-size:14px; color:#6b7280; margin:0 0 24px 0;">
+        ion.popescu@email.com · +40 721 000 000 · București
+    </p>
+
+    <div style="border-bottom:1px solid #e5e7eb; margin-bottom:24px;"></div>
+
+    <!-- Despre -->
+    <section style="margin-bottom:24px;">
+        <h3 style="font-size:11px; font-weight:600; letter-spacing:3px; text-transform:uppercase;
+                   color:#6b7280; margin-bottom:12px;">
+            Despre
+        </h3>
+        <p style="font-size:14px; color:#111827; line-height:1.7; margin:0;">
+            Dezvoltator software cu 4 ani de experiență în aplicații web moderne,
+            specializat pe React și TypeScript.
+        </p>
+    </section>
+
+    <!-- Experiență -->
+    <section style="margin-bottom:24px;">
+        <h3 style="font-size:11px; font-weight:600; letter-spacing:3px; text-transform:uppercase;
+                   color:#6b7280; margin-bottom:12px;">
+            Experiență
+        </h3>
+        <p style="font-size:14px; font-weight:600; color:#111827; margin:0 0 4px 0;">
+            Frontend Developer — TechCorp
+        </p>
+        <p style="font-size:12px; color:#6b7280; margin:0;">2022 - Prezent · București</p>
+    </section>
+
+    <!-- Educație -->
+    <section style="margin-bottom:24px;">
+        <h3 style="font-size:11px; font-weight:600; letter-spacing:3px; text-transform:uppercase;
+                   color:#6b7280; margin-bottom:12px;">
+            Educație
+        </h3>
+        <p style="font-size:14px; font-weight:600; color:#111827; margin:0 0 4px 0;">
+            Universitatea Politehnica București
+        </p>
+        <p style="font-size:12px; color:#6b7280; margin:0;">Informatică · 2018 - 2022</p>
+    </section>
+
+    <!-- Competențe -->
+    <section>
+        <h3 style="font-size:11px; font-weight:600; letter-spacing:3px; text-transform:uppercase;
+                   color:#6b7280; margin-bottom:12px;">
+            Competențe
+        </h3>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            @foreach (var tag in _tags)
+            {
+                <span style="font-size:11px; font-weight:600; color:#6b7280;
+                             border:1px solid #e5e7eb; padding:4px 12px;">@tag</span>
+            }
+        </div>
+    </section>
+</div>
+
+@code {
+    private readonly List<string> _tags = new()
+        { "React", "TypeScript", "CSS", "Git", "REST API" };
+
+    private void DownloadPdf() { /* logica PDF vine mai târziu */ }
+}

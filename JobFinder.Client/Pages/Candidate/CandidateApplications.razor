@@ -1,0 +1,43 @@
+﻿@page "/candidate/applications"
+@layout CandidateLayout
+@rendermode InteractiveWebAssembly
+
+<PageTitle>Aplicările mele - JobFinder</PageTitle>
+
+<PageHeader Title="Aplicările mele"
+            Description="Urmărește statusul fiecărei aplicări." />
+
+@foreach (var app in _applications)
+{
+    <a href="/candidate/applications/@app.Id"
+       style="display:block; border-bottom:1px solid #e5e7eb; padding:20px 16px;
+              margin:0 -16px; text-decoration:none; color:inherit; transition:background 0.15s;"
+       onmouseover="this.style.background='#f9fafb'"
+       onmouseout="this.style.background='transparent'">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div>
+                <h3 style="font-size:14px; font-weight:700; color:#111827; margin:0 0 4px 0;">
+                    @app.Title
+                </h3>
+                <p style="font-size:14px; color:#6b7280; margin:0;">
+                    @app.Company · Aplicat pe @app.Date
+                </p>
+            </div>
+            <StatusBadge Status="@app.Status" Variant="@app.Variant" />
+        </div>
+    </a>
+}
+
+@code {
+    private record Application(int Id, string Title, string Company,
+                               string Status, string Variant, string Date);
+
+    private readonly List<Application> _applications = new()
+    {
+        new(1, "Frontend Developer", "DataFlow",  "În analiză", "warning",     "2025-01-10"),
+        new(2, "UI Engineer",        "DesignLab", "Interviu",   "default",     "2025-01-08"),
+        new(3, "React Developer",    "StartupX",  "Acceptat",   "success",     "2025-01-05"),
+        new(4, "Web Developer",      "AgencyPro", "Respins",    "destructive", "2025-01-03"),
+    };
+}
+ 

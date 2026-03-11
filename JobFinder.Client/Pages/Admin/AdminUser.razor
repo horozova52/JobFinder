@@ -1,0 +1,78 @@
+﻿@page "/admin/users"
+@layout AdminLayout
+@rendermode InteractiveWebAssembly
+
+<PageTitle>Gestionare utilizatori - JobFinder</PageTitle>
+
+<PageHeader Title="Gestionare utilizatori"
+            Description="Editare roluri și dezactivare conturi." />
+
+<!-- Filtre -->
+<div style="display:flex; gap:12px; margin-bottom:32px;">
+    <MudTextField @bind-Value="_search"
+                  Placeholder="Caută utilizator..."
+                  Variant="Variant.Outlined"
+                  Margin="Margin.Dense"
+                  Style="border-radius:0; flex:1;" />
+    <MudSelect @bind-Value="_filterRole"
+               Variant="Variant.Outlined"
+               Margin="Margin.Dense"
+               Style="border-radius:0; min-width:160px;">
+        <MudSelectItem Value="@("")">Toate rolurile</MudSelectItem>
+        <MudSelectItem Value="@("Candidat")">Candidat</MudSelectItem>
+        <MudSelectItem Value="@("Angajator")">Angajator</MudSelectItem>
+        <MudSelectItem Value="@("Admin")">Admin</MudSelectItem>
+    </MudSelect>
+</div>
+
+@foreach (var user in FilteredUsers)
+{
+    <div style="border-bottom:1px solid #e5e7eb; padding:20px 0;
+                display:flex; justify-content:space-between; align-items:center;">
+        <div>
+            <h3 style="font-size:14px; font-weight:700; color:#111827; margin:0 0 4px 0;">
+                @user.Name
+            </h3>
+            <p style="font-size:14px; color:#6b7280; margin:0;">@user.Email</p>
+        </div>
+        <div style="display:flex; align-items:center; gap:16px;">
+            <StatusBadge Status="@user.Role"   Variant="muted" />
+            <StatusBadge Status="@user.Status"
+                         Variant="@(user.Status == "Activ" ? "success" : "destructive")" />
+            <button style="font-size:12px; font-weight:600; color:#6b7280;
+                           background:none; border:none; cursor:pointer;"
+                    onmouseover="this.style.color='#111827'"
+                    onmouseout="this.style.color='#6b7280'">
+                Editează
+            </button>
+            <button style="font-size:12px; font-weight:600; color:#dc2626;
+                           background:none; border:none; cursor:pointer;"
+                    onmouseover="this.style.textDecoration='underline'"
+                    onmouseout="this.style.textDecoration='none'">
+                Dezactivează
+            </button>
+        </div>
+    </div>
+}
+
+@code {
+    private string _search     = "";
+    private string _filterRole = "";
+
+    private record User(int Id, string Name, string Email,
+                        string Role, string Status);
+
+    private readonly List<User> _users = new()
+    {
+        new(1, "Ion Popescu",      "ion@email.com",      "Candidat",  "Activ"),
+        new(2, "TechCorp HR",      "hr@techcorp.ro",     "Angajator", "Activ"),
+        new(3, "Maria Ionescu",    "maria@email.com",    "Candidat",  "Dezactivat"),
+        new(4, "Admin Principal",  "admin@platform.ro",  "Admin",     "Activ"),
+    };
+
+    private IEnumerable<User> FilteredUsers => _users
+        .Where(u => (string.IsNullOrEmpty(_search) ||
+                     u.Name.Contains(_search,  StringComparison.OrdinalIgnoreCase) ||
+                     u.Email.Contains(_search, StringComparison.OrdinalIgnoreCase))
+                 && (string.IsNullOrEmpty(_filterRole) || u.Role == _filterRole));
+}

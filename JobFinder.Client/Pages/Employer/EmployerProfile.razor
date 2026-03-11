@@ -1,0 +1,99 @@
+﻿@page "/employer/profile"
+@layout EmployerLayout
+@rendermode InteractiveWebAssembly
+
+<PageTitle>Profil companie - JobFinder</PageTitle>
+
+<PageHeader Title="Profil companie"
+            Description="Informațiile companiei tale vizibile candidaților." />
+
+<div style="max-width:560px; display:flex; flex-direction:column; gap:24px;">
+
+    <div>
+        <label style="display:block; font-size:11px; font-weight:600; letter-spacing:2px;
+                      text-transform:uppercase; color:#6b7280; margin-bottom:8px;">
+            Numele companiei
+        </label>
+        <MudTextField @bind-Value="_profile.Company"
+                      Variant="Variant.Outlined" FullWidth="true"
+                      Margin="Margin.Dense" Style="border-radius:0;" />
+    </div>
+    <div>
+        <label style="display:block; font-size:11px; font-weight:600; letter-spacing:2px;
+                      text-transform:uppercase; color:#6b7280; margin-bottom:8px;">
+            Email
+        </label>
+        <MudTextField @bind-Value="_profile.Email"
+                      Variant="Variant.Outlined" FullWidth="true"
+                      Margin="Margin.Dense" Style="border-radius:0;" />
+    </div>
+    <div>
+        <label style="display:block; font-size:11px; font-weight:600; letter-spacing:2px;
+                      text-transform:uppercase; color:#6b7280; margin-bottom:8px;">
+            Website
+        </label>
+        <MudTextField @bind-Value="_profile.Website"
+                      Variant="Variant.Outlined" FullWidth="true"
+                      Margin="Margin.Dense" Style="border-radius:0;" />
+    </div>
+    <div>
+        <label style="display:block; font-size:11px; font-weight:600; letter-spacing:2px;
+                      text-transform:uppercase; color:#6b7280; margin-bottom:8px;">
+            Locație
+        </label>
+        <MudTextField @bind-Value="_profile.Location"
+                      Variant="Variant.Outlined" FullWidth="true"
+                      Margin="Margin.Dense" Style="border-radius:0;" />
+    </div>
+    <div>
+        <label style="display:block; font-size:11px; font-weight:600; letter-spacing:2px;
+                      text-transform:uppercase; color:#6b7280; margin-bottom:8px;">
+            Industrie
+        </label>
+        <MudTextField @bind-Value="_profile.Industry"
+                      Variant="Variant.Outlined" FullWidth="true"
+                      Margin="Margin.Dense" Style="border-radius:0;" />
+    </div>
+    <div>
+        <label style="display:block; font-size:11px; font-weight:600; letter-spacing:2px;
+                      text-transform:uppercase; color:#6b7280; margin-bottom:8px;">
+            Descriere
+        </label>
+        <MudTextField @bind-Value="_profile.Description"
+                      Lines="4" Variant="Variant.Outlined" FullWidth="true"
+                      Margin="Margin.Dense" Style="border-radius:0;" />
+    </div>
+
+    <div>
+        <MudButton Variant="Variant.Filled" OnClick="HandleSave"
+                   Style="background:#6366f1; color:#fff; border-radius:0;
+                          font-size:11px; font-weight:600; letter-spacing:2px;
+                          text-transform:uppercase; padding:12px 24px;">
+            Salvează profilul
+        </MudButton>
+    </div>
+</div>
+
+@code {
+    private ProfileForm _profile = new()
+    {
+        Company     = "TechCorp",
+        Email       = "hr@techcorp.ro",
+        Website     = "https://techcorp.ro",
+        Location    = "București",
+        Industry    = "IT & Software",
+        Description = "Companie de tehnologie specializată în dezvoltarea de soluții SaaS pentru piața europeană.",
+    };
+
+    private void HandleSave() { /* logica vine mai târziu */ }
+
+    private class ProfileForm
+    {
+        public string Company     { get; set; } = "";
+        public string Email       { get; set; } = "";
+        public string Website     { get; set; } = "";
+        public string Location    { get; set; } = "";
+        public string Industry    { get; set; } = "";
+        public string Description { get; set; } = "";
+    }
+}

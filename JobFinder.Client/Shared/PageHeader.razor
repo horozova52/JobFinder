@@ -1,0 +1,33 @@
+﻿
+@* Suportă Title, Description și Actions (slot pentru butoane) *@
+
+<div style="margin-bottom:40px;">
+    <div style="display:flex; align-items:flex-start; justify-content:space-between;">
+        <div>
+            <h1 style="font-size:24px; font-weight:700; letter-spacing:-0.5px;
+                       color:#111827; margin:0;">
+                @Title
+            </h1>
+            @if (!string.IsNullOrEmpty(Description))
+            {
+                <p style="font-size:14px; color:#6b7280; margin-top:8px;
+                              max-width:560px; line-height:1.6;">
+                    @Description
+                </p>
+            }
+        </div>
+        @if (Actions != null)
+        {
+            <div style="display:flex; align-items:center; gap:12px; flex-shrink:0; margin-left:24px;">
+                @Actions
+            </div>
+        }
+    </div>
+    <div style="border-bottom:1px solid #e5e7eb; margin-top:24px;"></div>
+</div>
+
+@code {
+    [Parameter] public string Title { get; set; } = "";
+    [Parameter] public string Description { get; set; } = "";
+    [Parameter] public RenderFragment? Actions { get; set; }
+}

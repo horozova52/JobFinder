@@ -1,0 +1,131 @@
+﻿@page "/employer/jobs/{Id:int}/edit"
+@layout EmployerLayout
+@rendermode InteractiveWebAssembly
+
+<PageTitle>Editare anunț - JobFinder</PageTitle>
+
+<a href="/employer/jobs"
+   style="font-size:12px; font-weight:600; letter-spacing:1px; text-transform:uppercase;
+          color:#6b7280; text-decoration:none; display:inline-block; margin-bottom:24px;">
+    ← Înapoi la anunțuri
+</a>
+
+<PageHeader Title="@($"Editare: {_form.Title}")"
+            Description="Modifică detaliile anunțului." />
+
+<div style="max-width:560px; display:flex; flex-direction:column; gap:24px;">
+
+    <!-- Titlu -->
+    <div>
+        <label style="display:block; font-size:11px; font-weight:600; letter-spacing:2px;
+                      text-transform:uppercase; color:#6b7280; margin-bottom:8px;">
+            Titlu job
+        </label>
+        <MudTextField @bind-Value="_form.Title"
+                      Variant="Variant.Outlined" FullWidth="true"
+                      Margin="Margin.Dense" Style="border-radius:0;" />
+    </div>
+
+    <!-- Locație + Tip -->
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+        <div>
+            <label style="display:block; font-size:11px; font-weight:600; letter-spacing:2px;
+                          text-transform:uppercase; color:#6b7280; margin-bottom:8px;">
+                Locație
+            </label>
+            <MudTextField @bind-Value="_form.Location"
+                          Variant="Variant.Outlined" FullWidth="true"
+                          Margin="Margin.Dense" Style="border-radius:0;" />
+        </div>
+        <div>
+            <label style="display:block; font-size:11px; font-weight:600; letter-spacing:2px;
+                          text-transform:uppercase; color:#6b7280; margin-bottom:8px;">
+                Tip
+            </label>
+            <MudSelect @bind-Value="_form.Type"
+                       Variant="Variant.Outlined" FullWidth="true"
+                       Margin="Margin.Dense" Style="border-radius:0;">
+                <MudSelectItem Value="@("Full-time")">Full-time</MudSelectItem>
+                <MudSelectItem Value="@("Part-time")">Part-time</MudSelectItem>
+                <MudSelectItem Value="@("Remote")">Remote</MudSelectItem>
+                <MudSelectItem Value="@("Hybrid")">Hybrid</MudSelectItem>
+            </MudSelect>
+        </div>
+    </div>
+
+    <!-- Descriere -->
+    <div>
+        <label style="display:block; font-size:11px; font-weight:600; letter-spacing:2px;
+                      text-transform:uppercase; color:#6b7280; margin-bottom:8px;">
+            Descriere
+        </label>
+        <MudTextField @bind-Value="_form.Description"
+                      Lines="5" Variant="Variant.Outlined" FullWidth="true"
+                      Margin="Margin.Dense" Style="border-radius:0;" />
+    </div>
+
+    <!-- Cerințe -->
+    <div>
+        <label style="display:block; font-size:11px; font-weight:600; letter-spacing:2px;
+                      text-transform:uppercase; color:#6b7280; margin-bottom:8px;">
+            Cerințe
+        </label>
+        <MudTextField @bind-Value="_form.Requirements"
+                      Lines="3" Variant="Variant.Outlined" FullWidth="true"
+                      Margin="Margin.Dense" Style="border-radius:0;" />
+    </div>
+
+    <!-- Tags -->
+    <div>
+        <label style="display:block; font-size:11px; font-weight:600; letter-spacing:2px;
+                      text-transform:uppercase; color:#6b7280; margin-bottom:8px;">
+            Tags
+        </label>
+        <MudTextField @bind-Value="_form.Tags"
+                      Variant="Variant.Outlined" FullWidth="true"
+                      Margin="Margin.Dense" Style="border-radius:0;" />
+    </div>
+
+    <!-- Butoane -->
+    <div style="display:flex; gap:16px;">
+        <MudButton Variant="Variant.Filled" OnClick="HandleSave"
+                   Style="background:#6366f1; color:#fff; border-radius:0;
+                          font-size:11px; font-weight:600; letter-spacing:2px;
+                          text-transform:uppercase; padding:12px 24px;">
+            Salvează modificările
+        </MudButton>
+        <MudButton Variant="Variant.Outlined" OnClick="HandleDeactivate"
+                   Style="border:1px solid #dc2626; color:#dc2626; border-radius:0;
+                          font-size:11px; font-weight:600; letter-spacing:2px;
+                          text-transform:uppercase; padding:12px 24px;">
+            Dezactivează
+        </MudButton>
+    </div>
+</div>
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    private JobForm _form = new()
+    {
+        Title        = "Frontend Developer",
+        Location     = "București",
+        Type         = "Full-time",
+        Description  = "Căutăm un Frontend Developer experimentat.",
+        Requirements = "3+ ani React, TypeScript",
+        Tags         = "React, TypeScript, CSS"
+    };
+
+    private void HandleSave()       { /* logica vine mai târziu */ }
+    private void HandleDeactivate() { /* logica vine mai târziu */ }
+
+    private class JobForm
+    {
+        public string Title        { get; set; } = "";
+        public string Location     { get; set; } = "";
+        public string Type         { get; set; } = "Full-time";
+        public string Description  { get; set; } = "";
+        public string Requirements { get; set; } = "";
+        public string Tags         { get; set; } = "";
+    }
+}

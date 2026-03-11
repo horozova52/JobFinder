@@ -1,0 +1,84 @@
+﻿@page "/login"
+@layout MainLayout
+@rendermode InteractiveWebAssembly
+
+<PageTitle>Autentificare - JobFinder</PageTitle>
+
+<div style="max-width:1152px; margin:0 auto; padding:96px 32px;">
+    <div style="max-width:384px;">
+        <h1 style="font-size:24px; font-weight:700; letter-spacing:-0.5px;
+                   margin-bottom:8px; color:#111827;">
+            Autentificare
+        </h1>
+        <p style="font-size:14px; color:#6b7280; margin-bottom:32px;">
+            Intră în contul tău pentru a continua.
+        </p>
+
+        <div style="display:flex; flex-direction:column; gap:16px;">
+            <!-- Email -->
+            <div>
+                <label style="display:block; font-size:11px; font-weight:600;
+                              letter-spacing:2px; text-transform:uppercase;
+                              color:#6b7280; margin-bottom:8px;">
+                    Email
+                </label>
+                <MudTextField @bind-Value="_email"
+                              Placeholder="email@exemplu.com"
+                              Variant="Variant.Outlined"
+                              FullWidth="true"
+                              Style="border-radius:0;"
+                              Margin="Margin.Dense" />
+            </div>
+
+            <!-- Parolă -->
+            <div>
+                <label style="display:block; font-size:11px; font-weight:600;
+                              letter-spacing:2px; text-transform:uppercase;
+                              color:#6b7280; margin-bottom:8px;">
+                    Parolă
+                </label>
+                <MudTextField @bind-Value="_password"
+                              Placeholder="••••••••"
+                              InputType="InputType.Password"
+                              Variant="Variant.Outlined"
+                              FullWidth="true"
+                              Style="border-radius:0;"
+                              Margin="Margin.Dense" />
+            </div>
+
+            <MudButton Variant="Variant.Filled"
+                       FullWidth="true"
+                       OnClick="HandleLogin"
+                       Style="background:#111827; color:#fff; border-radius:0;
+                              font-size:11px; font-weight:600; letter-spacing:2px;
+                              text-transform:uppercase; padding:14px; margin-top:8px;">
+                Conectare
+            </MudButton>
+        </div>
+
+        <div style="margin-top:24px;">
+            <p style="font-size:12px; color:#6b7280;">
+                Nu ai cont?&nbsp;
+                <MudLink Href="/register/candidate"
+                         Style="color:#6366f1; font-size:12px;">
+                    Înregistrare candidat
+                </MudLink>
+                &nbsp;/&nbsp;
+                <MudLink Href="/register/employer"
+                         Style="color:#6366f1; font-size:12px;">
+                    Înregistrare angajator
+                </MudLink>
+            </p>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string _email = "";
+    private string _password = "";
+
+    private void HandleLogin()
+    {
+        // logica de login vine mai târziu
+    }
+}

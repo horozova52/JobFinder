@@ -1,0 +1,172 @@
+﻿/* ============================================
+   FONTS
+   ============================================ */
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500;600;700&family=Source+Sans+3:wght@300;400;500;600;700&display=swap');
+
+/* ============================================
+   CSS VARIABLES — identic cu index.css React
+   ============================================ */
+:root {
+    --background: 0 0% 97%;
+    --foreground: 0 0% 11%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 11%;
+    --primary: 219 100% 50%;
+    --primary-foreground: 0 0% 100%;
+    --muted: 0 0% 95%;
+    --muted-foreground: 0 0% 63%;
+    --accent: 0 0% 95%;
+    --accent-foreground: 0 0% 11%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 142 71% 45%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
+    --border: 0 0% 88%;
+    --radius: 0.25rem;
+    --sidebar-background: 0 0% 100%;
+    --sidebar-border: 0 0% 88%;
+    --sidebar-accent: 0 0% 95%;
+    --font-heading: 'Roboto Mono', monospace;
+    --font-body: 'Source Sans 3', sans-serif;
+    /* Valori hex calculate din HSL — folosite în inline styles */
+    --color-primary: #004fef;
+    --color-foreground: #1c1c1c;
+    --color-muted: #f2f2f2;
+    --color-muted-fg: #a1a1a1;
+    --color-border: #e0e0e0;
+    --color-background: #f7f7f7;
+    --color-card: #ffffff;
+    --color-destructive: #dc2626;
+    --color-success: #22c55e;
+    --color-warning: #f59e0b;
+}
+
+/* ============================================
+   RESET
+   ============================================ */
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* ============================================
+   TIPOGRAFIE
+   ============================================ */
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: hsl(var(--foreground));
+}
+
+button, a, nav {
+    font-family: var(--font-heading);
+}
+
+a {
+    color: hsl(var(--primary));
+    text-decoration: none;
+}
+
+/* ============================================
+   SCROLLBAR CUSTOM
+   ============================================ */
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: hsl(var(--muted));
+}
+
+::-webkit-scrollbar-thumb {
+    background: hsl(var(--primary));
+    border-radius: 3px;
+}
+
+/* ============================================
+   BLAZOR BUILT-IN
+   ============================================ */
+#blazor-error-ui {
+    background: #ffcc00;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: 0.6rem 1.25rem;
+    position: fixed;
+    z-index: 1000;
+    display: none;
+}
+
+    #blazor-error-ui .dismiss {
+        cursor: pointer;
+        position: absolute;
+        right: 0.75rem;
+        top: 0.5rem;
+    }
+
+.blazor-error-boundary {
+    background: #b32121;
+    padding: 1rem 1rem 1rem 3.7rem;
+    color: white;
+}
+
+    .blazor-error-boundary::after {
+        content: "A apărut o eroare.";
+    }
+
+/* ============================================
+   MUDBLAZOR OVERRIDES — elimină border-radius
+   ============================================ */
+.mud-input-outlined .mud-input-outlined-border,
+.mud-select .mud-input-outlined-border,
+.mud-button,
+.mud-chip {
+    border-radius: 0 !important;
+}
+
+.mud-input-outlined:hover .mud-input-outlined-border {
+    border-color: hsl(var(--primary)) !important;
+}
+
+/* ============================================
+   VALIDATION STYLES
+   ============================================ */
+.valid.modified:not([type=checkbox]) {
+    outline: 1px solid hsl(var(--success));
+}
+
+.invalid {
+    outline: 1px solid hsl(var(--destructive));
+}
+
+.validation-message {
+    color: hsl(var(--destructive));
+    font-size: 12px;
+    margin-top: 4px;
+}
+
+/* ============================================
+   RESPONSIVE — sidebar dispare pe mobil
+   ============================================ */
+@media (max-width: 768px) {
+    aside {
+        display: none;
+    }
+
+    main {
+        margin-left: 0 !important;
+    }
+}

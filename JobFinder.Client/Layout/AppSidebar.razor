@@ -1,0 +1,68 @@
+﻿@inject NavigationManager NavigationManager
+
+<aside style="position:fixed; left:0; top:0; height:100vh; width:256px;
+              border-right:1px solid #e5e7eb; background:#fff;
+              display:flex; flex-direction:column; z-index:50;">
+
+    <!-- Logo / titlu -->
+    <div style="padding:24px; border-bottom:1px solid #e5e7eb;">
+        <a href="/" style="text-decoration:none; display:block;">
+            <h2 style="font-size:12px; font-weight:700; letter-spacing:3px;
+                       text-transform:uppercase; color:#111827; margin:0;">
+                @Title
+            </h2>
+            @if (!string.IsNullOrEmpty(Subtitle))
+            {
+                <span style="font-size:12px; color:#6b7280; margin-top:4px; display:block;">
+                    @Subtitle
+                </span>
+            }
+        </a>
+    </div>
+
+    <!-- Nav links -->
+    <nav style="flex:1; padding:16px 0; overflow-y:auto;">
+        @foreach (var link in Links)
+        {
+            var isActive = CurrentPath == link.Href ||
+            (link.Href != "/" && CurrentPath.StartsWith(link.Href));
+            <a href="@link.Href"
+               style="display:flex; align-items:center; gap:12px;
+                          padding:12px 24px; font-size:11px; font-weight:600;
+                          letter-spacing:1px; text-transform:uppercase;
+                          text-decoration:none; transition:all 0.15s;
+                          color:@(isActive ? "#6366f1" : "#6b7280");
+                          background:@(isActive ? "#f5f3ff" : "transparent");
+                          border-right:@(isActive ? "2px solid #6366f1" : "2px solid transparent");">
+                <span style="font-size:16px; opacity:0.8;">@link.Icon</span>
+                <span>@link.Label</span>
+            </a>
+        }
+    </nav>
+
+    <!-- Footer -->
+    <div style="padding:16px; border-top:1px solid #e5e7eb;">
+        <a href="/account/settings"
+           style="font-size:12px; color:#6b7280; text-decoration:none;">
+            Setări cont
+        </a>
+    </div>
+</aside>
+
+@code {
+    [Parameter] public string Title { get; set; } = "JobFinder";
+    [Parameter] public string Subtitle { get; set; } = "";
+    [Parameter] public List<SidebarLink> Links { get; set; } = new();
+
+    private string CurrentPath =>
+        "/" + NavigationManager.ToBaseRelativePath(NavigationManager.Uri)
+                               .Split('?')[0]
+                               .TrimEnd('/');
+
+    public class SidebarLink
+    {
+        public string Label { get; set; } = "";
+        public string Href { get; set; } = "";
+        public string Icon { get; set; } = "";
+    }
+}

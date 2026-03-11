@@ -1,0 +1,30 @@
+﻿
+
+<span style="display:inline-block; padding:4px 12px; font-size:11px;
+             font-weight:600; letter-spacing:1px; text-transform:uppercase;
+             background:@_bg; color:@_color;">
+    @Status
+</span>
+
+@code {
+    [Parameter] public string Status { get; set; } = "";
+    [Parameter] public string Variant { get; set; } = "default"; // default | success | warning | destructive | muted
+
+    private string _bg => Variant switch
+    {
+        "success" => "#dcfce7",
+        "warning" => "#fef9c3",
+        "destructive" => "#fee2e2",
+        "muted" => "#f3f4f6",
+        _ => "#ede9fe"   // default = primary/10
+    };
+
+    private string _color => Variant switch
+    {
+        "success" => "#16a34a",
+        "warning" => "#ca8a04",
+        "destructive" => "#dc2626",
+        "muted" => "#6b7280",
+        _ => "#6366f1"   // default = primary
+    };
+}

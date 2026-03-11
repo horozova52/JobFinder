@@ -1,0 +1,87 @@
+﻿@page "/employer/jobs/{Id:int}/applications"
+@layout EmployerLayout
+@rendermode InteractiveWebAssembly
+
+<PageTitle>Aplicări job - JobFinder</PageTitle>
+
+<a href="/employer/jobs"
+   style="font-size:12px; font-weight:600; letter-spacing:1px; text-transform:uppercase;
+          color:#6b7280; text-decoration:none; display:inline-block; margin-bottom:24px;">
+    ← Înapoi la anunțuri
+</a>
+
+<PageHeader Title="Aplicări — Frontend Developer"
+            Description="Candidații care au aplicat la acest anunț." />
+
+<!-- Filtre -->
+<div style="display:flex; gap:12px; margin-bottom:32px;">
+    <MudTextField @bind-Value="_search"
+                  Placeholder="Caută candidat..."
+                  Variant="Variant.Outlined"
+                  Margin="Margin.Dense"
+                  Style="border-radius:0; flex:1;" />
+    <MudSelect @bind-Value="_filterStatus"
+               Variant="Variant.Outlined"
+               Margin="Margin.Dense"
+               Style="border-radius:0; min-width:180px;">
+        <MudSelectItem Value="@("")">Toate statusurile</MudSelectItem>
+        <MudSelectItem Value="@("Nou")">Nou</MudSelectItem>
+        <MudSelectItem Value="@("În analiză")">În analiză</MudSelectItem>
+        <MudSelectItem Value="@("Interviu")">Interviu</MudSelectItem>
+        <MudSelectItem Value="@("Acceptat")">Acceptat</MudSelectItem>
+        <MudSelectItem Value="@("Respins")">Respins</MudSelectItem>
+    </MudSelect>
+</div>
+
+<!-- Lista candidați -->
+@foreach (var app in FilteredApplicants)
+{
+    <a href="/employer/applications/@app.Id"
+       style="display:block; border-bottom:1px solid #e5e7eb; padding:20px 16px;
+              margin:0 -16px; text-decoration:none; color:inherit; transition:background 0.15s;"
+       onmouseover="this.style.background='#f9fafb'"
+       onmouseout="this.style.background='transparent'">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+            <div>
+                <h3 style="font-size:14px; font-weight:700; color:#111827; margin:0 0 8px 0;">
+                    @app.Name
+                </h3>
+                <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                    @foreach (var tag in app.Tags)
+                    {
+                        <span style="font-size:11px; font-weight:600; color:#6b7280;
+                                     border:1px solid #e5e7eb; padding:2px 8px;">
+                            @tag
+                        </span>
+                    }
+                </div>
+            </div>
+            <div style="display:flex; align-items:center; gap:12px; flex-shrink:0; margin-left:24px;">
+                <StatusBadge Status="@($"{app.Match} match")" Variant="default" />
+                <StatusBadge Status="@app.Status" Variant="@app.Variant" />
+            </div>
+        </div>
+    </a>
+}
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    private string _search       = "";
+    private string _filterStatus = "";
+
+    private record Applicant(int Id, string Name, string Match,
+                             string Status, string Variant, string[] Tags);
+
+    private readonly List<Applicant> _applicants = new()
+    {
+        new(1, "Ion Popescu",      "85%", "Nou",       "default", new[] {"React","TypeScript"}),
+        new(2, "Maria Ionescu",    "72%", "În analiză","warning",  new[] {"React","CSS"}),
+        new(3, "Alex Dumitrescu", "90%", "Interviu",  "default", new[] {"React","TypeScript","Node.js"}),
+    };
+
+    private IEnumerable<Applicant> FilteredApplicants => _applicants
+        .Where(a => (string.IsNullOrEmpty(_search) ||
+                     a.Name.Contains(_search, StringComparison.OrdinalIgnoreCase))
+                 && (string.IsNullOrEmpty(_filterStatus) || a.Status == _filterStatus));
+}

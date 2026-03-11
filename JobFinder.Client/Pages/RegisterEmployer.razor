@@ -1,0 +1,78 @@
+﻿@page "/register/employer"
+@layout MainLayout
+@rendermode InteractiveWebAssembly
+
+<PageTitle>Înregistrare Angajator - JobFinder</PageTitle>
+
+<div style="max-width:1152px; margin:0 auto; padding:96px 32px;">
+    <div style="max-width:384px;">
+        <h1 style="font-size:24px; font-weight:700; letter-spacing:-0.5px;
+                   margin-bottom:8px; color:#111827;">
+            Înregistrare Angajator
+        </h1>
+        <p style="font-size:14px; color:#6b7280; margin-bottom:32px;">
+            Creează un cont pentru a publica anunțuri.
+        </p>
+
+        <div style="display:flex; flex-direction:column; gap:16px;">
+            <div>
+                <label style="display:block; font-size:11px; font-weight:600;
+                              letter-spacing:2px; text-transform:uppercase;
+                              color:#6b7280; margin-bottom:8px;">Numele companiei</label>
+                <MudTextField @bind-Value="_form.Company" Variant="Variant.Outlined"
+                              FullWidth="true" Margin="Margin.Dense" Style="border-radius:0;" />
+            </div>
+            <div>
+                <label style="display:block; font-size:11px; font-weight:600;
+                              letter-spacing:2px; text-transform:uppercase;
+                              color:#6b7280; margin-bottom:8px;">Email</label>
+                <MudTextField @bind-Value="_form.Email" Variant="Variant.Outlined"
+                              FullWidth="true" Margin="Margin.Dense" Style="border-radius:0;" />
+            </div>
+            <div>
+                <label style="display:block; font-size:11px; font-weight:600;
+                              letter-spacing:2px; text-transform:uppercase;
+                              color:#6b7280; margin-bottom:8px;">Parolă</label>
+                <MudTextField @bind-Value="_form.Password" InputType="InputType.Password"
+                              Variant="Variant.Outlined" FullWidth="true"
+                              Margin="Margin.Dense" Style="border-radius:0;" />
+            </div>
+            <div>
+                <label style="display:block; font-size:11px; font-weight:600;
+                              letter-spacing:2px; text-transform:uppercase;
+                              color:#6b7280; margin-bottom:8px;">Confirmă parola</label>
+                <MudTextField @bind-Value="_form.ConfirmPassword" InputType="InputType.Password"
+                              Variant="Variant.Outlined" FullWidth="true"
+                              Margin="Margin.Dense" Style="border-radius:0;" />
+            </div>
+
+            <MudButton Variant="Variant.Filled" FullWidth="true" OnClick="HandleRegister"
+                       Style="background:#111827; color:#fff; border-radius:0;
+                              font-size:11px; font-weight:600; letter-spacing:2px;
+                              text-transform:uppercase; padding:14px; margin-top:8px;">
+                Creează cont
+            </MudButton>
+        </div>
+
+        <p style="font-size:12px; color:#6b7280; margin-top:24px;">
+            Ai deja cont?&nbsp;
+            <MudLink Href="/login" Style="color:#6366f1; font-size:12px;">
+                Autentificare
+            </MudLink>
+        </p>
+    </div>
+</div>
+
+@code {
+    private RegisterForm _form = new();
+
+    private void HandleRegister() { /* logica vine mai târziu */ }
+
+    private class RegisterForm
+    {
+        public string Company { get; set; } = "";
+        public string Email { get; set; } = "";
+        public string Password { get; set; } = "";
+        public string ConfirmPassword { get; set; } = "";
+    }
+}

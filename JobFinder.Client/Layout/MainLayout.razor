@@ -1,0 +1,56 @@
+﻿@inherits LayoutComponentBase
+
+<MudThemeProvider Theme="_theme" />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<MudLayout>
+    <MudAppBar Elevation="2" Color="Color.Primary">
+        <MudIconButton Icon="@Icons.Material.Filled.Menu"
+                       Color="Color.Inherit" Edge="Edge.Start"
+                       OnClick="() => _drawerOpen = !_drawerOpen" />
+        <MudText Typo="Typo.h6" Style="font-weight:700;">JobFinder</MudText>
+        <MudSpacer />
+        <MudHidden Breakpoint="Breakpoint.SmAndDown">
+            <MudButton Href="/" Color="Color.Inherit" Variant="Variant.Text">Acasa</MudButton>
+            <MudButton Href="/jobs" Color="Color.Inherit" Variant="Variant.Text">Joburi</MudButton>
+            <MudButton Href="/login" Color="Color.Inherit" Variant="Variant.Outlined" Class="ml-2">Login</MudButton>
+            <MudButton Href="/register" Style="background:#fff;color:#6366f1;font-weight:600;" Variant="Variant.Filled" Class="ml-2">Inregistrare</MudButton>
+        </MudHidden>
+    </MudAppBar>
+
+    <MudDrawer @bind-Open="_drawerOpen" Variant="DrawerVariant.Temporary" Elevation="2">
+        <MudDrawerHeader>
+            <MudText Typo="Typo.h6" Color="Color.Primary" Style="font-weight:700;">JobFinder</MudText>
+        </MudDrawerHeader>
+        <MudNavMenu>
+            <MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Acasa</MudNavLink>
+            <MudNavLink Href="/jobs" Icon="@Icons.Material.Filled.Work">Joburi</MudNavLink>
+            <MudDivider Class="my-2" />
+            <MudNavLink Href="/login" Icon="@Icons.Material.Filled.Login">Login</MudNavLink>
+            <MudNavLink Href="/register" Icon="@Icons.Material.Filled.PersonAdd">Inregistrare</MudNavLink>
+            <MudNavLink Href="/register/candidate" Icon="@Icons.Material.Filled.PersonAdd">Candidat  </MudNavLink>
+            <MudNavLink Href="/register/employer" Icon="@Icons.Material.Filled.Business">Angajator </MudNavLink>
+        </MudNavMenu>
+    </MudDrawer>
+
+    <MudMainContent>@Body</MudMainContent>
+</MudLayout>
+
+@code {
+    private bool _drawerOpen = false;
+
+    private readonly MudTheme _theme = new()
+    {
+        PaletteLight = new PaletteLight()
+        {
+            Primary = "#6366f1",
+            PrimaryDarken = "#4f46e5",
+            Secondary = "#10b981",
+            AppbarBackground = "#6366f1",
+            Background = "#f8f9fa",
+            Surface = "#ffffff",
+        }
+    };
+}

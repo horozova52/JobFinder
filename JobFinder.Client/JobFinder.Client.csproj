@@ -19,4 +19,9 @@
     <ProjectReference Include="..\JobFinder.UseCases\JobFinder.UseCases.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Helpers\" />
+    <Folder Include="Services\" />
+  </ItemGroup>
+
 </Project>

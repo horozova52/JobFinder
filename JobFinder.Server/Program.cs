@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
 using JobFinder.UseCases;
+using MudBlazor.Services; 
 
 namespace JobFinder;
 
@@ -16,6 +17,8 @@ public class Program
     public static void Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
+
+        builder.Services.AddMudServices();
 
         // Blazor + Identity UI components
         builder.Services.AddRazorComponents()

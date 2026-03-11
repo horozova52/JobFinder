@@ -1,0 +1,58 @@
+﻿@page "/admin/dashboard"
+@layout AdminLayout
+@rendermode InteractiveWebAssembly
+
+<PageTitle>Admin Dashboard - JobFinder</PageTitle>
+
+<PageHeader Title="Admin Dashboard"
+            Description="Statistici generale și activitate recentă pe platformă." />
+
+<!-- Statistici -->
+<section style="margin-bottom:40px;">
+    <h2 style="font-size:14px; font-weight:700; color:#111827; margin-bottom:16px;">
+        Statistici
+    </h2>
+    <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:24px;">
+        @foreach (var stat in _stats)
+        {
+            <div style="border:1px solid #e5e7eb; padding:16px;">
+                <p style="font-size:24px; font-weight:700; color:#6366f1; margin:0 0 4px 0;">
+                    @stat.Value
+                </p>
+                <p style="font-size:12px; color:#6b7280; margin:0;">@stat.Label</p>
+            </div>
+        }
+    </div>
+</section>
+
+<!-- Activitate recentă -->
+<section>
+    <h2 style="font-size:14px; font-weight:700; color:#111827; margin-bottom:16px;">
+        Activitate recentă
+    </h2>
+    @foreach (var log in _logs)
+    {
+        <div style="border-bottom:1px solid #e5e7eb; padding:16px 0;">
+            <p style="font-size:14px; color:#111827; margin:0 0 4px 0;">@log.Action</p>
+            <p style="font-size:12px; color:#6b7280; margin:0;">@log.Time</p>
+        </div>
+    }
+</section>
+
+@code {
+    private readonly List<(string Label, string Value)> _stats = new()
+    {
+        ("Utilizatori",    "342"),
+        ("Candidați",      "256"),
+        ("Angajatori",     "86"),
+        ("Joburi active",  "47"),
+    };
+
+    private readonly List<(string Action, string Time)> _logs = new()
+    {
+        ("Ion Popescu s-a înregistrat ca și candidat",             "Acum 2 ore"),
+        ("TechCorp a publicat un nou anunț: Frontend Developer",   "Acum 3 ore"),
+        ("Maria Ionescu a aplicat la Backend Engineer",            "Acum 5 ore"),
+        ("Admin a dezactivat contul user#45",                      "Ieri"),
+    };
+}

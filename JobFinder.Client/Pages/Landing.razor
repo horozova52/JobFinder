@@ -1,0 +1,119 @@
+﻿@page "/"
+@layout MainLayout
+@rendermode InteractiveWebAssembly
+
+<PageTitle>JobFinder - Platformă de recrutare transparentă</PageTitle>
+
+<!-- HERO -->
+<section style="max-width:1152px; margin:0 auto; padding:96px 32px;">
+    <div style="max-width:672px;">
+        <p style="font-size:11px; font-weight:600; letter-spacing:3px; text-transform:uppercase;
+                  color:#6b7280; margin-bottom:16px;">
+            Platforma de recrutare transparentă
+        </p>
+        <h1 style="font-size:48px; font-weight:700; line-height:1.15;
+                   letter-spacing:-1px; margin-bottom:24px; color:#111827;">
+            Talent întâlnește<br />
+            oportunitate.<br />
+            <span style="color:#6366f1;">Fără zgomot.</span>
+        </h1>
+        <p style="font-size:18px; color:#6b7280; line-height:1.7;
+                  margin-bottom:40px; max-width:560px;">
+            Matching automat pe competențe. Statusuri clare. Comunicare directă.
+            O platformă care respectă timpul tău.
+        </p>
+        <div style="display:flex; gap:16px;">
+            <MudButton Href="/register/candidate"
+                       Variant="Variant.Filled"
+                       Style="background:#111827; color:#fff; border-radius:0;
+                              font-size:11px; font-weight:600; letter-spacing:2px;
+                              text-transform:uppercase; padding:12px 24px;">
+                Sunt candidat
+            </MudButton>
+            <MudButton Href="/register/employer"
+                       Variant="Variant.Outlined"
+                       Style="border:1px solid #e5e7eb; color:#111827; border-radius:0;
+                              font-size:11px; font-weight:600; letter-spacing:2px;
+                              text-transform:uppercase; padding:12px 24px;">
+                Sunt angajator
+            </MudButton>
+        </div>
+    </div>
+</section>
+
+<!-- STATS -->
+<section style="border-top:1px solid #e5e7eb;">
+    <div style="max-width:1152px; margin:0 auto; padding:64px 32px;
+                display:grid; grid-template-columns:repeat(3,1fr); gap:32px;">
+        @foreach (var stat in _stats)
+        {
+            <div>
+                <p style="font-size:30px; font-weight:700; color:#6366f1; margin-bottom:8px;">
+                    @stat.Value
+                </p>
+                <p style="font-size:14px; color:#6b7280;">@stat.Label</p>
+            </div>
+        }
+    </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section style="border-top:1px solid #e5e7eb;">
+    <div style="max-width:1152px; margin:0 auto; padding:64px 32px;">
+        <h2 style="font-size:20px; font-weight:700; margin-bottom:32px; color:#111827;">
+            Cum funcționează
+        </h2>
+        <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:48px;">
+            @foreach (var item in _steps)
+            {
+                <div>
+                    <p style="font-size:11px; font-weight:600; letter-spacing:3px;
+                                  color:#6b7280; text-transform:uppercase; margin-bottom:12px;">
+                        @item.Step
+                    </p>
+                    <h3 style="font-size:14px; font-weight:700; margin-bottom:8px; color:#111827;">
+                        @item.Title
+                    </h3>
+                    <p style="font-size:14px; color:#6b7280; line-height:1.6;">
+                        @item.Desc
+                    </p>
+                </div>
+            }
+        </div>
+    </div>
+</section>
+
+<!-- FOOTER -->
+<footer style="border-top:1px solid #e5e7eb;">
+    <div style="max-width:1152px; margin:0 auto; padding:32px;
+                display:flex; justify-content:space-between; align-items:center;">
+        <p style="font-size:12px; color:#6b7280;">© 2025 RecruitBoard. Teză de licență.</p>
+        <div style="display:flex; gap:24px;">
+            <MudLink Href="/jobs" Style="font-size:12px; color:#6b7280; text-decoration:none;">
+                Joburi
+            </MudLink>
+            <MudLink Href="/login" Style="font-size:12px; color:#6b7280; text-decoration:none;">
+                Autentificare
+            </MudLink>
+        </div>
+    </div>
+</footer>
+
+@code {
+    private readonly List<(string Value, string Label)> _stats = new()
+    {
+        ("100%",      "Transparență în proces"),
+        ("Tags",      "Matching automat pe competențe"),
+        ("Real-time", "Statusuri și notificări live"),
+    };
+
+    private readonly List<(string Step, string Title, string Desc)> _steps = new()
+    {
+        ("01", "Creează-ți profilul",
+         "Adaugă competențe, experiență și educație. Platforma generează automat un CV profesional."),
+        ("02", "Matching pe tags",
+         "Algoritmul conectează profilul tău cu joburile relevante pe baza competențelor comune."),
+        ("03", "Aplică și comunică",
+         "Urmărește statusul aplicării în timp real și comunică direct cu angajatorul."),
+    };
+}

@@ -1,0 +1,72 @@
+﻿@page "/admin/logs"
+@layout AdminLayout
+@rendermode InteractiveWebAssembly
+
+<PageTitle>Jurnal acțiuni - JobFinder</PageTitle>
+
+<PageHeader Title="Jurnal acțiuni"
+            Description="Monitorizare activitate critică pe platformă." />
+
+<!-- Filtre -->
+<div style="display:flex; gap:12px; margin-bottom:32px;">
+    <MudTextField @bind-Value="_search"
+                  Placeholder="Caută în jurnal..."
+                  Variant="Variant.Outlined"
+                  Margin="Margin.Dense"
+                  Style="border-radius:0; flex:1;" />
+    <MudSelect @bind-Value="_filterType"
+               Variant="Variant.Outlined"
+               Margin="Margin.Dense"
+               Style="border-radius:0; min-width:160px;">
+        <MudSelectItem Value="@("")">Toate tipurile</MudSelectItem>
+        <MudSelectItem Value="@("AUTH")">AUTH</MudSelectItem>
+        <MudSelectItem Value="@("JOB")">JOB</MudSelectItem>
+        <MudSelectItem Value="@("MSG")">MSG</MudSelectItem>
+        <MudSelectItem Value="@("APP")">APP</MudSelectItem>
+        <MudSelectItem Value="@("ADMIN")">ADMIN</MudSelectItem>
+    </MudSelect>
+</div>
+
+@foreach (var log in FilteredLogs)
+{
+    <div style="border-bottom:1px solid #e5e7eb; padding:16px 0;
+                display:flex; justify-content:space-between; align-items:flex-start;">
+        <div>
+            <div style="display:flex; align-items:center; gap:12px; margin-bottom:4px;">
+                <span style="font-size:11px; font-weight:600; color:#6b7280;
+                             border:1px solid #e5e7eb; padding:2px 8px;">
+                    @log.Type
+                </span>
+                <p style="font-size:14px; color:#111827; margin:0;">@log.Action</p>
+            </div>
+            <p style="font-size:12px; color:#6b7280; margin:0;">@log.User</p>
+        </div>
+        <p style="font-size:12px; color:#6b7280; margin:0; white-space:nowrap; margin-left:24px;">
+            @log.Time
+        </p>
+    </div>
+}
+
+@code {
+    private string _search     = "";
+    private string _filterType = "";
+
+    private record LogEntry(int Id, string Action, string User,
+                            string Type, string Time);
+
+    private readonly List<LogEntry> _logs = new()
+    {
+        new(1, "Autentificare reușită",                   "ion.popescu@email.com", "AUTH",  "2025-01-15 14:23:01"),
+        new(2, "Publicare anunț: Frontend Developer",     "hr@techcorp.ro",        "JOB",   "2025-01-15 13:10:45"),
+        new(3, "Mesaj trimis către Ion Popescu",          "hr@techcorp.ro",        "MSG",   "2025-01-15 12:55:30"),
+        new(4, "Aplicare la Backend Engineer",            "maria@email.com",       "APP",   "2025-01-15 11:20:15"),
+        new(5, "Cont dezactivat: user#45",                "admin@platform.ro",     "ADMIN", "2025-01-14 18:00:00"),
+        new(6, "Autentificare eșuată (3 încercări)",     "spam@test.com",         "AUTH",  "2025-01-14 16:45:22"),
+    };
+
+    private IEnumerable<LogEntry> FilteredLogs => _logs
+        .Where(l => (string.IsNullOrEmpty(_search) ||
+                     l.Action.Contains(_search, StringComparison.OrdinalIgnoreCase) ||
+                     l.User.Contains(_search, StringComparison.OrdinalIgnoreCase))
+                 && (string.IsNullOrEmpty(_filterType) || l.Type == _filterType));
+}
