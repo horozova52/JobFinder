@@ -1,0 +1,170 @@
+﻿@page "/admin/employer-verification"
+@layout AdminLayout
+
+<PageTitle>Verificare angajatori — JobFinder</PageTitle>
+
+<PageHeader Title="Verificare angajatori"
+            Description="Verifică și aprobă conturile angajatorilor noi înainte de a putea publica anunțuri." />
+
+<!-- Statistici -->
+<div style="display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:32px;">
+    <div style="border:1px solid #e0e0e0; padding:12px;">
+        <p style="font-size:22px; font-weight:700; margin:0 0 4px 0;">@_statuses.Values.Count(s => s == Status.Pending)</p>
+        <p style="font-size:11px; font-weight:600; color:#a1a1a1; margin:0;">În așteptare</p>
+    </div>
+    <div style="border:1px solid #e0e0e0; padding:12px;">
+        <p style="font-size:22px; font-weight:700; margin:0 0 4px 0;">@_statuses.Values.Count(s => s == Status.Approved)</p>
+        <p style="font-size:11px; font-weight:600; color:#a1a1a1; margin:0;">Aprobați</p>
+    </div>
+    <div style="border:1px solid #e0e0e0; padding:12px;">
+        <p style="font-size:22px; font-weight:700; margin:0 0 4px 0;">@_statuses.Values.Count(s => s == Status.Rejected)</p>
+        <p style="font-size:11px; font-weight:600; color:#a1a1a1; margin:0;">Respinși</p>
+    </div>
+</div>
+
+<!-- Lista angajatori -->
+@foreach (var emp in _employers)
+{
+    var status = _statuses[emp.Id];
+
+    <div style="border-bottom:1px solid #e0e0e0; padding:20px 0;">
+
+        <!-- Header rând (click expand) -->
+        <div style="display:flex; justify-content:space-between; align-items:flex-start;
+                    cursor:pointer;"
+             @onclick="() => ToggleExpand(emp.Id)">
+            <div>
+                <div style="display:flex; align-items:center; gap:12px; margin-bottom:4px;">
+                    <h3 style="font-size:14px; font-weight:700; margin:0;">@emp.Company</h3>
+                    <StatusBadge Status="@GetLabel(status)" Variant="@GetVariant(status)" />
+                </div>
+                <p style="font-size:14px; color:#a1a1a1; margin:0;">
+                    @emp.Email · CUI: @emp.Cui · Înregistrat @emp.RegisteredAt
+                </p>
+            </div>
+            <span style="font-size:12px; color:#a1a1a1;">
+                @(_expandedId == emp.Id ? "▲" : "▼")
+            </span>
+        </div>
+
+        <!-- Detalii expandate -->
+        @if (_expandedId == emp.Id)
+        {
+            <div style="margin-top:16px; display:flex; flex-direction:column; gap:16px;">
+
+                <!-- Info companie -->
+                <div style="border:1px solid #e0e0e0; padding:16px; background:#fafafa;
+                            display:flex; flex-direction:column; gap:8px;">
+                    <p style="font-size:14px; margin:0;">
+                        <span style="color:#a1a1a1;">Industrie: </span>@emp.Industry
+                    </p>
+                    <p style="font-size:14px; margin:0;">
+                        <span style="color:#a1a1a1;">Website: </span>
+                        @(string.IsNullOrEmpty(emp.Website) ? "—" : emp.Website)
+                    </p>
+                    <p style="font-size:14px; margin:0;">
+                        <span style="color:#a1a1a1;">Descriere: </span>@emp.Description
+                    </p>
+                </div>
+
+                <!-- Butoane acțiune (doar pending) -->
+                @if (status == Status.Pending)
+                {
+                    <div style="display:flex; gap:12px; align-items:flex-start;">
+                        <button @onclick="() => Approve(emp.Id)"
+                                style="background:#16a34a; color:#fff; border:none;
+                                       padding:10px 24px; font-size:11px; font-weight:600;
+                                       letter-spacing:2px; text-transform:uppercase; cursor:pointer;">
+                            ✓ Aprobă
+                        </button>
+                        <input @bind="_rejectReason"
+                               placeholder="Motiv respingere (opțional)..."
+                               style="flex:1; border:1px solid #e0e0e0; background:#fff;
+                                      padding:10px 16px; font-size:14px; outline:none;" />
+                        <button @onclick="() => Reject(emp.Id)"
+                                style="background:#dc2626; color:#fff; border:none;
+                                       padding:10px 24px; font-size:11px; font-weight:600;
+                                       letter-spacing:2px; text-transform:uppercase; cursor:pointer;">
+                            ✗ Respinge
+                        </button>
+                    </div>
+                }
+
+                <!-- Mesaj Aprobat -->
+                @if (status == Status.Approved)
+                {
+                    <div style="border:1px solid #bbf7d0; background:#f0fdf4; padding:12px;">
+                        <p style="font-size:14px; color:#16a34a; margin:0;">
+                            Angajatorul a fost verificat și poate publica anunțuri.
+                        </p>
+                    </div>
+                }
+
+                <!-- Mesaj Respins -->
+                @if (status == Status.Rejected)
+                {
+                    <div style="border:1px solid #fecaca; background:#fef2f2; padding:12px;">
+                        <p style="font-size:14px; color:#dc2626; margin:0;">
+                            Contul a fost respins. Angajatorul va fi notificat.
+                        </p>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+}
+
+@code {
+    private enum Status { Pending, Approved, Rejected }
+
+    private record Employer(int Id, string Company, string Email, string Cui,
+                            string Website, string Industry, string RegisteredAt, string Description);
+
+    private readonly List<Employer> _employers = new()
+    {
+        new(1, "StartupX SRL",       "contact@startupx.ro", "RO12345678",
+            "https://startupx.ro",  "IT & Software",  "2025-01-14",
+            "Startup tech specializat în soluții AI pentru retail."),
+        new(2, "DesignLab Agency",   "hr@designlab.ro",     "RO87654321",
+            "https://designlab.ro", "Design & Creative", "2025-01-13",
+            "Agenție de design UX/UI cu peste 50 de proiecte livrate."),
+        new(3, "BuildRight SRL",     "office@buildright.ro","RO11223344",
+            "",                     "Construcții",    "2025-01-12",
+            "Companie de construcții și dezvoltare imobiliară."),
+    };
+
+    private Dictionary<int, Status> _statuses = new();
+    private int? _expandedId;
+    private string _rejectReason = "";
+
+    protected override void OnInitialized()
+    {
+        _statuses = _employers.ToDictionary(e => e.Id, _ => Status.Pending);
+    }
+
+    private void ToggleExpand(int id) =>
+        _expandedId = _expandedId == id ? null : id;
+
+    private void Approve(int id) =>
+        _statuses[id] = Status.Approved;
+
+    private void Reject(int id)
+    {
+        _statuses[id] = Status.Rejected;
+        _rejectReason = "";
+    }
+
+    private string GetLabel(Status s) => s switch
+    {
+        Status.Approved => "Verificat",
+        Status.Rejected => "Respins",
+        _               => "În așteptare"
+    };
+
+    private string GetVariant(Status s) => s switch
+    {
+        Status.Approved => "success",
+        Status.Rejected => "destructive",
+        _               => "warning"
+    };
+}

@@ -15,7 +15,8 @@
 @inject ILogger<Register> Logger
 @inject NavigationManager NavigationManager
 @inject IdentityRedirectManager RedirectManager
-
+@rendermode @(new InteractiveWebAssemblyRenderMode(prerender: false))
+ 
 <PageTitle>Register</PageTitle>
 
 <h1>Register</h1>
