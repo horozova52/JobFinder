@@ -2,6 +2,15 @@
 @layout MainLayout
 @rendermode InteractiveWebAssembly
 
+@using JobFinder.Shared.DTOs.Identity
+@using System.ComponentModel.DataAnnotations
+@using System.Net.Http.Json
+@using System.Text.Json
+
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+
 <PageTitle>Autentificare - JobFinder</PageTitle>
 
 <div style="max-width:1152px; margin:0 auto; padding:96px 32px;">
@@ -14,47 +23,50 @@
             Intră în contul tău pentru a continua.
         </p>
 
-        <div style="display:flex; flex-direction:column; gap:16px;">
-            <!-- Email -->
-            <div>
-                <label style="display:block; font-size:11px; font-weight:600;
-                              letter-spacing:2px; text-transform:uppercase;
-                              color:#6b7280; margin-bottom:8px;">
-                    Email
-                </label>
-                <MudTextField @bind-Value="_email"
-                              Placeholder="email@exemplu.com"
-                              Variant="Variant.Outlined"
-                              FullWidth="true"
-                              Style="border-radius:0;"
-                              Margin="Margin.Dense" />
-            </div>
+        <EditForm Model="_form" OnValidSubmit="HandleLogin">
+            <DataAnnotationsValidator />
 
-            <!-- Parolă -->
-            <div>
-                <label style="display:block; font-size:11px; font-weight:600;
-                              letter-spacing:2px; text-transform:uppercase;
-                              color:#6b7280; margin-bottom:8px;">
-                    Parolă
-                </label>
-                <MudTextField @bind-Value="_password"
-                              Placeholder="••••••••"
-                              InputType="InputType.Password"
-                              Variant="Variant.Outlined"
-                              FullWidth="true"
-                              Style="border-radius:0;"
-                              Margin="Margin.Dense" />
-            </div>
+            <div style="display:flex; flex-direction:column; gap:16px;">
+                <!-- Email -->
+                <div>
+                    <label style="display:block; font-size:11px; font-weight:600;
+                                  letter-spacing:2px; text-transform:uppercase;
+                                  color:#6b7280; margin-bottom:8px;">
+                        Email
+                    </label>
+                    <InputText @bind-Value="_form.Email" type="email"
+                               style="width:100%; padding:8px; border:1px solid #d1d5db; border-radius:0;" />
+                    <ValidationMessage For="@(() => _form.Email)" style="color:#ef4444; font-size:12px;" />
+                </div>
 
-            <MudButton Variant="Variant.Filled"
-                       FullWidth="true"
-                       OnClick="HandleLogin"
-                       Style="background:#111827; color:#fff; border-radius:0;
-                              font-size:11px; font-weight:600; letter-spacing:2px;
-                              text-transform:uppercase; padding:14px; margin-top:8px;">
-                Conectare
-            </MudButton>
-        </div>
+                <!-- Parolă -->
+                <div>
+                    <label style="display:block; font-size:11px; font-weight:600;
+                                  letter-spacing:2px; text-transform:uppercase;
+                                  color:#6b7280; margin-bottom:8px;">
+                        Parolă
+                    </label>
+                    <InputText @bind-Value="_form.Password" type="password"
+                               style="width:100%; padding:8px; border:1px solid #d1d5db; border-radius:0;" />
+                    <ValidationMessage For="@(() => _form.Password)" style="color:#ef4444; font-size:12px;" />
+                </div>
+
+                <button type="submit" disabled="@_isLoading"
+                        style="background:#111827; color:#fff; border:none; border-radius:0;
+                               font-size:11px; font-weight:600; letter-spacing:2px;
+                               text-transform:uppercase; padding:14px; margin-top:8px; cursor:pointer;
+                               opacity:@(_isLoading ? 0.6 : 1);">
+                    @if (_isLoading)
+                    {
+                        <span>Se încarcă...</span>
+                    }
+                    else
+                    {
+                        <span>Conectare</span>
+                    }
+                </button>
+            </div>
+        </EditForm>
 
         <div style="margin-top:24px;">
             <p style="font-size:12px; color:#6b7280;">
@@ -74,11 +86,81 @@
 </div>
 
 @code {
-    private string _email = "";
-    private string _password = "";
+    private LoginForm _form = new();
+    private bool _isLoading = false;
 
-    private void HandleLogin()
+    private async Task HandleLogin()
     {
-        // logica de login vine mai târziu
+        _isLoading = true;
+        try
+        {
+            var loginDto = new LoginDto
+            {
+                Email = _form.Email,
+                Password = _form.Password
+            };
+
+            var response = await Http.PostAsJsonAsync("api/auth/login", loginDto);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var jsonContent = await response.Content.ReadAsStringAsync();
+                var result = JsonSerializer.Deserialize<AuthResponseDto>(jsonContent,
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                // Store token in localStorage
+                await Http.PostAsJsonAsync("api/auth/store-token", new { token = result?.Token });
+
+                Snackbar.Add("Autentificare reușită! Redirecționare...", Severity.Success);
+                await Task.Delay(1500);
+
+                // Redirect based on user type
+                var redirectUrl = result?.UserType switch
+                {
+                    JobFinder.Shared.Enums.UserType.Candidate => "/candidate/dashboard",
+                    JobFinder.Shared.Enums.UserType.Employer => "/employer/dashboard",
+                    JobFinder.Shared.Enums.UserType.Admin => "/admin/dashboard",
+                    _ => "/"
+                };
+
+                Navigation.NavigateTo(redirectUrl);
+            }
+            else
+            {
+                try
+                {
+                    var jsonContent = await response.Content.ReadAsStringAsync();
+                    var errorResponse = JsonSerializer.Deserialize<Dictionary<string, object>>(jsonContent,
+                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    var errorMessage = errorResponse?.ContainsKey("message") == true
+                        ? errorResponse["message"]?.ToString()
+                        : "Email sau parolă incorectă.";
+
+                    Snackbar.Add(errorMessage ?? "Eroare la autentificare.", Severity.Error);
+                }
+                catch
+                {
+                    Snackbar.Add("Email sau parolă incorectă.", Severity.Error);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Eroare: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private class LoginForm
+    {
+        [Required(ErrorMessage = "Email-ul este obligatoriu")]
+        [EmailAddress(ErrorMessage = "Email invalid")]
+        public string Email { get; set; } = "";
+
+        [Required(ErrorMessage = "Parola este obligatorie")]
+        public string Password { get; set; } = "";
     }
 }

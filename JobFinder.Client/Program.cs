@@ -13,6 +13,12 @@ namespace JobFinder.Client
             builder.Services.AddCascadingAuthenticationState();
             builder.Services.AddAuthenticationStateDeserialization();
             builder.Services.AddMudServices();
+            
+            // Register HttpClient for API calls
+            builder.Services.AddScoped(sp => new HttpClient 
+            { 
+                BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) 
+            });
 
             await builder.Build().RunAsync();
         }

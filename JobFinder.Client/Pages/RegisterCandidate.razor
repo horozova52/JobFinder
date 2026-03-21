@@ -1,6 +1,16 @@
 ﻿@page "/register/candidate"
 @layout MainLayout
-@rendermode InteractiveWebAssembly
+@rendermode @(new InteractiveWebAssemblyRenderMode(prerender: false))
+
+@using JobFinder.Shared.DTOs.Identity
+@using JobFinder.Shared.Enums
+@using System.ComponentModel.DataAnnotations
+@using System.Net.Http.Json
+@using System.Text.Json
+
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@inject ISnackbar Snackbar
 
 <PageTitle>Înregistrare Candidat - JobFinder</PageTitle>
 
@@ -14,45 +24,91 @@
             Creează un cont pentru a aplica la joburi.
         </p>
 
-        <div style="display:flex; flex-direction:column; gap:16px;">
-            <div>
-                <label style="display:block; font-size:11px; font-weight:600;
-                              letter-spacing:2px; text-transform:uppercase;
-                              color:#6b7280; margin-bottom:8px;">Nume complet</label>
-                <MudTextField @bind-Value="_form.Name" Variant="Variant.Outlined"
-                              FullWidth="true" Margin="Margin.Dense" Style="border-radius:0;" />
+        @* ── Erori server ── *@
+        @if (!string.IsNullOrEmpty(_serverError))
+        {
+            <div style="background:#fef2f2; border:1px solid #fecaca;
+                        padding:12px 16px; margin-bottom:16px;">
+                @foreach (var line in _serverError.Split('\n', StringSplitOptions.RemoveEmptyEntries))
+                {
+                    <p style="font-size:13px; color:#dc2626; margin:0 0 4px 0;">⚠ @line</p>
+                }
             </div>
-            <div>
-                <label style="display:block; font-size:11px; font-weight:600;
-                              letter-spacing:2px; text-transform:uppercase;
-                              color:#6b7280; margin-bottom:8px;">Email</label>
-                <MudTextField @bind-Value="_form.Email" Variant="Variant.Outlined"
-                              FullWidth="true" Margin="Margin.Dense" Style="border-radius:0;" />
-            </div>
-            <div>
-                <label style="display:block; font-size:11px; font-weight:600;
-                              letter-spacing:2px; text-transform:uppercase;
-                              color:#6b7280; margin-bottom:8px;">Parolă</label>
-                <MudTextField @bind-Value="_form.Password" InputType="InputType.Password"
-                              Variant="Variant.Outlined" FullWidth="true"
-                              Margin="Margin.Dense" Style="border-radius:0;" />
-            </div>
-            <div>
-                <label style="display:block; font-size:11px; font-weight:600;
-                              letter-spacing:2px; text-transform:uppercase;
-                              color:#6b7280; margin-bottom:8px;">Confirmă parola</label>
-                <MudTextField @bind-Value="_form.ConfirmPassword" InputType="InputType.Password"
-                              Variant="Variant.Outlined" FullWidth="true"
-                              Margin="Margin.Dense" Style="border-radius:0;" />
-            </div>
+        }
 
-            <MudButton Variant="Variant.Filled" FullWidth="true" OnClick="HandleRegister"
-                       Style="background:#111827; color:#fff; border-radius:0;
-                              font-size:11px; font-weight:600; letter-spacing:2px;
-                              text-transform:uppercase; padding:14px; margin-top:8px;">
-                Creează cont
-            </MudButton>
-        </div>
+        @* ── Succes ── *@
+        @if (_success)
+        {
+            <div style="background:#f0fdf4; border:1px solid #bbf7d0;
+                        padding:12px 16px; margin-bottom:16px;">
+                <p style="font-size:13px; color:#16a34a; margin:0;">
+                    ✓ Cont creat cu succes! Redirecționare...
+                </p>
+            </div>
+        }
+
+        <EditForm Model="_form" OnValidSubmit="HandleRegister">
+            <DataAnnotationsValidator />
+
+            <div style="display:flex; flex-direction:column; gap:16px;">
+                <div>
+                    <label style="display:block; font-size:11px; font-weight:600;
+                                  letter-spacing:2px; text-transform:uppercase;
+                                  color:#6b7280; margin-bottom:8px;">Nume complet</label>
+                    <InputText @bind-Value="_form.FullName"
+                               style="width:100%; padding:8px; border:1px solid #d1d5db;
+                                      border-radius:0; font-size:14px; box-sizing:border-box;" />
+                    <ValidationMessage For="@(() => _form.FullName)"
+                                       style="color:#ef4444; font-size:12px;" />
+                </div>
+
+                <div>
+                    <label style="display:block; font-size:11px; font-weight:600;
+                                  letter-spacing:2px; text-transform:uppercase;
+                                  color:#6b7280; margin-bottom:8px;">Email</label>
+                    <InputText @bind-Value="_form.Email" type="email"
+                               style="width:100%; padding:8px; border:1px solid #d1d5db;
+                                      border-radius:0; font-size:14px; box-sizing:border-box;" />
+                    <ValidationMessage For="@(() => _form.Email)"
+                                       style="color:#ef4444; font-size:12px;" />
+                </div>
+
+                <div>
+                    <label style="display:block; font-size:11px; font-weight:600;
+                                  letter-spacing:2px; text-transform:uppercase;
+                                  color:#6b7280; margin-bottom:8px;">Parolă</label>
+                    <InputText @bind-Value="_form.Password" type="password"
+                               style="width:100%; padding:8px; border:1px solid #d1d5db;
+                                      border-radius:0; font-size:14px; box-sizing:border-box;" />
+                    <ValidationMessage For="@(() => _form.Password)"
+                                       style="color:#ef4444; font-size:12px;" />
+                    <p style="font-size:11px; color:#9ca3af; margin:4px 0 0 0;">
+                        Minim 6 caractere, o cifră, o majusculă și un caracter special
+                    </p>
+
+                </div>
+
+                <div>
+                    <label style="display:block; font-size:11px; font-weight:600;
+                                  letter-spacing:2px; text-transform:uppercase;
+                                  color:#6b7280; margin-bottom:8px;">Confirmă parola</label>
+                    <InputText @bind-Value="_form.ConfirmPassword" type="password"
+                               style="width:100%; padding:8px; border:1px solid #d1d5db;
+                                      border-radius:0; font-size:14px; box-sizing:border-box;" />
+                    <ValidationMessage For="@(() => _form.ConfirmPassword)"
+                                       style="color:#ef4444; font-size:12px;" />
+                </div>
+
+                <button type="submit" disabled="@_isLoading"
+                        style="background:#111827; color:#fff; border:none; border-radius:0;
+                               font-size:11px; font-weight:600; letter-spacing:2px;
+                               text-transform:uppercase; padding:14px; margin-top:8px;
+                               cursor:@(_isLoading ? "not-allowed" : "pointer");
+                               width:100%; opacity:@(_isLoading ? 0.6 : 1);">
+                    @(_isLoading ? "Se procesează..." : "Creează cont")
+                </button>
+            </div>
+        </EditForm>
 
         <p style="font-size:12px; color:#6b7280; margin-top:24px;">
             Ai deja cont?&nbsp;
@@ -64,15 +120,88 @@
 </div>
 
 @code {
-    private RegisterForm _form = new();
+    private RegisterForm _form        = new();
+    private bool         _isLoading   = false;
+    private bool         _success     = false;
+    private string       _serverError = "";
 
-    private void HandleRegister() { /* logica vine mai târziu */ }
+    private async Task HandleRegister()
+    {
+        _serverError = "";
+        _success     = false;
+        _isLoading   = true;
+
+        try
+        {
+            var registerDto = new RegisterDto
+            {
+                Email           = _form.Email,
+                Password        = _form.Password,
+                ConfirmPassword = _form.ConfirmPassword,
+                FullName        = _form.FullName,
+                UserType        = UserType.Candidate
+            };
+
+            var response = await Http.PostAsJsonAsync("api/auth/register", registerDto);
+
+            if (response.IsSuccessStatusCode)
+            {
+                _success = true;
+                Snackbar.Add("Înregistrare reușită!", Severity.Success);
+                await Task.Delay(1500);
+                Navigation.NavigateTo("/candidate/dashboard");
+            }
+            else
+            {
+                var json = await response.Content.ReadAsStringAsync();
+
+                try
+                {
+                    var err = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(
+                        json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                    _serverError = err?.ContainsKey("message") == true
+                        ? err["message"].GetString() ?? "Eroare necunoscută."
+                        : "Eroare la înregistrare. Încearcă din nou.";
+                }
+                catch
+                {
+                    _serverError = "Eroare la server. Încearcă din nou.";
+                }
+            }
+        }
+        catch (HttpRequestException)
+        {
+            _serverError = "Nu s-a putut contacta serverul. Verifică conexiunea.";
+        }
+        catch (Exception ex)
+        {
+            _serverError = $"Eroare neașteptată: {ex.Message}";
+        }
+        finally
+        {
+            _isLoading = false;
+            StateHasChanged();
+        }
+    }
 
     private class RegisterForm
     {
-        public string Name { get; set; } = "";
+        [Required(ErrorMessage = "Numele este obligatoriu")]
+        [StringLength(200)]
+        public string FullName { get; set; } = "";
+
+        [Required(ErrorMessage = "Email-ul este obligatoriu")]
+        [EmailAddress(ErrorMessage = "Email invalid")]
         public string Email { get; set; } = "";
+
+        [Required(ErrorMessage = "Parola este obligatorie")]
+        [StringLength(100, MinimumLength = 6,
+            ErrorMessage = "Parola trebuie să aibă între 6 și 100 caractere")]
         public string Password { get; set; } = "";
+
+        [Required(ErrorMessage = "Confirmarea parolei este obligatorie")]
+        [Compare("Password", ErrorMessage = "Parolele nu coincid")]
         public string ConfirmPassword { get; set; } = "";
     }
 }

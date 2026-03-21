@@ -56,7 +56,10 @@ public class Program
 
         builder.Services.AddIdentityCore<ApplicationUser>(options =>
         {
-            options.SignIn.RequireConfirmedAccount = true;
+            options.SignIn.RequireConfirmedAccount = false;
+            options.Password.RequireDigit = false;
+            options.Password.RequireNonAlphanumeric = false;
+            options.Password.RequireUppercase = false;
         })
             .AddEntityFrameworkStores<ApplicationDbContext>()
             .AddSignInManager()
