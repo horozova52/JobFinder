@@ -1,0 +1,529 @@
+﻿@using JobFinder.Shared.DTOs.Candidates
+@using System.Net.Http.Json
+@using System.Text.Json
+
+@inject HttpClient Http
+@inject ISnackbar Snackbar
+
+<div>
+
+    @* ══════════════════════════════════════
+       HEADER
+    ══════════════════════════════════════ *@
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:28px;">
+        <div>
+            <MudText Typo="Typo.h6" Style="font-weight:700; color:#111827;">Educație</MudText>
+            <MudText Typo="Typo.body2" Style="color:#6b7280;">
+                Liceu, facultate, cursuri, certificări academice.
+            </MudText>
+        </div>
+        @if (!_showAddForm && _editingId == null)
+        {
+            <MudButton Variant="Variant.Filled"
+                       StartIcon="@Icons.Material.Filled.Add"
+                       OnClick="ShowAddForm"
+                       Style="background:#6366f1; color:#fff; border-radius:0;
+                                  font-size:11px; font-weight:600; letter-spacing:1px;
+                                  text-transform:uppercase;">
+                Adaugă
+            </MudButton>
+        }
+    </div>
+
+    @* ══════════════════════════════════════
+       LISTA EDUCAȚII
+    ══════════════════════════════════════ *@
+    @if (_items.Any())
+    {
+        <div style="position:relative; margin-bottom:8px;">
+
+            @* Linie verticală timeline *@
+            <div style="position:absolute; left:19px; top:12px; bottom:12px;
+                            width:2px; background:#e5e7eb; z-index:0;"></div>
+
+            @foreach (var item in _items)
+            {
+                var itemId = item.Id;
+
+                <div style="display:flex; gap:16px; margin-bottom:4px; position:relative; z-index:1;">
+
+                    @* Dot timeline *@
+                    <div style="width:40px; flex-shrink:0; display:flex;
+                                        justify-content:center; padding-top:18px;">
+                        <div style="width:14px; height:14px; border-radius:50%;
+                                            background:#fff; border:2px solid #6366f1;"></div>
+                    </div>
+
+                    @if (_editingId == itemId)
+                    {
+                        @* ── Formular editare ── *@
+                        <MudPaper Elevation="0" Class="pa-6 mb-3"
+                                  Style="flex:1; border:2px solid #6366f1; background:#fff;">
+
+                            <MudText Typo="Typo.caption"
+                                     Style="font-weight:700; letter-spacing:2px;
+                                                        text-transform:uppercase; color:#6366f1;
+                                                        display:block; margin-bottom:20px;">
+                                Editează educația
+                            </MudText>
+
+                            @* Câmpurile formularului *@
+                            @RenderFormFields(_draft)
+
+                            @* Butoane acțiuni *@
+                            <div style="display:flex; align-items:center; gap:10px;
+                                                    margin-top:20px; flex-wrap:wrap;">
+                                <MudButton Variant="Variant.Filled"
+                                           Disabled="@_isSaving"
+                                           OnClick="SaveEdit"
+                                           Style="background:#6366f1; color:#fff; border-radius:0;
+                                                              font-size:11px; font-weight:600; letter-spacing:1px;">
+                                    @(_isSaving ? "Se salvează..." : "Salvează")
+                                </MudButton>
+
+                                <MudButton Variant="Variant.Outlined"
+                                           OnClick="CancelEdit"
+                                           Style="border-radius:0; border-color:#e5e7eb;
+                                                              color:#6b7280; font-size:11px; font-weight:600;">
+                                    Anulează
+                                </MudButton>
+
+                                @* Confirmare ștergere *@
+                                @if (!_confirmDelete)
+                                {
+                                    <MudButton Variant="Variant.Text"
+                                               OnClick="() => _confirmDelete = true"
+                                               Style="color:#dc2626; font-size:11px;
+                                                                      font-weight:600; margin-left:auto;">
+                                        Șterge
+                                    </MudButton>
+                                }
+                                else
+                                {
+                                    <div style="display:flex; align-items:center;
+                                                                gap:8px; margin-left:auto;">
+                                        <MudText Typo="Typo.caption" Style="color:#dc2626;">
+                                            Ești sigur?
+                                        </MudText>
+                                        <MudButton Variant="Variant.Filled"
+                                                   OnClick="() => DeleteItem(itemId)"
+                                                   Style="background:#dc2626; color:#fff;
+                                                                          border-radius:0; font-size:11px;">
+                                            Da, șterge
+                                        </MudButton>
+                                        <MudButton Variant="Variant.Outlined"
+                                                   OnClick="() => _confirmDelete = false"
+                                                   Style="border-radius:0; border-color:#e5e7eb;
+                                                                          color:#6b7280; font-size:11px;">
+                                            Nu
+                                        </MudButton>
+                                    </div>
+                                }
+                            </div>
+
+                        </MudPaper>
+                    }
+                    else
+                    {
+                        @* ── Card vizualizare ── *@
+                        <MudPaper Elevation="0" Class="pa-4 mb-3"
+                                  Style="flex:1; border:1px solid #e5e7eb; background:#fff;
+                                                     transition:border-color 0.2s;"
+                                  onmouseover="this.style.borderColor='#c7d2fe'"
+                                  onmouseout="this.style.borderColor='#e5e7eb'">
+
+                            <div style="display:flex; justify-content:space-between;
+                                                    align-items:flex-start; gap:12px;">
+                                <div style="flex:1;">
+
+                                    @* Instituție *@
+                                    <MudText Typo="Typo.subtitle1"
+                                             Style="font-weight:700; color:#111827;
+                                                                line-height:1.3; margin-bottom:4px;">
+                                        @item.Institution
+                                    </MudText>
+
+                                    @* Grad + domeniu *@
+                                    <MudText Typo="Typo.body2"
+                                             Style="color:#6366f1; font-weight:600; margin-bottom:6px;">
+                                        @item.Degree
+                                        @if (!string.IsNullOrEmpty(item.FieldOfStudy))
+                                        {
+                                            <span style="color:#6b7280; font-weight:400;">
+                                                · @item.FieldOfStudy
+                                            </span>
+                                        }
+                                    </MudText>
+
+                                    @* Perioadă + badge ACTIV *@
+                                    <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+                                        <MudIcon Icon="@Icons.Material.Outlined.CalendarToday"
+                                                 Size="Size.Small"
+                                                 Style="color:#9ca3af; font-size:14px;" />
+                                        <MudText Typo="Typo.caption" Style="color:#6b7280;">
+                                            @item.StartDate.Year
+                                            — @(item.EndDate.HasValue
+                                                                            ? item.EndDate.Value.Year.ToString()
+                                                                : "Prezent")
+                            </MudText>
+                            @if (item.IsCurrent)
+                                        {
+                                            <MudChip T="string" Size="Size.Small"
+                                                     Style="background:#ede9fe; color:#6366f1;
+                                                                            border-radius:0; font-size:10px;
+                                                                            font-weight:700; height:20px;">
+                                                ACTIV
+                                            </MudChip>
+                                        }
+                                        <MudText Typo="Typo.caption" Style="color:#9ca3af;">
+                                            · @ComputeDuration(item)
+                                        </MudText>
+                                    </div>
+
+                                    @* Descriere *@
+                                    @if (!string.IsNullOrEmpty(item.Description))
+                                    {
+                                        <MudText Typo="Typo.body2"
+                                                 Style="color:#6b7280; margin-top:10px;
+                                                                        line-height:1.6; border-left:3px solid #e5e7eb;
+                                                                        padding-left:12px;">
+                                            @item.Description
+                                        </MudText>
+                                    }
+                                </div>
+
+                                @* Buton editare *@
+                                <MudIconButton Icon="@Icons.Material.Outlined.Edit"
+                                               Size="Size.Small"
+                                               OnClick="() => StartEdit(item)"
+                                               Style="color:#6366f1; flex-shrink:0;" />
+                            </div>
+
+                        </MudPaper>
+                    }
+                </div>
+            }
+        </div>
+    }
+
+    @* ══════════════════════════════════════
+       STARE GOALĂ
+    ══════════════════════════════════════ *@
+    @if (!_items.Any() && !_showAddForm)
+    {
+        <MudPaper Elevation="0" Class="pa-10"
+                  Style="border:2px dashed #e5e7eb; text-align:center;">
+            <MudIcon Icon="@Icons.Material.Outlined.School"
+                     Style="font-size:48px; color:#d1d5db; margin-bottom:12px;" />
+            <MudText Typo="Typo.body1"
+                     Style="font-weight:600; color:#6b7280; margin-bottom:8px;">
+                Nu ai adăugat încă studii
+            </MudText>
+            <MudText Typo="Typo.body2"
+                     Style="color:#9ca3af; margin-bottom:20px;">
+                Adaugă educația ta pentru a fi mai vizibil angajatorilor.
+            </MudText>
+            <MudButton Variant="Variant.Outlined"
+                       OnClick="ShowAddForm"
+                       StartIcon="@Icons.Material.Filled.Add"
+                       Style="border-radius:0; border-color:#6366f1; color:#6366f1;
+                                  font-size:11px; font-weight:600; letter-spacing:1px;
+                                  text-transform:uppercase;">
+                Adaugă prima educație
+            </MudButton>
+        </MudPaper>
+    }
+
+    @* ══════════════════════════════════════
+       FORMULAR ADĂUGARE
+    ══════════════════════════════════════ *@
+    @if (_showAddForm)
+    {
+        <MudPaper Elevation="0" Class="pa-6 mt-2"
+                  Style="border:2px solid #6366f1; background:#fff;">
+
+            <MudText Typo="Typo.caption"
+                     Style="font-weight:700; letter-spacing:2px; text-transform:uppercase;
+                                color:#6366f1; display:block; margin-bottom:20px;">
+                Educație nouă
+            </MudText>
+
+            @RenderFormFields(_draft)
+
+            <div style="display:flex; gap:10px; margin-top:20px;">
+                <MudButton Variant="Variant.Filled"
+                           Disabled="@_isSaving"
+                           OnClick="SaveAdd"
+                           Style="background:#6366f1; color:#fff; border-radius:0;
+                                      font-size:11px; font-weight:600; letter-spacing:1px;">
+                    @(_isSaving ? "Se adaugă..." : "Adaugă")
+                </MudButton>
+                <MudButton Variant="Variant.Outlined"
+                           OnClick="CancelAdd"
+                           Style="border-radius:0; border-color:#e5e7eb;
+                                      color:#6b7280; font-size:11px; font-weight:600;">
+                    Anulează
+                </MudButton>
+            </div>
+
+        </MudPaper>
+    }
+
+    @* Link adaugă altă instituție *@
+    @if (_items.Any() && !_showAddForm && _editingId == null)
+    {
+        <MudButton Variant="Variant.Text"
+                   StartIcon="@Icons.Material.Filled.Add"
+                   OnClick="ShowAddForm"
+                   Style="color:#6366f1; font-size:12px; font-weight:600;
+                              text-transform:none; padding-left:0; margin-top:8px;">
+            Adaugă altă instituție
+        </MudButton>
+    }
+
+</div>
+
+@code {
+
+    // ── Parametri ────────────────────────────────────────────────────────
+    [Parameter] public List<EducationDto> Items { get; set; } = new();
+    [Parameter] public EventCallback<List<EducationDto>> ItemsChanged { get; set; }
+
+    // ── Stare internă ────────────────────────────────────────────────────
+    private List<EducationDto> _items = new();
+    private EduDraft _draft = new();
+    private int? _editingId = null;
+    private bool _showAddForm = false;
+    private bool _showValidation = false;
+    private bool _isSaving = false;
+    private bool _confirmDelete = false;
+
+    // ── Lifecycle ────────────────────────────────────────────────────────
+    protected override void OnParametersSet()
+    {
+        _items = Items?.ToList() ?? new();
+    }
+
+    // ── RenderFragment: câmpurile formularului ───────────────────────────
+    // Reutilizat atât pentru Add cât și pentru Edit
+    private RenderFragment RenderFormFields(EduDraft m) => __builder =>
+    {
+        <MudGrid Spacing="3">
+
+            <MudItem xs="12">
+                <MudTextField @bind-Value="m.Institution"
+                              Label="Instituție *"
+                              Variant="Variant.Outlined"
+                              Placeholder="ex: Universitatea Tehnică a Moldovei"
+                              Adornment="Adornment.Start"
+                              AdornmentIcon="@Icons.Material.Outlined.School"
+                              Error="@(_showValidation && string.IsNullOrWhiteSpace(m.Institution))"
+                              ErrorText="Câmpul este obligatoriu."
+                              Style="border-radius:0;" />
+            </MudItem>
+
+            <MudItem xs="12" sm="6">
+                <MudSelect @bind-Value="m.Degree"
+                           Label="Grad / Titlu *"
+                           Variant="Variant.Outlined"
+                           Error="@(_showValidation && string.IsNullOrWhiteSpace(m.Degree))"
+                           ErrorText="Selectează un grad."
+                           Style="border-radius:0;">
+                    <MudSelectItem Value="@("")">— Selectează —</MudSelectItem>
+                    <MudSelectItem Value="@("Licență")">🎓 Licență</MudSelectItem>
+                    <MudSelectItem Value="@("Master")">🎓 Master</MudSelectItem>
+                    <MudSelectItem Value="@("Doctorat")">🎓 Doctorat</MudSelectItem>
+                    <MudSelectItem Value="@("Bacalaureat")">📚 Bacalaureat</MudSelectItem>
+                    <MudSelectItem Value="@("Curs profesional")">📖 Curs profesional</MudSelectItem>
+                    <MudSelectItem Value="@("Certificare")">📜 Certificare</MudSelectItem>
+                    <MudSelectItem Value="@("Altele")">Altele</MudSelectItem>
+                </MudSelect>
+            </MudItem>
+
+            <MudItem xs="12" sm="6">
+                <MudTextField @bind-Value="m.FieldOfStudy"
+                              Label="Domeniu de studiu"
+                              Variant="Variant.Outlined"
+                              Placeholder="ex: Tehnologia Informației"
+                              Style="border-radius:0;" />
+            </MudItem>
+
+            <MudItem xs="12" sm="6">
+                <MudNumericField @bind-Value="m.StartYear"
+                                 Label="An început *"
+                                 Variant="Variant.Outlined"
+                                 Min="1950" Max="2030"
+                                 Error="@(_showValidation && m.StartYear == 0)"
+                                 ErrorText="Câmpul este obligatoriu."
+                                 Style="border-radius:0;" />
+            </MudItem>
+
+            <MudItem xs="12" sm="6">
+                <MudNumericField @bind-Value="m.EndYear"
+                                 Label="An finalizare"
+                                 Variant="Variant.Outlined"
+                                 Min="1950" Max="2030"
+                                 Disabled="@m.IsCurrent"
+                                 Placeholder="@(m.IsCurrent ? "Prezent" : "ex: 2025")"
+                                 Style="border-radius:0;" />
+                <MudCheckBox @bind-Value="m.IsCurrent"
+                             Label="Studiez aici în prezent"
+                             Color="Color.Primary"
+                             Size="Size.Small"
+                             Style="margin-top:4px;" />
+            </MudItem>
+
+            <MudItem xs="12">
+                <MudTextField @bind-Value="m.Description"
+                              Label="Descriere (opțional)"
+                              Variant="Variant.Outlined"
+                              Lines="3"
+                              Placeholder="ex: Media generală, proiecte relevante, activități extracurriculare..."
+                              Style="border-radius:0;" />
+            </MudItem>
+
+        </MudGrid>
+    };
+
+    // ── Gestionare formular Add ──────────────────────────────────────────
+    private void ShowAddForm()
+    {
+        _draft = new EduDraft();
+        _editingId = null;
+        _showAddForm = true;
+        _showValidation = false;
+    }
+
+    private void CancelAdd()
+    {
+        _showAddForm = false;
+        _draft = new EduDraft();
+        _showValidation = false;
+    }
+
+    private async Task SaveAdd()
+    {
+        _showValidation = true;
+        if (!_draft.IsValid) return;
+
+        _isSaving = true;
+        try
+        {
+            var response = await Http.PostAsJsonAsync("api/education", _draft.ToDto());
+
+            if (response.IsSuccessStatusCode)
+            {
+                var json = await response.Content.ReadAsStringAsync();
+                var saved = JsonSerializer.Deserialize<EducationDto>(json,
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                if (saved != null) _items.Add(saved);
+                await ItemsChanged.InvokeAsync(_items);
+
+                _showAddForm = false;
+                _draft = new EduDraft();
+                _showValidation = false;
+                Snackbar.Add("Educație adăugată cu succes!", Severity.Success);
+            }
+            else
+            {
+                Snackbar.Add("Eroare la adăugare. Încearcă din nou.", Severity.Error);
+            }
+        }
+        finally { _isSaving = false; }
+    }
+
+    // ── Gestionare formular Edit ─────────────────────────────────────────
+    private void StartEdit(EducationDto item)
+    {
+        _editingId = item.Id;
+        _showAddForm = false;
+        _confirmDelete = false;
+        _draft = new EduDraft
+        {
+            Institution = item.Institution,
+            Degree = item.Degree ?? "",
+            FieldOfStudy = item.FieldOfStudy ?? "",
+            StartYear = item.StartDate.Year,
+            EndYear = item.EndDate?.Year,
+            IsCurrent = item.IsCurrent,
+            Description = item.Description ?? "",
+        };
+    }
+
+    private void CancelEdit()
+    {
+        _editingId = null;
+        _confirmDelete = false;
+        _draft = new EduDraft();
+    }
+
+    private async Task SaveEdit()
+    {
+        _showValidation = true;
+        if (!_draft.IsValid) return;
+
+        _isSaving = true;
+        try
+        {
+            var response = await Http.PutAsJsonAsync($"api/education/{_editingId}", _draft.ToDto());
+
+            if (response.IsSuccessStatusCode)
+            {
+                var json = await response.Content.ReadAsStringAsync();
+                var saved = JsonSerializer.Deserialize<EducationDto>(json,
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                if (saved != null)
+                {
+                    var idx = _items.FindIndex(x => x.Id == _editingId);
+                    if (idx >= 0) _items[idx] = saved;
+                }
+                await ItemsChanged.InvokeAsync(_items);
+
+                _editingId = null;
+                _draft = new EduDraft();
+                Snackbar.Add("Educație actualizată!", Severity.Success);
+            }
+            else
+            {
+                Snackbar.Add("Eroare la actualizare.", Severity.Error);
+            }
+        }
+        finally { _isSaving = false; }
+    }
+
+    // ── Ștergere ─────────────────────────────────────────────────────────
+    private async Task DeleteItem(int id)
+    {
+        _isSaving = true;
+        try
+        {
+            var response = await Http.DeleteAsync($"api/education/{id}");
+
+            if (response.IsSuccessStatusCode)
+            {
+                _items.RemoveAll(x => x.Id == id);
+                await ItemsChanged.InvokeAsync(_items);
+
+                _editingId = null;
+                _confirmDelete = false;
+                _draft = new EduDraft();
+                Snackbar.Add("Educație ștearsă!", Severity.Success);
+            }
+            else
+            {
+                Snackbar.Add("Eroare la ștergere.", Severity.Error);
+            }
+        }
+        finally { _isSaving = false; }
+    }
+
+    // ── Helper: durată calculată ─────────────────────────────────────────
+    private static string ComputeDuration(EducationDto item)
+    {
+        var endYear = item.EndDate?.Year ?? DateTime.Now.Year;
+        var years = endYear - item.StartDate.Year;
+        return years <= 0 ? "< 1 an" : years == 1 ? "1 an" : $"{years} ani";
+    }
+}

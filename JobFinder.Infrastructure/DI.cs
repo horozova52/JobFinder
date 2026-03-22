@@ -12,7 +12,7 @@ public static class DI
         services.AddScoped<ICandidateRepository, CandidateRepository>();
         services.AddScoped<IEmployerRepository, EmployerRepository>();
         services.AddScoped<IApplicationRepository, ApplicationRepository>();
-
+        services.AddScoped<IEducationRepository, EducationRepository>();
         return services;
     }
 }
