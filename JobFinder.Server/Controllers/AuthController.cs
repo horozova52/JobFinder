@@ -72,31 +72,27 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> Login([FromBody] LoginDto request)
     {
         if (!ModelState.IsValid)
-        {
             return BadRequest(ModelState);
-        }
 
         var user = await _userManager.FindByEmailAsync(request.Email);
         if (user == null)
-        {
             return Unauthorized(new { message = "Email sau parolă incorectă" });
-        }
 
-        var result = await _signInManager.CheckPasswordSignInAsync(user, request.Password, false);
-        
+        var result = await _signInManager.PasswordSignInAsync(
+            request.Email,
+            request.Password,
+            isPersistent: true,
+            lockoutOnFailure: false);
+
         if (!result.Succeeded)
-        {
             return Unauthorized(new { message = "Email sau parolă incorectă" });
-        }
-
-        var token = GenerateJwtToken(user);
 
         var response = new AuthResponseDto
         {
             UserId = user.Id,
             Email = user.Email,
             UserType = user.UserType,
-            Token = token,
+            Token = "",
             ExpiresAt = DateTime.UtcNow.AddHours(24)
         };
 

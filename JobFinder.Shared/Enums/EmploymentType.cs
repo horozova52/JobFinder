@@ -4,6 +4,7 @@ public enum EmploymentType
 {
     FullTime = 0,
     PartTime = 1,
-    Internship = 2,
-    Contract = 3
+    Freelance = 2,
+    Internship = 3,
+    Contract = 4
 }

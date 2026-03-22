@@ -4,5 +4,6 @@ public enum CandidateStatus
 {
     ActivelyLooking = 0,
     OpenToOffers = 1,
-    NotLooking = 2
+    Employed = 2,
+    NotLooking = 3
 }

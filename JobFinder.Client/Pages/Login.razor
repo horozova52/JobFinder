@@ -1,6 +1,6 @@
 ﻿@page "/login"
 @layout MainLayout
-@rendermode InteractiveWebAssembly
+@rendermode @(new InteractiveWebAssemblyRenderMode(prerender: false))
 
 @using JobFinder.Shared.DTOs.Identity
 @using System.ComponentModel.DataAnnotations

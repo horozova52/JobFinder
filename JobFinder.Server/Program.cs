@@ -66,8 +66,24 @@ public class Program
             .AddDefaultTokenProviders();
 
         builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
-        builder.Services.AddAutoMapper(typeof(Program));
-
+       /// builder.Services.AddAutoMapper(typeof(Program));
+        builder.Services.AddScoped(sp => new HttpClient
+        {
+            BaseAddress = new Uri("https://localhost:7169/")
+        });
+        builder.Services.ConfigureApplicationCookie(options =>
+        {
+            options.Events.OnRedirectToLogin = context =>
+            {
+                if (context.Request.Path.StartsWithSegments("/api"))
+                {
+                    context.Response.StatusCode = 401;
+                    return Task.CompletedTask;
+                }
+                context.Response.Redirect(context.RedirectUri);
+                return Task.CompletedTask;
+            };
+        });
         var app = builder.Build();
 
         // Pipeline

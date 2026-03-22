@@ -2,157 +2,802 @@
 @layout CandidateLayout
 @rendermode InteractiveWebAssembly
 
+@using JobFinder.Shared.DTOs.Candidates
+@using JobFinder.Shared.DTOs.Jobs
+@using JobFinder.Shared.Enums
+@using System.Net.Http.Json
+@using System.Text.Json
+@using Microsoft.JSInterop
+
+@inject HttpClient Http
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+
 <PageTitle>Profil profesional - JobFinder</PageTitle>
 
 <PageHeader Title="Profil profesional"
             Description="Completează-ți profilul pentru a primi recomandări mai bune." />
 
-<div style="max-width:640px;">
+@if (_isLoading)
+{
+    <div style="text-align:center; padding:40px;">
+        <p style="color:#6b7280;">Se încarcă profilul...</p>
+    </div>
+}
+else
+{
+    <div style="display:flex; gap:0; border-bottom:1px solid #e5e7eb; margin-bottom:32px; overflow-x:auto;">
+        @foreach (var tab in _tabs)
+        {
+            var isActive = _activeTab == tab.Key;
+            var borderColor = isActive ? "#6366f1" : "transparent";
+            var textColor   = isActive ? "#6366f1" : "#6b7280";
+            <button @onclick="() => _activeTab = tab.Key"
+                    style="@($"padding:12px 20px; font-size:11px; font-weight:600; letter-spacing:1.5px; text-transform:uppercase; cursor:pointer; border:none; border-bottom:2px solid {borderColor}; color:{textColor}; background:transparent; white-space:nowrap; font-family:inherit;")">
+                @tab.Value
+            </button>
+        }
+    </div>
 
-    <!-- Date personale -->
-    <section style="margin-bottom:32px;">
-        <h2 style="font-size:14px; font-weight:700; color:#111827; margin-bottom:16px;">
-            Date personale
-        </h2>
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
-            <div>
-                <label style="display:block; font-size:11px; font-weight:600; letter-spacing:2px;
-                              text-transform:uppercase; color:#6b7280; margin-bottom:8px;">Nume</label>
-                <MudTextField @bind-Value="_profile.Name" Variant="Variant.Outlined"
-                              FullWidth="true" Margin="Margin.Dense" Style="border-radius:0;" />
-            </div>
-            <div>
-                <label style="display:block; font-size:11px; font-weight:600; letter-spacing:2px;
-                              text-transform:uppercase; color:#6b7280; margin-bottom:8px;">Email</label>
-                <MudTextField @bind-Value="_profile.Email" Variant="Variant.Outlined"
-                              FullWidth="true" Margin="Margin.Dense" Style="border-radius:0;" />
-            </div>
-            <div>
-                <label style="display:block; font-size:11px; font-weight:600; letter-spacing:2px;
-                              text-transform:uppercase; color:#6b7280; margin-bottom:8px;">Telefon</label>
-                <MudTextField @bind-Value="_profile.Phone" Variant="Variant.Outlined"
-                              FullWidth="true" Margin="Margin.Dense" Style="border-radius:0;" />
-            </div>
-            <div>
-                <label style="display:block; font-size:11px; font-weight:600; letter-spacing:2px;
-                              text-transform:uppercase; color:#6b7280; margin-bottom:8px;">Locație</label>
-                <MudTextField @bind-Value="_profile.Location" Variant="Variant.Outlined"
-                              FullWidth="true" Margin="Margin.Dense" Style="border-radius:0;" />
-            </div>
-        </div>
-        <div style="margin-top:16px;">
-            <label style="display:block; font-size:11px; font-weight:600; letter-spacing:2px;
-                          text-transform:uppercase; color:#6b7280; margin-bottom:8px;">
-                Despre mine
-            </label>
-            <MudTextField @bind-Value="_profile.About" Lines="3"
-                          Variant="Variant.Outlined" FullWidth="true"
-                          Margin="Margin.Dense" Style="border-radius:0;" />
-        </div>
-    </section>
+    <div style="max-width:680px;">
 
-    <div style="border-bottom:1px solid #e5e7eb; margin-bottom:32px;"></div>
+        @* ── TAB 1: DATE PERSONALE ── *@
+        @if (_activeTab == "personal")
+        {
+            <section>
+                <div style="border:1px solid #e5e7eb; padding:16px; margin-bottom:28px; background:#fafafa;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                        <span style="font-size:11px; font-weight:600; letter-spacing:1px; text-transform:uppercase; color:#111827;">
+                            Completitudine profil
+                        </span>
+                        <span style="font-size:11px; font-weight:700; color:#6366f1;">@_completionPct%</span>
+                    </div>
+                    <div style="height:4px; background:#e5e7eb;">
+                        <div style="@($"height:4px; width:{_completionPct}%; background:#6366f1; transition:width 0.4s;")"></div>
+                    </div>
+                    <p style="font-size:11px; color:#9ca3af; margin:8px 0 0 0;">@_completionHint</p>
+                </div>
 
-    <!-- Educație -->
-    <section style="margin-bottom:32px;">
-        <h2 style="font-size:14px; font-weight:700; color:#111827; margin-bottom:16px;">
-            Educație
-        </h2>
-        <div style="border:1px solid #e5e7eb; padding:16px; margin-bottom:12px;">
-            <p style="font-size:14px; font-weight:600; color:#111827; margin:0 0 4px 0;">
-                Universitatea Politehnica București
-            </p>
-            <p style="font-size:14px; color:#6b7280; margin:0;">
-                Informatică · 2018 - 2022
-            </p>
-        </div>
-        <button style="font-size:12px; font-weight:600; color:#6366f1;
-                       background:none; border:none; cursor:pointer; padding:0;">
-            + Adaugă educație
-        </button>
-    </section>
+                <div style="margin-bottom:24px; display:flex; align-items:center; gap:20px;">
+                    <div style="width:72px; height:72px; border-radius:50%; background:#ede9fe;
+                                border:2px solid #e5e7eb; display:flex; align-items:center;
+                                justify-content:center; flex-shrink:0; overflow:hidden;">
+                        @if (!string.IsNullOrWhiteSpace(_profileData?.AvatarUrl))
+                        {
+                            <img src="@_profileData.AvatarUrl" style="width:100%; height:100%; object-fit:cover;" alt="avatar" />
+                        }
+                        else
+                        {
+                            <span style="font-size:22px; font-weight:700; color:#6366f1; font-family:inherit;">
+                                @AvatarInitials
+                            </span>
+                        }
+                    </div>
+                    <div>
+                        <p style="font-size:13px; font-weight:600; color:#111827; margin:0 0 4px 0;">Fotografie de profil</p>
+                        <p style="font-size:12px; color:#9ca3af; margin:0 0 8px 0;">JPG sau PNG, max 2MB.</p>
+                        <button disabled
+                                style="font-size:11px; font-weight:600; letter-spacing:1px; text-transform:uppercase;
+                                       color:#9ca3af; border:1px solid #e5e7eb; background:transparent;
+                                       padding:7px 16px; cursor:not-allowed; font-family:inherit;">
+                            Încarcă fotografie
+                        </button>
+                    </div>
+                </div>
 
-    <div style="border-bottom:1px solid #e5e7eb; margin-bottom:32px;"></div>
+                @if (!string.IsNullOrEmpty(_saveError))
+                {
+                    <div style="background:#fef2f2; border:1px solid #fecaca; padding:12px 16px; margin-bottom:16px;">
+                        <p style="font-size:13px; color:#dc2626; margin:0;">⚠ @_saveError</p>
+                    </div>
+                }
+                @if (_saveSuccess)
+                {
+                    <div style="background:#f0fdf4; border:1px solid #bbf7d0; padding:12px 16px; margin-bottom:16px;">
+                        <p style="font-size:13px; color:#16a34a; margin:0;">✓ Profilul a fost salvat cu succes.</p>
+                    </div>
+                }
 
-    <!-- Experiență -->
-    <section style="margin-bottom:32px;">
-        <h2 style="font-size:14px; font-weight:700; color:#111827; margin-bottom:16px;">
-            Experiență
-        </h2>
-        <div style="border:1px solid #e5e7eb; padding:16px; margin-bottom:12px;">
-            <p style="font-size:14px; font-weight:600; color:#111827; margin:0 0 4px 0;">
-                Frontend Developer — TechCorp
-            </p>
-            <p style="font-size:14px; color:#6b7280; margin:0;">
-                2022 - Prezent · București
-            </p>
-        </div>
-        <button style="font-size:12px; font-weight:600; color:#6366f1;
-                       background:none; border:none; cursor:pointer; padding:0;">
-            + Adaugă experiență
-        </button>
-    </section>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
+                    <div>
+                        <label style="@LabelStyle">Prenume *</label>
+                        <input @bind="_profile.FirstName" @bind:event="oninput" style="@InputStyle" placeholder="ex: Maria" />
+                        @if (_showValidation && string.IsNullOrWhiteSpace(_profile.FirstName))
+                        { <p style="@ErrorStyle">Câmpul este obligatoriu.</p> }
+                    </div>
+                    <div>
+                        <label style="@LabelStyle">Nume *</label>
+                        <input @bind="_profile.LastName" @bind:event="oninput" style="@InputStyle" placeholder="ex: Horozova" />
+                        @if (_showValidation && string.IsNullOrWhiteSpace(_profile.LastName))
+                        { <p style="@ErrorStyle">Câmpul este obligatoriu.</p> }
+                    </div>
+                    <div>
+                        <label style="@LabelStyle">Titlu profesional</label>
+                        <input @bind="_profile.Headline" style="@InputStyle" placeholder="ex: Inginer software" />
+                    </div>
+                    <div>
+                        <label style="@LabelStyle">Locație</label>
+                        <input @bind="_profile.Location" style="@InputStyle" placeholder="ex: Chișinău, Moldova" />
+                    </div>
+                    <div>
+                        <label style="@LabelStyle">Email</label>
+                        <input @bind="_profile.Email" type="email" style="@InputStyle" placeholder="ex: maria@email.com" />
+                    </div>
+                    <div>
+                        <label style="@LabelStyle">Telefon</label>
+                        <input @bind="_profile.Phone" style="@InputStyle" placeholder="ex: +373 XX XXX XXX" />
+                    </div>
+                    <div>
+                        <label style="@LabelStyle">Data nașterii</label>
+                        <input @bind="_profile.DateOfBirth" type="date" style="@InputStyle" />
+                    </div>
+                    <div>
+                        <label style="@LabelStyle">Naționalitate</label>
+                        <input @bind="_profile.Nationality" style="@InputStyle" placeholder="ex: Moldovean(ă)" />
+                    </div>
+                    <div style="grid-column:1 / -1;">
+                        <label style="@LabelStyle">LinkedIn / Site personal</label>
+                        <input @bind="_profile.LinkedIn" type="url" style="@InputStyle" placeholder="https://linkedin.com/in/..." />
+                    </div>
+                    <div>
+                        <label style="@LabelStyle">Status disponibilitate</label>
+                        <select @bind="_profile.Status" style="@SelectStyle">
+                            <option value="@CandidateStatus.ActivelyLooking">Caut activ un job</option>
+                            <option value="@CandidateStatus.OpenToOffers">Deschis la oferte</option>
+                            <option value="@CandidateStatus.Employed">Angajat momentan</option>
+                            <option value="@CandidateStatus.NotLooking">Nu caut acum</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="@LabelStyle">Tip angajare preferat</label>
+                        <select @bind="_profile.PreferredJobType" style="@SelectStyle">
+                            <option value="">— Selectează —</option>
+                            <option value="@JobType.OnSite">On-site (la birou)</option>
+                            <option value="@JobType.Remote">Remote</option>
+                            <option value="@JobType.Hybrid">Hibrid</option>
+                        </select>
+                    </div>
+                    <div style="grid-column:1 / -1;">
+                        <label style="@LabelStyle">Domeniu preferat de activitate</label>
+                        <select @bind="_profile.PreferredJobCategoryId" style="@SelectStyle">
+                            <option value="">— Selectează domeniul —</option>
+                            @foreach (var cat in _jobCategories)
+                            {
+                                <option value="@cat.Id">@cat.Name</option>
+                            }
+                        </select>
+                    </div>
+                </div>
 
-    <div style="border-bottom:1px solid #e5e7eb; margin-bottom:32px;"></div>
+                <div style="margin-bottom:8px;">
+                    <div style="display:flex; justify-content:space-between; align-items:baseline;">
+                        <label style="@LabelStyle">Despre mine</label>
+                        <span style="font-size:11px; color:#9ca3af;">@(_profile.Summary?.Length ?? 0) / 500</span>
+                    </div>
+                    <textarea @bind="_profile.Summary" @bind:event="oninput"
+                              rows="4" maxlength="500"
+                              placeholder="Scrie câteva rânduri despre tine, experiența ta și ce cauți..."
+                              style="@InputStyle resize:vertical; min-height:90px;"></textarea>
+                </div>
 
-    <!-- Competențe -->
-    <section style="margin-bottom:32px;">
-        <h2 style="font-size:14px; font-weight:700; color:#111827; margin-bottom:16px;">
-            Competențe (Tags)
-        </h2>
-        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px;">
-            @foreach (var tag in _tags)
-            {
-                <span style="font-size:11px; font-weight:600; color:#6b7280;
-                             border:1px solid #e5e7eb; padding:4px 12px;
-                             display:flex; align-items:center; gap:8px;">
-                    @tag
-                    <button @onclick="() => RemoveTag(tag)"
-                            style="color:#9ca3af; background:none; border:none;
-                                   cursor:pointer; font-size:14px; padding:0; line-height:1;">
-                        ×
+                <div style="margin-top:24px;">
+                    <button @onclick="HandleSavePersonal" disabled="@_isSaving" style="@_saveBtnStyle">
+                        @(_isSaving ? "Se salvează..." : "Salvează profilul")
                     </button>
-                </span>
-            }
-        </div>
-        <button style="font-size:12px; font-weight:600; color:#6366f1;
-                       background:none; border:none; cursor:pointer; padding:0;">
-            + Adaugă competență
-        </button>
-    </section>
+                </div>
+            </section>
+        }
 
-    <div style="border-bottom:1px solid #e5e7eb; margin-bottom:32px;"></div>
+        @* ── TAB 2: EDUCAȚIE ── *@
+        @if (_activeTab == "education")
+        {
+            <section>
+                <h2 style="font-size:14px; font-weight:700; color:#111827; margin:0 0 20px 0;">Educație</h2>
+                @if (_educations != null && _educations.Any())
+                {
+                    @foreach (var edu in _educations)
+                    {
+                        <div style="border:1px solid #e5e7eb; padding:16px; margin-bottom:12px;">
+                            <p style="font-size:14px; font-weight:700; color:#111827; margin:0 0 2px 0;">@edu.Institution</p>
+                            <p style="font-size:13px; color:#6b7280; margin:0 0 2px 0;">
+                                @edu.Degree @if (!string.IsNullOrEmpty(edu.FieldOfStudy)) { <span> · @edu.FieldOfStudy</span> }
+                            </p>
+                            <p style="font-size:11px; color:#9ca3af; margin:0;">
+                                @edu.StartDate.Year – @(edu.EndDate?.Year.ToString() ?? "Prezent")
+                            </p>
+                            @if (!string.IsNullOrEmpty(edu.Description))
+                            {
+                                <p style="font-size:13px; color:#6b7280; margin:6px 0 0 0; line-height:1.5;">@edu.Description</p>
+                            }
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div style="border:1px solid #e5e7eb; padding:24px; text-align:center; margin-bottom:16px;">
+                        <p style="color:#9ca3af; font-size:13px; margin:0;">Nu ai adăugat încă educație.</p>
+                    </div>
+                }
+                <button @onclick='() => NavigateTo("education")' style="@AddLinkStyle">+ Adaugă educație</button>
+            </section>
+        }
 
-    <MudButton Variant="Variant.Filled" OnClick="HandleSave"
-               Style="background:#6366f1; color:#fff; border-radius:0;
-                      font-size:11px; font-weight:600; letter-spacing:2px;
-                      text-transform:uppercase; padding:12px 24px;">
-        Salvează profilul
-    </MudButton>
-</div>
+        @* ── TAB 3: EXPERIENȚĂ ── *@
+        @if (_activeTab == "experience")
+        {
+            <section>
+                <h2 style="font-size:14px; font-weight:700; color:#111827; margin:0 0 20px 0;">Experiență profesională</h2>
+                @if (_experiences != null && _experiences.Any())
+                {
+                    @foreach (var exp in _experiences)
+                    {
+                        <div style="border:1px solid #e5e7eb; padding:16px; margin-bottom:12px;">
+                            <p style="font-size:14px; font-weight:700; color:#111827; margin:0 0 2px 0;">
+                                @exp.Position
+                                @if (exp.EmploymentType.HasValue)
+                                {
+                                    <span style="font-size:10px; font-weight:600; color:#6b7280;
+                                                 border:1px solid #e5e7eb; padding:2px 7px; margin-left:8px;">
+                                        @GetEmploymentTypeLabel(exp.EmploymentType.Value)
+                                    </span>
+                                }
+                            </p>
+                            <p style="font-size:13px; color:#6366f1; font-weight:600; margin:0 0 2px 0;">@exp.CompanyName</p>
+                            <p style="font-size:11px; color:#9ca3af; margin:0;">
+                                @exp.StartDate.ToString("MM/yyyy") –
+                                @(exp.IsCurrent ? "Prezent" : exp.EndDate?.ToString("MM/yyyy") ?? "Prezent")
+                                @if (!string.IsNullOrEmpty(exp.Location)) { <span> · @exp.Location</span> }
+                            </p>
+                            @if (!string.IsNullOrEmpty(exp.Description))
+                            {
+                                <p style="font-size:13px; color:#6b7280; margin:6px 0 0 0; line-height:1.5;">@exp.Description</p>
+                            }
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div style="border:1px solid #e5e7eb; padding:24px; text-align:center; margin-bottom:16px;">
+                        <p style="color:#9ca3af; font-size:13px; margin:0;">Nu ai adăugat încă experiență.</p>
+                    </div>
+                }
+                <button @onclick='() => NavigateTo("experience")' style="@AddLinkStyle">+ Adaugă experiență</button>
+            </section>
+        }
+
+        @* ── TAB 4: COMPETENȚE ── *@
+        @if (_activeTab == "skills")
+        {
+            <section>
+                <h2 style="font-size:14px; font-weight:700; color:#111827; margin:0 0 8px 0;">Competențe</h2>
+                <p style="font-size:13px; color:#6b7280; margin:0 0 20px 0; line-height:1.6;">
+                    Adaugă tehnologiile și abilitățile pe care le stăpânești. Folosite pentru matching automat cu joburile.
+                </p>
+                <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px;">
+                    @if (_skills != null && _skills.Any())
+                    {
+                        @foreach (var skill in _skills)
+                        {
+                            <span style="font-size:11px; font-weight:600; color:#6b7280;
+                                         border:1px solid #e5e7eb; padding:5px 12px;
+                                         display:inline-flex; align-items:center; gap:8px;">
+                                @skill.SkillName
+                                @if (!string.IsNullOrEmpty(GetSkillLevelLabel(skill.Level)))
+                                {
+                                    <span style="font-size:10px; color:#9ca3af;">· @GetSkillLevelLabel(skill.Level)</span>
+                                }
+                                <button @onclick="() => RemoveSkill(skill.Id)"
+                                        style="color:#9ca3af; background:none; border:none; cursor:pointer; font-size:14px; padding:0; line-height:1;">×</button>
+                            </span>
+                        }
+                    }
+                    else
+                    {
+                        <p style="color:#9ca3af; font-size:13px; margin:0;">Nu ai adăugat încă competențe.</p>
+                    }
+                </div>
+                <button @onclick='() => NavigateTo("skills")' style="@AddLinkStyle">+ Adaugă competență</button>
+            </section>
+        }
+
+        @* ── TAB 5: LIMBI ── *@
+        @if (_activeTab == "languages")
+        {
+            <section>
+                <h2 style="font-size:14px; font-weight:700; color:#111827; margin:0 0 20px 0;">Limbi cunoscute</h2>
+                @if (_languages != null && _languages.Any())
+                {
+                    @foreach (var lang in _languages)
+                    {
+                        <div style="border:1px solid #e5e7eb; padding:14px 16px; margin-bottom:8px;
+                                    display:flex; align-items:center; gap:16px;">
+                            <span style="font-size:13px; font-weight:700; color:#111827; min-width:110px;">
+                                @lang.LanguageName
+                            </span>
+                            <div style="display:flex; align-items:center; gap:3px; flex:1;">
+                                @for (int i = 1; i <= 5; i++)
+                                {
+                                    var filled = i <= LevelToInt(lang.ProficiencyLevel);
+                                    <div style="width:24px; height:5px; background:@(filled ? "#111827" : "#e5e7eb");"></div>
+                                }
+                                <span style="font-size:10px; font-weight:600; color:#6b7280;
+                                             letter-spacing:1px; text-transform:uppercase; margin-left:10px; font-family:inherit;">
+                                    @GetLevelLabel(lang.ProficiencyLevel)
+                                </span>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div style="border:1px solid #e5e7eb; padding:24px; text-align:center; margin-bottom:16px;">
+                        <p style="color:#9ca3af; font-size:13px; margin:0;">Nu ai adăugat încă limbi cunoscute.</p>
+                    </div>
+                }
+                <button @onclick='() => NavigateTo("languages")' style="@AddLinkStyle">+ Adaugă limbă</button>
+            </section>
+        }
+
+        @* ── TAB 6: CV PREVIEW ── *@
+        @if (_activeTab == "cv")
+        {
+            <section>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
+                    <p style="font-size:13px; color:#6b7280; margin:0; line-height:1.6;">
+                        CV generat automat din datele profilului tău. Format <strong>Europass</strong>.
+                    </p>
+                    <button @onclick="DownloadPdf"
+                            style="background:#111827; color:#fff; border:none; font-size:11px; font-weight:600;
+                                   letter-spacing:2px; text-transform:uppercase; padding:11px 22px;
+                                   cursor:pointer; font-family:inherit; flex-shrink:0;">
+                        Descarcă PDF
+                    </button>
+                </div>
+
+                <div id="cv-preview" style="background:#fff; border:1px solid #e5e7eb;">
+                    <div style="background:#111827; padding:32px 36px; display:flex; justify-content:space-between; align-items:flex-start; gap:20px;">
+                        <div style="flex:1;">
+                            <p style="font-size:9px; font-weight:600; letter-spacing:3px; text-transform:uppercase;
+                                      color:#6366f1; margin:0 0 8px 0; font-family:'Roboto Mono', monospace;">
+                                Curriculum Vitae
+                            </p>
+                            <h1 style="font-size:22px; font-weight:700; color:#fff; margin:0 0 5px 0;
+                                       letter-spacing:-0.5px; font-family:'Roboto Mono', monospace;">
+                                @_profile.FirstName @_profile.LastName
+                            </h1>
+                            @if (!string.IsNullOrWhiteSpace(_profile.Headline))
+                            {
+                                <p style="font-size:12px; color:#9ca3af; margin:0; font-family:'Roboto Mono', monospace;">
+                                    @_profile.Headline
+                                </p>
+                            }
+                        </div>
+                        <div style="text-align:right; font-size:11px; color:#9ca3af;
+                                    display:flex; flex-direction:column; gap:4px; font-family:'Roboto Mono', monospace;">
+                            @if (!string.IsNullOrWhiteSpace(_profile.Email)) { <span>@_profile.Email</span> }
+                            @if (!string.IsNullOrWhiteSpace(_profile.Phone)) { <span>@_profile.Phone</span> }
+                            @if (!string.IsNullOrWhiteSpace(_profile.Location)) { <span>@_profile.Location</span> }
+                            @if (!string.IsNullOrWhiteSpace(_profile.LinkedIn)) { <span>@_profile.LinkedIn</span> }
+                            @if (_profile.DateOfBirth.HasValue) { <span>@_profile.DateOfBirth.Value.ToString("dd.MM.yyyy")</span> }
+                            @if (!string.IsNullOrWhiteSpace(_profile.Nationality)) { <span>@_profile.Nationality</span> }
+                        </div>
+                    </div>
+
+                    <div style="padding:28px 36px;">
+                        @if (!string.IsNullOrWhiteSpace(_profile.Summary))
+                        {
+                            <div style="margin-bottom:22px;">
+                                <p style="@CvSectionLabel">Profil profesional</p>
+                                <div style="border-bottom:1px solid #e5e7eb; margin-bottom:12px;"></div>
+                                <p style="font-size:13px; color:#111827; line-height:1.75; margin:0;">@_profile.Summary</p>
+                            </div>
+                        }
+
+                        @if (_experiences != null && _experiences.Any())
+                        {
+                            <div style="margin-bottom:22px;">
+                                <p style="@CvSectionLabel">Experiență profesională</p>
+                                <div style="border-bottom:1px solid #e5e7eb; margin-bottom:12px;"></div>
+                                @foreach (var exp in _experiences)
+                                {
+                                    <div style="display:flex; gap:16px; margin-bottom:14px;">
+                                        <div style="width:110px; flex-shrink:0; text-align:right;">
+                                            <p style="font-size:10px; font-weight:600; color:#6b7280; font-family:'Roboto Mono', monospace; margin:3px 0 0 0;">
+                                                @exp.StartDate.ToString("MM/yyyy") – @(exp.IsCurrent ? "Prezent" : exp.EndDate?.ToString("MM/yyyy"))
+                                            </p>
+                                            @if (!string.IsNullOrEmpty(exp.Location))
+                                            { <p style="font-size:10px; color:#9ca3af; margin:2px 0 0 0;">@exp.Location</p> }
+                                        </div>
+                                        <div style="width:1px; background:#e5e7eb; flex-shrink:0;"></div>
+                                        <div style="flex:1;">
+                                            <p style="font-size:13px; font-weight:700; color:#111827; margin:0 0 2px 0;">@exp.Position</p>
+                                            <p style="font-size:11px; color:#6366f1; font-weight:600; margin:0 0 4px 0; font-family:'Roboto Mono', monospace;">
+                                                @exp.CompanyName
+                                                @if (exp.EmploymentType.HasValue)
+                                                { <span style="color:#9ca3af; font-weight:400;"> · @GetEmploymentTypeLabel(exp.EmploymentType.Value)</span> }
+                                            </p>
+                                            @if (!string.IsNullOrEmpty(exp.Description))
+                                            { <p style="font-size:12px; color:#6b7280; line-height:1.6; margin:0;">@exp.Description</p> }
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        }
+
+                        @if (_educations != null && _educations.Any())
+                        {
+                            <div style="margin-bottom:22px;">
+                                <p style="@CvSectionLabel">Educație</p>
+                                <div style="border-bottom:1px solid #e5e7eb; margin-bottom:12px;"></div>
+                                @foreach (var edu in _educations)
+                                {
+                                    <div style="display:flex; gap:16px; margin-bottom:12px;">
+                                        <div style="width:110px; flex-shrink:0; text-align:right;">
+                                            <p style="font-size:10px; font-weight:600; color:#6b7280; font-family:'Roboto Mono', monospace; margin:3px 0 0 0;">
+                                                @edu.StartDate.Year – @(edu.EndDate?.Year.ToString() ?? "Prezent")
+                                            </p>
+                                        </div>
+                                        <div style="width:1px; background:#e5e7eb; flex-shrink:0;"></div>
+                                        <div style="flex:1;">
+                                            <p style="font-size:13px; font-weight:700; color:#111827; margin:0 0 2px 0;">@edu.Institution</p>
+                                            <p style="font-size:11px; color:#6366f1; font-weight:600; margin:0 0 3px 0; font-family:'Roboto Mono', monospace;">
+                                                @edu.Degree
+                                                @if (!string.IsNullOrEmpty(edu.FieldOfStudy))
+                                                { <span style="color:#9ca3af; font-weight:400;"> · @edu.FieldOfStudy</span> }
+                                            </p>
+                                            @if (!string.IsNullOrEmpty(edu.Description))
+                                            { <p style="font-size:12px; color:#6b7280; line-height:1.5; margin:0;">@edu.Description</p> }
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        }
+
+                        @if (_skills != null && _skills.Any())
+                        {
+                            <div style="margin-bottom:22px;">
+                                <p style="@CvSectionLabel">Competențe</p>
+                                <div style="border-bottom:1px solid #e5e7eb; margin-bottom:12px;"></div>
+                                <div style="display:flex; gap:7px; flex-wrap:wrap;">
+                                    @foreach (var skill in _skills)
+                                    {
+                                        <span style="font-size:11px; font-weight:600; color:#6b7280;
+                                                     border:1px solid #e5e7eb; padding:4px 10px;
+                                                     font-family:'Roboto Mono', monospace;">
+                                            @skill.SkillName
+                                        </span>
+                                    }
+                                </div>
+                            </div>
+                        }
+
+                        @if (_languages != null && _languages.Any())
+                        {
+                            <div style="margin-bottom:22px;">
+                                <p style="@CvSectionLabel">Limbi cunoscute</p>
+                                <div style="border-bottom:1px solid #e5e7eb; margin-bottom:12px;"></div>
+                                <div style="display:flex; flex-direction:column; gap:8px;">
+                                    @foreach (var lang in _languages)
+                                    {
+                                        <div style="display:flex; align-items:center; gap:14px;">
+                                            <span style="font-size:12px; font-weight:700; color:#111827; min-width:100px; font-family:'Roboto Mono', monospace;">
+                                                @lang.LanguageName
+                                            </span>
+                                            <div style="display:flex; gap:3px;">
+                                                @for (int i = 1; i <= 5; i++)
+                                                {
+                                                    var f = i <= LevelToInt(lang.ProficiencyLevel);
+                                                    <div style="width:22px; height:4px; background:@(f ? "#111827" : "#e5e7eb");"></div>
+                                                }
+                                            </div>
+                                            <span style="font-size:9px; font-weight:600; color:#6b7280; letter-spacing:1px;
+                                                         text-transform:uppercase; font-family:'Roboto Mono', monospace;">
+                                                @GetLevelLabel(lang.ProficiencyLevel)
+                                            </span>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        }
+
+                        <div style="border-top:1px solid #e5e7eb; padding-top:12px; margin-top:8px; display:flex; justify-content:space-between;">
+                            <p style="font-size:9px; color:#d1d5db; margin:0; font-family:'Roboto Mono', monospace; letter-spacing:1px;">
+                                GENERAT CU RECRUITBOARD · FORMAT EUROPASS
+                            </p>
+                            <p style="font-size:9px; color:#d1d5db; margin:0; font-family:'Roboto Mono', monospace;">
+                                @DateTime.Now.ToString("dd.MM.yyyy")
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        }
+
+    </div>
+}
+
+<style>
+    @@media print {
+        body > * { display: none !important; }
+        #cv-preview { display: block !important; border: none !important; }
+    }
+</style>
 
 @code {
-    private ProfileForm _profile = new()
+
+    private const string LabelStyle =
+        "display:block; font-size:11px; font-weight:600; letter-spacing:2px; " +
+        "text-transform:uppercase; color:#6b7280; margin-bottom:8px;";
+
+    private const string InputStyle =
+        "width:100%; padding:8px; border:1px solid #d1d5db; " +
+        "font-size:14px; box-sizing:border-box; font-family:inherit; background:#fff; color:#111827; ";
+
+    private const string SelectStyle =
+        "width:100%; padding:8px; border:1px solid #d1d5db; " +
+        "font-size:14px; box-sizing:border-box; font-family:inherit; background:#fff; color:#111827; ";
+
+    private const string ErrorStyle  = "color:#ef4444; font-size:12px; margin:4px 0 0 0;";
+    private const string AddLinkStyle =
+        "font-size:12px; font-weight:600; color:#6366f1; background:none; border:none; " +
+        "cursor:pointer; padding:0; margin-top:4px; font-family:inherit;";
+    private const string CvSectionLabel =
+        "font-size:9px; font-weight:600; letter-spacing:3px; text-transform:uppercase; " +
+        "color:#6b7280; margin:0 0 8px 0; font-family:'Roboto Mono', monospace;";
+
+    private string _saveBtnStyle =>
+        "background:#6366f1; color:#fff; border:none; font-size:11px; font-weight:600; " +
+        "letter-spacing:2px; text-transform:uppercase; padding:12px 24px; font-family:inherit; " +
+        (_isSaving ? "cursor:not-allowed; opacity:0.6;" : "cursor:pointer; opacity:1;");
+
+    private string _activeTab = "personal";
+
+    private readonly Dictionary<string, string> _tabs = new()
     {
-        Name     = "Ion Popescu",
-        Email    = "ion.popescu@email.com",
-        Phone    = "+40 721 000 000",
-        Location = "București",
-        About    = "Dezvoltator software cu 4 ani de experiență în aplicații web moderne.",
+        { "personal",   "Date personale" },
+        { "education",  "Educație"       },
+        { "experience", "Experiență"     },
+        { "skills",     "Competențe"     },
+        { "languages",  "Limbi"          },
+        { "cv",         "CV Preview"     },
     };
 
-    private List<string> _tags = new()
-        { "React", "TypeScript", "CSS", "Git", "REST API" };
+    private UpdateCandidateProfileDto  _profile       = new();
+    private CandidateProfileDto?       _profileData;
+    private List<EducationDto>?         _educations;
+    private List<ExperienceDto>?        _experiences;
+    private List<CandidateSkillDto>?    _skills;
+    private List<CandidateLanguageDto>? _languages;
+    private List<JobCategoryDto>        _jobCategories = new();
 
-    private void RemoveTag(string tag) => _tags.Remove(tag);
-    private void HandleSave() { /* logica vine mai târziu */ }
+    private bool   _isLoading      = true;
+    private bool   _isSaving       = false;
+    private bool   _saveSuccess    = false;
+    private bool   _showValidation = false;
+    private string _saveError      = "";
 
-    private class ProfileForm
+    private string AvatarInitials =>
+        $"{_profile.FirstName?.FirstOrDefault()}{_profile.LastName?.FirstOrDefault()}"
+        .ToUpper().Trim();
+
+    private int _completionPct => ComputeCompletion();
+
+    private string _completionHint => _completionPct switch
     {
-        public string Name     { get; set; } = "";
-        public string Email    { get; set; } = "";
-        public string Phone    { get; set; } = "";
-        public string Location { get; set; } = "";
-        public string About    { get; set; } = "";
+        int n when n < 25  => "Adaugă prenumele și numele pentru a începe.",
+        int n when n < 45  => "Adaugă educația pentru +20%.",
+        int n when n < 65  => "Adaugă experiența profesională pentru +20%.",
+        int n when n < 85  => "Adaugă competențe și limbi cunoscute.",
+        int n when n < 100 => "Completează domeniul preferat și statusul.",
+        _                  => "Profilul tău este complet!"
+    };
+
+    private int ComputeCompletion()
+    {
+        int score = 0;
+        if (!string.IsNullOrWhiteSpace(_profile.FirstName))   score += 10;
+        if (!string.IsNullOrWhiteSpace(_profile.LastName))    score += 10;
+        if (!string.IsNullOrWhiteSpace(_profile.Headline))    score += 5;
+        if (!string.IsNullOrWhiteSpace(_profile.Location))    score += 5;
+        if (!string.IsNullOrWhiteSpace(_profile.Phone))       score += 5;
+        if (!string.IsNullOrWhiteSpace(_profile.Summary))     score += 10;
+        if (_profile.DateOfBirth.HasValue)                     score += 5;
+        if (_profile.PreferredJobCategoryId.HasValue)          score += 5;
+        if (_educations?.Count  > 0)                           score += 20;
+        if (_experiences?.Count > 0)                           score += 15;
+        if (_skills?.Count      > 0)                           score += 5;
+        if (_languages?.Count   > 0)                           score += 5;
+        return Math.Min(score, 100);
     }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Task.WhenAll(LoadProfile(), LoadJobCategories());
+    }
+
+    private async Task LoadProfile()
+    {
+        try
+        {
+            _isLoading = true;
+            var response = await Http.GetAsync("api/candidateprofile");
+            if (response.IsSuccessStatusCode)
+            {
+                var json = await response.Content.ReadAsStringAsync();
+                _profileData = JsonSerializer.Deserialize<CandidateProfileDto>(json,
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                if (_profileData != null)
+                {
+                    _profile = new UpdateCandidateProfileDto
+                    {
+                        FirstName              = _profileData.FirstName,
+                        LastName               = _profileData.LastName,
+                        Headline               = _profileData.Headline,
+                        Location               = _profileData.Location,
+                        Summary                = _profileData.Summary,
+                        Email                  = _profileData.Email,
+                        Phone                  = _profileData.Phone,
+                        LinkedIn               = _profileData.LinkedIn,
+                        Nationality            = _profileData.Nationality,
+                        DateOfBirth            = _profileData.DateOfBirth,
+                        Status                 = _profileData.Status,
+                        PreferredJobCategoryId = _profileData.PreferredJobCategoryId,
+                        PreferredJobType       = _profileData.PreferredJobType,
+                    };
+                    _educations  = _profileData.Educations;
+                    _experiences = _profileData.Experiences;
+                    _skills      = _profileData.Skills;
+                    _languages   = _profileData.Languages;
+                }
+            }
+            else
+            {
+                Snackbar.Add("Eroare la încărcarea profilului", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Eroare: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private async Task LoadJobCategories()
+    {
+        try
+        {
+            var response = await Http.GetAsync("api/jobcategories");
+            if (response.IsSuccessStatusCode)
+            {
+                var json = await response.Content.ReadAsStringAsync();
+                _jobCategories = JsonSerializer.Deserialize<List<JobCategoryDto>>(json,
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new();
+            }
+            else { _jobCategories = GetDefaultCategories(); }
+        }
+        catch { _jobCategories = GetDefaultCategories(); }
+    }
+
+    private static List<JobCategoryDto> GetDefaultCategories() => new()
+    {
+        new() { Id = 1,  Name = "IT & Software" },
+        new() { Id = 2,  Name = "Web Development" },
+        new() { Id = 3,  Name = "Mobile Development" },
+        new() { Id = 4,  Name = "Data & AI" },
+        new() { Id = 5,  Name = "DevOps & Cloud" },
+        new() { Id = 6,  Name = "Cybersecurity" },
+        new() { Id = 7,  Name = "Management & Business" },
+        new() { Id = 8,  Name = "Resurse umane" },
+        new() { Id = 9,  Name = "Finanțe & Contabilitate" },
+        new() { Id = 10, Name = "Vânzări & Marketing" },
+        new() { Id = 11, Name = "Juridic & Administrație" },
+        new() { Id = 12, Name = "Educație & Cercetare" },
+        new() { Id = 13, Name = "Sănătate & Medicină" },
+        new() { Id = 14, Name = "Construcții & Imobiliare" },
+        new() { Id = 15, Name = "Producție & Inginerie" },
+        new() { Id = 16, Name = "Transport & Logistică" },
+        new() { Id = 17, Name = "Agricultură & Mediu" },
+        new() { Id = 18, Name = "Turism & HoReCa" },
+        new() { Id = 19, Name = "Media & Design" },
+        new() { Id = 20, Name = "Servicii & Altele" },
+    };
+
+    private async Task HandleSavePersonal()
+    {
+        _showValidation = true;
+        _saveError      = "";
+        _saveSuccess    = false;
+
+        if (string.IsNullOrWhiteSpace(_profile.FirstName) || string.IsNullOrWhiteSpace(_profile.LastName))
+        {
+            _saveError = "Prenumele și numele sunt obligatorii.";
+            return;
+        }
+
+        _isSaving = true;
+        try
+        {
+            var response = await Http.PutAsJsonAsync("api/candidateprofile", _profile);
+            if (response.IsSuccessStatusCode)
+            {
+                _saveSuccess = true;
+                Snackbar.Add("Profil salvat cu succes!", Severity.Success);
+                await Task.Delay(2000);
+                _saveSuccess = false;
+            }
+            else
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                var errorResponse = JsonSerializer.Deserialize<Dictionary<string, object>>(
+                    errorContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                _saveError = errorResponse?.ContainsKey("message") == true
+                    ? errorResponse["message"]?.ToString() ?? "Eroare la salvare"
+                    : "Eroare la salvarea profilului.";
+                Snackbar.Add(_saveError, Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            _saveError = $"Eroare: {ex.Message}";
+            Snackbar.Add(_saveError, Severity.Error);
+        }
+        finally
+        {
+            _isSaving = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task DownloadPdf() => await JS.InvokeVoidAsync("window.print");
+
+    private void RemoveSkill(int skillId) => _skills?.RemoveAll(s => s.Id == skillId);
+    private void NavigateTo(string section) => Navigation.NavigateTo($"/candidate/profile/{section}");
+
+    private static int LevelToInt(LanguageProficiencyLevel level) => level switch
+    {
+        LanguageProficiencyLevel.A1     => 1,
+        LanguageProficiencyLevel.A2     => 2,
+        LanguageProficiencyLevel.B1     => 3,
+        LanguageProficiencyLevel.B2     => 4,
+        LanguageProficiencyLevel.C1     => 5,
+        LanguageProficiencyLevel.C2     => 5,
+        LanguageProficiencyLevel.Native => 5,
+        _                               => 0
+    };
+
+    private static string GetLevelLabel(LanguageProficiencyLevel level) => level switch
+    {
+        LanguageProficiencyLevel.A1     => "A1",
+        LanguageProficiencyLevel.A2     => "A2",
+        LanguageProficiencyLevel.B1     => "B1",
+        LanguageProficiencyLevel.B2     => "B2",
+        LanguageProficiencyLevel.C1     => "C1",
+        LanguageProficiencyLevel.C2     => "C2",
+        LanguageProficiencyLevel.Native => "MATERNĂ",
+        _                               => ""
+    };
+
+    private static string GetSkillLevelLabel(SkillLevel level) => level switch
+    {
+        SkillLevel.Beginner     => "Începător",
+        SkillLevel.Intermediate => "Intermediar",
+        SkillLevel.Advanced     => "Avansat",
+        SkillLevel.Expert       => "Expert",
+        _                       => ""
+    };
+
+    private static string GetEmploymentTypeLabel(EmploymentType type) => type switch
+    {
+        EmploymentType.FullTime   => "Full-time",
+        EmploymentType.PartTime   => "Part-time",
+        EmploymentType.Freelance  => "Freelance",
+        EmploymentType.Internship => "Internship",
+        EmploymentType.Contract   => "Contract",
+        _                         => ""
+    };
 }
