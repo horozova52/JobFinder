@@ -16,427 +16,439 @@
 
 <PageTitle>Profil profesional - JobFinder</PageTitle>
 
-<MudText Typo="Typo.h5" Style="font-weight:700; color:#111827; margin-bottom:4px;">Profil profesional</MudText>
-<MudText Typo="Typo.body2" Style="color:#6b7280; margin-bottom:28px;">Completează-ți profilul pentru a primi recomandări mai bune.</MudText>
-
 @if (_isLoading)
 {
-    <div style="text-align:center; padding:60px 0;">
+    <div style="text-align:center; padding:80px 0;">
         <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
         <MudText Typo="Typo.body2" Style="color:#6b7280; margin-top:16px;">Se încarcă profilul...</MudText>
     </div>
 }
 else
 {
-    <MudTabs Elevation="0" Rounded="false" ApplyEffectsToContainer="true" PanelClass="pa-0 pt-6" SliderColor="Color.Primary" Style="border-bottom:1px solid #e5e7eb;">
 
-        <MudTabPanel Text="DATE PERSONALE">
-            <MudPaper Elevation="0" Class="pa-4 mb-6" Style="border:1px solid #e5e7eb; background:#fafafa;">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                    <MudText Typo="Typo.caption" Style="font-weight:700; letter-spacing:1px; text-transform:uppercase; color:#111827;">Completitudine profil</MudText>
-                    <MudText Typo="Typo.caption" Style="font-weight:700; color:#6366f1;">@_completionPct%</MudText>
+@* ════════════════════════════════════
+   HEADER CARD
+════════════════════════════════════ *@
+<div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; overflow:hidden; margin-bottom:16px;">
+    <div style="height:110px; background:linear-gradient(135deg,#1e293b 0%,#334155 100%); position:relative;">
+        <div style="position:absolute; bottom:-38px; left:28px;">
+            <div style="position:relative; width:80px; height:80px; cursor:pointer;" @onclick="TriggerFileInput">
+                <MudAvatar Style="width:80px; height:80px; border:3px solid #fff; background:#ede9fe; font-size:24px; font-weight:700; color:#6366f1;">
+                    @if (!string.IsNullOrWhiteSpace(_currentAvatarUrl))
+                    {
+                        <img src="@_currentAvatarUrl" alt="Avatar" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />
+                    }
+                    else { @AvatarInitials }
+                </MudAvatar>
+                <div style="position:absolute;inset:0;border-radius:50%;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .2s;"
+                     onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0'">
+                    <MudIcon Icon="@Icons.Material.Filled.CameraAlt" Style="color:#fff;font-size:20px;" />
                 </div>
-                <MudProgressLinear Value="@_completionPct" Color="Color.Primary" Style="height:4px; border-radius:0;" />
-                <MudText Typo="Typo.caption" Style="color:#9ca3af; margin-top:8px; display:block;">@_completionHint</MudText>
-            </MudPaper>
+            </div>
+            <InputFile id="avatarInput" OnChange="HandleAvatarSelected" accept=".jpg,.jpeg,.png,.webp" style="display:none;" />
+        </div>
+    </div>
+    <div style="padding:50px 28px 22px;">
+        <MudText Typo="Typo.h6" Style="font-weight:700; color:#111827; margin-bottom:2px;">
+            @_profile.FirstName @_profile.LastName
+        </MudText>
+        @if (!string.IsNullOrWhiteSpace(_profile.Headline))
+        {
+            <MudText Typo="Typo.body2" Style="color:#6b7280; margin-bottom:3px;">@_profile.Headline</MudText>
+        }
+        <MudText Typo="Typo.caption" Style="color:#9ca3af;">
+            @_profile.Location
+            @if (!string.IsNullOrWhiteSpace(_profile.Location) && !string.IsNullOrWhiteSpace(_profile.Email)) { <span> · </span> }
+            @_profile.Email
+        </MudText>
+        <div style="display:flex; gap:10px; margin-top:16px; flex-wrap:wrap;">
+            <MudButton OnClick="@(() => _activeTab = 0)" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Edit"
+                       Style="background:#1e293b;color:#fff;border-radius:8px;font-size:13px;text-transform:none;padding:8px 18px;min-height:0;">
+                Editează profilul
+            </MudButton>
+            <MudButton OnClick="@(() => _activeTab = 5)" Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.Download"
+                       Style="border:1px solid #d1d5db;color:#374151;border-radius:8px;font-size:13px;text-transform:none;padding:8px 18px;min-height:0;">
+                Descarcă CV
+            </MudButton>
+            <MudButton OnClick="@(() => _activeTab = 5)" Variant="Variant.Text" StartIcon="@Icons.Material.Filled.Visibility"
+                       Style="color:#6b7280;border-radius:8px;font-size:13px;text-transform:none;padding:8px 14px;min-height:0;">
+                Previzualizare CV
+            </MudButton>
+        </div>
+    </div>
+</div>
 
-            @* ── Zona Avatar — upload funcțional ── *@
-            <div style="display:flex; align-items:center; gap:20px; margin-bottom:28px;">
+@* ════════════════════════════════════
+   COMPLETION BAR
+════════════════════════════════════ *@
+<div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:18px 24px;margin-bottom:16px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <MudText Typo="Typo.body2" Style="font-weight:600;color:#111827;">Completitudinea profilului tău</MudText>
+        <MudText Typo="Typo.body2" Style="@CompletionPctStyle">@_completionPct% · @CompletionLabel</MudText>
+    </div>
+    <MudProgressLinear Value="@_completionPct" Color="Color.Primary" Style="height:6px;border-radius:99px;" />
+    <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">
+        @foreach (var hint in CompletionHints)
+        {
+            <span style="font-size:12px;padding:4px 12px;border-radius:99px;cursor:default;
+                         background:@(hint.Done?"#f0fdf4":"#f9fafb");
+                         color:@(hint.Done?"#16a34a":"#6b7280");
+                         border:1px solid @(hint.Done?"#bbf7d0":"#e5e7eb");">
+                @(hint.Done ? "✓" : "+") @hint.Label
+            </span>
+        }
+    </div>
+</div>
 
-                @* Avatar cu overlay la hover *@
-                <div style="position:relative; width:80px; height:80px; cursor:pointer; flex-shrink:0;"
-                     @onclick="TriggerFileInput">
-                    <MudAvatar Style="width:80px; height:80px; background:#ede9fe;
-                                          border:2px solid #e5e7eb; font-size:24px;
-                                          font-weight:700; color:#6366f1;">
-                        @if (!string.IsNullOrWhiteSpace(_currentAvatarUrl))
-                        {
-                            <img src="@_currentAvatarUrl" alt="Avatar"
-                                 style="width:100%; height:100%; object-fit:cover; border-radius:50%;" />
-                        }
-                        else
-                        {
-                            @AvatarInitials
-                        }
-                    </MudAvatar>
-                    @* Overlay cameră *@
-                    <div style="position:absolute; inset:0; border-radius:50%;
-                                    background:rgba(0,0,0,0.4); display:flex;
-                                    align-items:center; justify-content:center;
-                                    opacity:0; transition:opacity 0.2s;"
-                         onmouseover="this.style.opacity='1'"
-                         onmouseout="this.style.opacity='0'">
-                        <MudIcon Icon="@Icons.Material.Filled.CameraAlt"
-                                 Style="color:#fff; font-size:22px;" />
-                    </div>
-                </div>
+@* ════════════════════════════════════
+   GRID 2 coloane
+════════════════════════════════════ *@
+<div style="display:grid;grid-template-columns:1fr 300px;gap:16px;align-items:start;">
 
-                <div>
-                    <MudText Typo="Typo.body2" Style="font-weight:600; color:#111827; margin-bottom:4px;">
-                        Fotografie de profil
-                    </MudText>
-                    <MudText Typo="Typo.caption" Style="color:#9ca3af; display:block; margin-bottom:8px;">
-                        JPG, PNG sau WEBP, max 2MB. Apasă pe avatar sau pe buton.
-                    </MudText>
-                    <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
-                        <MudButton Variant="Variant.Outlined"
-                                   Size="Size.Small"
-                                   OnClick="TriggerFileInput"
-                                   Disabled="@_isUploadingAvatar"
-                                   Style="border-radius:0; text-transform:uppercase; font-size:11px;
-                                              letter-spacing:1px; color:#6366f1; border-color:#6366f1;">
-                            @(_isUploadingAvatar ? "Se încarcă..." : "Încarcă fotografie")
+    @* ── COLOANA STÂNGA ── *@
+    <div>
+        <MudTabs @bind-ActivePanelIndex="_activeTab"
+                 Elevation="0" Rounded="false" ApplyEffectsToContainer="true"
+                 PanelClass="pa-0 pt-4" SliderColor="Color.Primary"
+                 Style="border-bottom:1px solid #e5e7eb;">
+
+            @* TAB 0 — DATE PERSONALE *@
+            <MudTabPanel Text="DATE PERSONALE">
+                @if (!string.IsNullOrEmpty(_saveError))
+                { <MudAlert Severity="Severity.Error" Class="mb-4" Style="border-radius:8px;">@_saveError</MudAlert> }
+                @if (_saveSuccess)
+                { <MudAlert Severity="Severity.Success" Class="mb-4" Style="border-radius:8px;">Profilul a fost salvat cu succes.</MudAlert> }
+                <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:24px;">
+                    <MudGrid Spacing="3">
+                        <MudItem xs="12" sm="6">
+                            <MudTextField @bind-Value="_profile.FirstName" Label="Prenume" Variant="Variant.Outlined" Required="true"
+                                          Error="@(_showValidation && string.IsNullOrWhiteSpace(_profile.FirstName))"
+                                          ErrorText="Câmpul este obligatoriu." Placeholder="ex: Maria" Style="border-radius:0;" />
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudTextField @bind-Value="_profile.LastName" Label="Nume" Variant="Variant.Outlined" Required="true"
+                                          Error="@(_showValidation && string.IsNullOrWhiteSpace(_profile.LastName))"
+                                          ErrorText="Câmpul este obligatoriu." Placeholder="ex: Horozova" Style="border-radius:0;" />
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudTextField @bind-Value="_profile.Headline" Label="Titlu profesional" Variant="Variant.Outlined"
+                                          Placeholder="ex: Inginer software" Style="border-radius:0;" />
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudTextField @bind-Value="_profile.Location" Label="Locație" Variant="Variant.Outlined"
+                                          Placeholder="ex: Chișinău, Moldova" Style="border-radius:0;" />
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudTextField @bind-Value="_profile.Email" Label="Email" InputType="InputType.Email"
+                                          Variant="Variant.Outlined" Placeholder="ex: maria@email.com" Style="border-radius:0;" />
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudTextField @bind-Value="_profile.Phone" Label="Telefon" Variant="Variant.Outlined"
+                                          Placeholder="ex: +373 XX XXX XXX" Style="border-radius:0;" />
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudDatePicker @bind-Date="_profile.DateOfBirth" Label="Data nașterii"
+                                           Variant="Variant.Outlined" DateFormat="dd.MM.yyyy" Style="border-radius:0;" />
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudTextField @bind-Value="_profile.Nationality" Label="Naționalitate" Variant="Variant.Outlined"
+                                          Placeholder="ex: Moldovean(ă)" Style="border-radius:0;" />
+                        </MudItem>
+                        <MudItem xs="12">
+                            <MudTextField @bind-Value="_profile.LinkedIn" Label="LinkedIn / Site personal"
+                                          InputType="InputType.Url" Variant="Variant.Outlined"
+                                          Placeholder="https://linkedin.com/in/..." Style="border-radius:0;" />
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudSelect @bind-Value="_profile.Status" Label="Status disponibilitate"
+                                       Variant="Variant.Outlined" Style="border-radius:0;">
+                                <MudSelectItem Value="@CandidateStatus.ActivelyLooking">Caut activ un job</MudSelectItem>
+                                <MudSelectItem Value="@CandidateStatus.OpenToOffers">Deschis la oferte</MudSelectItem>
+                                <MudSelectItem Value="@CandidateStatus.Employed">Angajat momentan</MudSelectItem>
+                                <MudSelectItem Value="@CandidateStatus.NotLooking">Nu caut acum</MudSelectItem>
+                            </MudSelect>
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudSelect @bind-Value="_profile.PreferredJobType" Label="Tip angajare preferat"
+                                       Variant="Variant.Outlined" Style="border-radius:0;" Clearable="true">
+                                <MudSelectItem Value="@((JobType?)JobType.OnSite)">On-site (la birou)</MudSelectItem>
+                                <MudSelectItem Value="@((JobType?)JobType.Remote)">Remote</MudSelectItem>
+                                <MudSelectItem Value="@((JobType?)JobType.Hybrid)">Hibrid</MudSelectItem>
+                            </MudSelect>
+                        </MudItem>
+                        <MudItem xs="12">
+                            <MudSelect @bind-Value="_profile.PreferredJobCategoryId" Label="Domeniu preferat de activitate"
+                                       Variant="Variant.Outlined" Style="border-radius:0;" Clearable="true">
+                                @foreach (var cat in _jobCategories)
+                                { <MudSelectItem Value="@((int?)cat.Id)">@cat.Name</MudSelectItem> }
+                            </MudSelect>
+                        </MudItem>
+                        <MudItem xs="12">
+                            <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;">
+                                <MudText Typo="Typo.caption" Style="font-weight:600;letter-spacing:1px;text-transform:uppercase;color:#6b7280;">Despre mine</MudText>
+                                <MudText Typo="Typo.caption" Style="color:#9ca3af;">@(_profile.Summary?.Length ?? 0) / 500</MudText>
+                            </div>
+                            <MudTextField @bind-Value="_profile.Summary" Variant="Variant.Outlined" Lines="4" MaxLength="500"
+                                          Placeholder="Scrie câteva rânduri despre tine, experiența ta și ce cauți..."
+                                          Style="border-radius:0;" />
+                        </MudItem>
+                    </MudGrid>
+                    <div style="display:flex;align-items:center;gap:16px;margin-top:20px;padding-top:20px;border-top:1px solid #f3f4f6;">
+                        <MudText Typo="Typo.caption" Style="color:#6b7280;">Fotografie profil:</MudText>
+                        <MudButton Variant="Variant.Outlined" Size="Size.Small" OnClick="TriggerFileInput" Disabled="@_isUploadingAvatar"
+                                   Style="border-radius:8px;text-transform:none;font-size:12px;color:#6366f1;border-color:#6366f1;">
+                            @(_isUploadingAvatar ? "Se încarcă..." : "Schimbă fotografia")
                         </MudButton>
                         @if (!string.IsNullOrWhiteSpace(_currentAvatarUrl))
                         {
-                            <MudButton Variant="Variant.Text"
-                                       Size="Size.Small"
-                                       OnClick="DeleteAvatar"
-                                       Disabled="@_isUploadingAvatar"
-                                       Style="border-radius:0; font-size:11px; letter-spacing:1px;
-                                                      color:#ef4444; text-transform:uppercase;">
+                            <MudButton Variant="Variant.Text" Size="Size.Small" OnClick="DeleteAvatar" Disabled="@_isUploadingAvatar"
+                                       Style="border-radius:8px;font-size:12px;color:#ef4444;text-transform:none;">
                                 Șterge poza
                             </MudButton>
                         }
                     </div>
-                </div>
-
-                @* Input file ascuns *@
-                <InputFile id="avatarInput"
-                           OnChange="HandleAvatarSelected"
-                           accept=".jpg,.jpeg,.png,.webp"
-                           style="display:none;" />
-            </div>
-
-            @if (!string.IsNullOrEmpty(_saveError))
-            {
-                <MudAlert Severity="Severity.Error" Class="mb-4" Style="border-radius:0;">@_saveError</MudAlert>
-            }
-            @if (_saveSuccess)
-            {
-                <MudAlert Severity="Severity.Success" Class="mb-4" Style="border-radius:0;">Profilul a fost salvat cu succes.</MudAlert>
-            }
-
-            <MudGrid Spacing="3">
-                <MudItem xs="12" sm="6">
-                    <MudTextField @bind-Value="_profile.FirstName" Label="Prenume" Variant="Variant.Outlined" Required="true"
-                                  Error="@(_showValidation && string.IsNullOrWhiteSpace(_profile.FirstName))"
-                                  ErrorText="Câmpul este obligatoriu." Placeholder="ex: Maria" Style="border-radius:0;" />
-                </MudItem>
-                <MudItem xs="12" sm="6">
-                    <MudTextField @bind-Value="_profile.LastName" Label="Nume" Variant="Variant.Outlined" Required="true"
-                                  Error="@(_showValidation && string.IsNullOrWhiteSpace(_profile.LastName))"
-                                  ErrorText="Câmpul este obligatoriu." Placeholder="ex: Horozova" Style="border-radius:0;" />
-                </MudItem>
-                <MudItem xs="12" sm="6">
-                    <MudTextField @bind-Value="_profile.Headline" Label="Titlu profesional" Variant="Variant.Outlined"
-                                  Placeholder="ex: Inginer software" Style="border-radius:0;" />
-                </MudItem>
-                <MudItem xs="12" sm="6">
-                    <MudTextField @bind-Value="_profile.Location" Label="Locație" Variant="Variant.Outlined"
-                                  Placeholder="ex: Chișinău, Moldova" Style="border-radius:0;" />
-                </MudItem>
-                <MudItem xs="12" sm="6">
-                    <MudTextField @bind-Value="_profile.Email" Label="Email" InputType="InputType.Email"
-                                  Variant="Variant.Outlined" Placeholder="ex: maria@email.com" Style="border-radius:0;" />
-                </MudItem>
-                <MudItem xs="12" sm="6">
-                    <MudTextField @bind-Value="_profile.Phone" Label="Telefon" Variant="Variant.Outlined"
-                                  Placeholder="ex: +373 XX XXX XXX" Style="border-radius:0;" />
-                </MudItem>
-                <MudItem xs="12" sm="6">
-                    <MudDatePicker @bind-Date="_profile.DateOfBirth" Label="Data nașterii"
-                                   Variant="Variant.Outlined" DateFormat="dd.MM.yyyy" Style="border-radius:0;" />
-                </MudItem>
-                <MudItem xs="12" sm="6">
-                    <MudTextField @bind-Value="_profile.Nationality" Label="Naționalitate" Variant="Variant.Outlined"
-                                  Placeholder="ex: Moldovean(ă)" Style="border-radius:0;" />
-                </MudItem>
-                <MudItem xs="12">
-                    <MudTextField @bind-Value="_profile.LinkedIn" Label="LinkedIn / Site personal"
-                                  InputType="InputType.Url" Variant="Variant.Outlined"
-                                  Placeholder="https://linkedin.com/in/..." Style="border-radius:0;" />
-                </MudItem>
-                <MudItem xs="12" sm="6">
-                    <MudSelect @bind-Value="_profile.Status" Label="Status disponibilitate"
-                               Variant="Variant.Outlined" Style="border-radius:0;">
-                        <MudSelectItem Value="@CandidateStatus.ActivelyLooking">Caut activ un job</MudSelectItem>
-                        <MudSelectItem Value="@CandidateStatus.OpenToOffers">Deschis la oferte</MudSelectItem>
-                        <MudSelectItem Value="@CandidateStatus.Employed">Angajat momentan</MudSelectItem>
-                        <MudSelectItem Value="@CandidateStatus.NotLooking">Nu caut acum</MudSelectItem>
-                    </MudSelect>
-                </MudItem>
-                <MudItem xs="12" sm="6">
-                    <MudSelect @bind-Value="_profile.PreferredJobType" Label="Tip angajare preferat"
-                               Variant="Variant.Outlined" Style="border-radius:0;" Clearable="true">
-                        <MudSelectItem Value="@((JobType?)JobType.OnSite)">On-site (la birou)</MudSelectItem>
-                        <MudSelectItem Value="@((JobType?)JobType.Remote)">Remote</MudSelectItem>
-                        <MudSelectItem Value="@((JobType?)JobType.Hybrid)">Hibrid</MudSelectItem>
-                    </MudSelect>
-                </MudItem>
-                <MudItem xs="12">
-                    <MudSelect @bind-Value="_profile.PreferredJobCategoryId" Label="Domeniu preferat de activitate"
-                               Variant="Variant.Outlined" Style="border-radius:0;" Clearable="true">
-                        @foreach (var cat in _jobCategories)
-                        {
-                            <MudSelectItem Value="@((int?)cat.Id)">@cat.Name</MudSelectItem>
-                        }
-                    </MudSelect>
-                </MudItem>
-                <MudItem xs="12">
-                    <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:4px;">
-                        <MudText Typo="Typo.caption" Style="font-weight:600; letter-spacing:1px; text-transform:uppercase; color:#6b7280;">Despre mine</MudText>
-                        <MudText Typo="Typo.caption" Style="color:#9ca3af;">@(_profile.Summary?.Length ?? 0) / 500</MudText>
-                    </div>
-                    <MudTextField @bind-Value="_profile.Summary" Variant="Variant.Outlined" Lines="4" MaxLength="500"
-                                  Placeholder="Scrie câteva rânduri despre tine, experiența ta și ce cauți..."
-                                  Style="border-radius:0;" />
-                </MudItem>
-            </MudGrid>
-
-            <div style="margin-top:24px;">
-                <MudButton OnClick="HandleSavePersonal" Disabled="@_isSaving" Variant="Variant.Filled"
-                           Style="background:#6366f1; color:#fff; border-radius:0; font-size:11px; font-weight:600; letter-spacing:2px; text-transform:uppercase; padding:12px 28px;">
-                    @(_isSaving ? "Se salvează..." : "Salvează profilul")
-                </MudButton>
-            </div>
-        </MudTabPanel>
-
-        <MudTabPanel Text="EDUCAȚIE">
-            <EducationSection Items="_educations ?? new()"
-                              ItemsChanged="list => { _educations = list; StateHasChanged(); }" />
-        </MudTabPanel>
-
-        <MudTabPanel Text="EXPERIENȚĂ">
-            <ExperienceSection Items="_experiences ?? new()"
-                               ItemsChanged="list => { _experiences = list; StateHasChanged(); }" />
-        </MudTabPanel>
-
-        <MudTabPanel Text="COMPETENȚE">
-            <SkillsSection Items="_skills ?? new()"
-                           ItemsChanged="list => { _skills = list; StateHasChanged(); }" />
-        </MudTabPanel>
-
-        <MudTabPanel Text="LIMBI">
-            <LanguagesSection Items="_languages ?? new()"
-                              ItemsChanged="list => { _languages = list; StateHasChanged(); }" />
-        </MudTabPanel>
-
-        <MudTabPanel Text="CV PREVIEW">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
-                <MudText Typo="Typo.body2" Style="color:#6b7280; line-height:1.6;">
-                    CV generat automat din datele profilului tău. Format <strong>Europass</strong>.
-                </MudText>
-                <MudButton OnClick="DownloadPdf" Variant="Variant.Filled"
-                           Style="background:#111827; color:#fff; border-radius:0; font-size:11px; font-weight:600; letter-spacing:2px; text-transform:uppercase; white-space:nowrap;">
-                    Descarcă PDF
-                </MudButton>
-            </div>
-
-            <div id="cv-preview" style="background:#fff; border:1px solid #e5e7eb;">
-
-                @* ── Header CV cu poză ── *@
-                <div style="background:#111827; padding:32px 36px; display:flex;
-                                justify-content:space-between; align-items:flex-start; gap:20px;">
-                    @* Stânga: Nume + Titlu *@
-                    <div style="flex:1;">
-                        <p style="font-size:9px; font-weight:600; letter-spacing:3px; text-transform:uppercase;
-                                      color:#6366f1; margin:0 0 8px 0; font-family:'Roboto Mono',monospace;">
-                            Curriculum Vitae
-                        </p>
-                        <h1 style="font-size:22px; font-weight:700; color:#fff; margin:0 0 5px 0;
-                                       letter-spacing:-0.5px; font-family:'Roboto Mono',monospace;">
-                            @_profile.FirstName @_profile.LastName
-                        </h1>
-                        @if (!string.IsNullOrWhiteSpace(_profile.Headline))
-                        {
-                            <p style="font-size:12px; color:#9ca3af; margin:0; font-family:'Roboto Mono',monospace;">
-                                @_profile.Headline
-                            </p>
-                        }
-                    </div>
-
-                    @* Dreapta: Poză + Contact *@
-                    <div style="display:flex; flex-direction:column; align-items:flex-end; gap:6px;">
-                        @* Poza de profil *@
-                        @if (!string.IsNullOrWhiteSpace(_currentAvatarUrl))
-                        {
-                            <img src="@_currentAvatarUrl"
-                                 alt="Foto profil"
-                                 style="width:72px; height:72px; object-fit:cover;
-                                                border-radius:4px; border:2px solid #374151;
-                                                margin-bottom:4px;" />
-                        }
-                        @* Date contact *@
-                        <div style="text-align:right; font-size:11px; color:#9ca3af;
-                                        display:flex; flex-direction:column; gap:3px;
-                                        font-family:'Roboto Mono',monospace;">
-                            @if (!string.IsNullOrWhiteSpace(_profile.Email))
-                            {
-                                <span>@_profile.Email</span>
-                            }
-                            @if (!string.IsNullOrWhiteSpace(_profile.Phone))
-                            {
-                                <span>@_profile.Phone</span>
-                            }
-                            @if (!string.IsNullOrWhiteSpace(_profile.Location))
-                            {
-                                <span>@_profile.Location</span>
-                            }
-                            @if (!string.IsNullOrWhiteSpace(_profile.LinkedIn))
-                            {
-                                <span>@_profile.LinkedIn</span>
-                            }
-                            @if (_profile.DateOfBirth.HasValue)
-                            {
-                                <span>@_profile.DateOfBirth.Value.ToString("dd.MM.yyyy")</span>
-                            }
-                            @if (!string.IsNullOrWhiteSpace(_profile.Nationality))
-                            {
-                                <span>@_profile.Nationality</span>
-                            }
-                        </div>
+                    <div style="margin-top:20px;">
+                        <MudButton OnClick="HandleSavePersonal" Disabled="@_isSaving" Variant="Variant.Filled"
+                                   Style="background:#1e293b;color:#fff;border-radius:8px;font-size:13px;font-weight:600;text-transform:none;padding:10px 28px;">
+                            @(_isSaving ? "Se salvează..." : "Salvează profilul")
+                        </MudButton>
                     </div>
                 </div>
+            </MudTabPanel>
 
-                <div style="padding:28px 36px;">
-                    @if (!string.IsNullOrWhiteSpace(_profile.Summary))
-                    {
-                        <div style="margin-bottom:22px;">
-                            <p style="@CvLabel">Profil profesional</p>
-                            <div style="border-bottom:1px solid #e5e7eb; margin-bottom:12px;"></div>
-                            <p style="font-size:13px; color:#111827; line-height:1.75; margin:0;">@_profile.Summary</p>
+            @* TAB 1 — EDUCAȚIE *@
+            <MudTabPanel Text="EDUCAȚIE">
+                <EducationSection Items="_educations ?? new()"
+                                  ItemsChanged="list => { _educations = list; StateHasChanged(); }" />
+            </MudTabPanel>
+
+            @* TAB 2 — EXPERIENȚĂ *@
+            <MudTabPanel Text="EXPERIENȚĂ">
+                <ExperienceSection Items="_experiences ?? new()"
+                                   ItemsChanged="list => { _experiences = list; StateHasChanged(); }" />
+            </MudTabPanel>
+
+            @* TAB 3 — COMPETENȚE *@
+            <MudTabPanel Text="COMPETENȚE">
+                <SkillsSection Items="_skills ?? new()"
+                               ItemsChanged="list => { _skills = list; StateHasChanged(); }" />
+            </MudTabPanel>
+
+            @* TAB 4 — LIMBI *@
+            <MudTabPanel Text="LIMBI">
+                <LanguagesSection Items="_languages ?? new()"
+                                  ItemsChanged="list => { _languages = list; StateHasChanged(); }" />
+            </MudTabPanel>
+
+            @* TAB 5 — CV PREVIEW *@
+            <MudTabPanel Text="CV PREVIEW">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
+                    <MudText Typo="Typo.body2" Style="color:#6b7280;line-height:1.6;">
+                        CV generat automat din datele profilului tău. Format <strong>Europass</strong>.
+                    </MudText>
+                    <MudButton OnClick="DownloadPdf" Variant="Variant.Filled"
+                               Style="background:#111827;color:#fff;border-radius:8px;font-size:13px;font-weight:600;text-transform:none;white-space:nowrap;padding:10px 20px;">
+                        Descarcă PDF
+                    </MudButton>
+                </div>
+                <div id="cv-preview" style="background:#fff;border:1px solid #e5e7eb;">
+                    <div style="background:#111827;padding:32px 36px;display:flex;justify-content:space-between;align-items:flex-start;gap:20px;">
+                        <div style="flex:1;">
+                            <p style="font-size:9px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:#6366f1;margin:0 0 8px 0;font-family:'Roboto Mono',monospace;">Curriculum Vitae</p>
+                            <h1 style="font-size:22px;font-weight:700;color:#fff;margin:0 0 5px 0;letter-spacing:-0.5px;font-family:'Roboto Mono',monospace;">
+                                @_profile.FirstName @_profile.LastName
+                            </h1>
+                            @if (!string.IsNullOrWhiteSpace(_profile.Headline))
+                            { <p style="font-size:12px;color:#9ca3af;margin:0;font-family:'Roboto Mono',monospace;">@_profile.Headline</p> }
                         </div>
-                    }
-                    @if (_experiences != null && _experiences.Any())
-                    {
-                        <div style="margin-bottom:22px;">
-                            <p style="@CvLabel">Experiență profesională</p>
-                            <div style="border-bottom:1px solid #e5e7eb; margin-bottom:12px;"></div>
-                            @foreach (var exp in _experiences)
-                            {
-                                <div style="display:flex; gap:16px; margin-bottom:14px;">
-                                    <div style="width:110px; flex-shrink:0; text-align:right;">
-                                        <p style="font-size:10px; font-weight:600; color:#6b7280; font-family:'Roboto Mono',monospace; margin:3px 0 0 0;">
-                                            @exp.StartDate.ToString("MM/yyyy") – @(exp.IsCurrent ? "Prezent" : exp.EndDate?.ToString("MM/yyyy"))
-                                        </p>
-                                        @if (!string.IsNullOrEmpty(exp.Location))
-                                        {
-                                            <p style="font-size:10px; color:#9ca3af; margin:2px 0 0 0;">@exp.Location</p>
-                                        }
-                                    </div>
-                                    <div style="width:1px; background:#e5e7eb; flex-shrink:0;"></div>
-                                    <div style="flex:1;">
-                                        <p style="font-size:13px; font-weight:700; color:#111827; margin:0 0 2px 0;">@exp.Position</p>
-                                        <p style="font-size:11px; color:#6366f1; font-weight:600; margin:0 0 4px 0; font-family:'Roboto Mono',monospace;">
-                                            @exp.CompanyName
-                                            @if (exp.EmploymentType.HasValue)
-                                            {
-                                                <span style="color:#9ca3af; font-weight:400;"> · @GetEmploymentTypeLabel(exp.EmploymentType.Value)</span>
-                                            }
-                                        </p>
-                                        @if (!string.IsNullOrEmpty(exp.Description))
-                                        {
-                                            <p style="font-size:12px; color:#6b7280; line-height:1.6; margin:0;">@exp.Description</p>
-                                        }
-                                    </div>
-                                </div>
-                            }
-                        </div>
-                    }
-                    @if (_educations != null && _educations.Any())
-                    {
-                        <div style="margin-bottom:22px;">
-                            <p style="@CvLabel">Educație</p>
-                            <div style="border-bottom:1px solid #e5e7eb; margin-bottom:12px;"></div>
-                            @foreach (var edu in _educations)
-                            {
-                                <div style="display:flex; gap:16px; margin-bottom:12px;">
-                                    <div style="width:110px; flex-shrink:0; text-align:right;">
-                                        <p style="font-size:10px; font-weight:600; color:#6b7280; font-family:'Roboto Mono',monospace; margin:3px 0 0 0;">
-                                            @edu.StartDate.Year – @(edu.EndDate?.Year.ToString() ?? "Prezent")
-                                        </p>
-                                    </div>
-                                    <div style="width:1px; background:#e5e7eb; flex-shrink:0;"></div>
-                                    <div style="flex:1;">
-                                        <p style="font-size:13px; font-weight:700; color:#111827; margin:0 0 2px 0;">@edu.Institution</p>
-                                        <p style="font-size:11px; color:#6366f1; font-weight:600; margin:0 0 3px 0; font-family:'Roboto Mono',monospace;">
-                                            @edu.Degree
-                                            @if (!string.IsNullOrEmpty(edu.FieldOfStudy))
-                                            {
-                                                <span style="color:#9ca3af; font-weight:400;"> · @edu.FieldOfStudy</span>
-                                            }
-                                        </p>
-                                        @if (!string.IsNullOrEmpty(edu.Description))
-                                        {
-                                            <p style="font-size:12px; color:#6b7280; line-height:1.5; margin:0;">@edu.Description</p>
-                                        }
-                                    </div>
-                                </div>
-                            }
-                        </div>
-                    }
-                    @if (_skills != null && _skills.Any())
-                    {
-                        <div style="margin-bottom:22px;">
-                            <p style="@CvLabel">Competențe</p>
-                            <div style="border-bottom:1px solid #e5e7eb; margin-bottom:12px;"></div>
-                            <div style="display:flex; gap:7px; flex-wrap:wrap;">
-                                @foreach (var skill in _skills)
-                                {
-                                    <span style="font-size:11px; font-weight:600; color:#6b7280; border:1px solid #e5e7eb; padding:4px 10px; font-family:'Roboto Mono',monospace;">@skill.SkillName</span>
-                                }
+                        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
+                            @if (!string.IsNullOrWhiteSpace(_currentAvatarUrl))
+                            { <img src="@_currentAvatarUrl" alt="Foto profil" style="width:72px;height:72px;object-fit:cover;border-radius:4px;border:2px solid #374151;margin-bottom:4px;" /> }
+                            <div style="text-align:right;font-size:11px;color:#9ca3af;display:flex;flex-direction:column;gap:3px;font-family:'Roboto Mono',monospace;">
+                                @if (!string.IsNullOrWhiteSpace(_profile.Email))       { <span>@_profile.Email</span> }
+                                @if (!string.IsNullOrWhiteSpace(_profile.Phone))       { <span>@_profile.Phone</span> }
+                                @if (!string.IsNullOrWhiteSpace(_profile.Location))    { <span>@_profile.Location</span> }
+                                @if (!string.IsNullOrWhiteSpace(_profile.LinkedIn))    { <span>@_profile.LinkedIn</span> }
+                                @if (_profile.DateOfBirth.HasValue)                     { <span>@_profile.DateOfBirth.Value.ToString("dd.MM.yyyy")</span> }
+                                @if (!string.IsNullOrWhiteSpace(_profile.Nationality))  { <span>@_profile.Nationality</span> }
                             </div>
                         </div>
-                    }
-                    @if (_languages != null && _languages.Any())
-                    {
-                        <div style="margin-bottom:22px;">
-                            <p style="@CvLabel">Limbi cunoscute</p>
-                            <div style="border-bottom:1px solid #e5e7eb; margin-bottom:12px;"></div>
-                            <div style="display:flex; flex-direction:column; gap:8px;">
-                                @foreach (var lang in _languages)
+                    </div>
+                    <div style="padding:28px 36px;">
+                        @if (!string.IsNullOrWhiteSpace(_profile.Summary))
+                        {
+                            <div style="margin-bottom:22px;">
+                                <p style="@CvLabel">Profil profesional</p>
+                                <div style="border-bottom:1px solid #e5e7eb;margin-bottom:12px;"></div>
+                                <p style="font-size:13px;color:#111827;line-height:1.75;margin:0;">@_profile.Summary</p>
+                            </div>
+                        }
+                        @if (_experiences != null && _experiences.Any())
+                        {
+                            <div style="margin-bottom:22px;">
+                                <p style="@CvLabel">Experiență profesională</p>
+                                <div style="border-bottom:1px solid #e5e7eb;margin-bottom:12px;"></div>
+                                @foreach (var exp in _experiences)
                                 {
-                                    <div style="display:flex; align-items:center; gap:14px;">
-                                        <span style="font-size:12px; font-weight:700; color:#111827; min-width:100px; font-family:'Roboto Mono',monospace;">@lang.LanguageName</span>
-                                        <div style="display:flex; gap:3px;">
-                                            @for (int i = 1; i <= 5; i++)
-                                            {
-                                                var f = i <= LevelToInt(lang.ProficiencyLevel);
-                                                <div style="width:22px; height:4px; background:@(f ? "#111827" : "#e5e7eb");"></div>
-                                            }
+                                    <div style="display:flex;gap:16px;margin-bottom:14px;">
+                                        <div style="width:110px;flex-shrink:0;text-align:right;">
+                                            <p style="font-size:10px;font-weight:600;color:#6b7280;font-family:'Roboto Mono',monospace;margin:3px 0 0 0;">
+                                                @exp.StartDate.ToString("MM/yyyy") – @(exp.IsCurrent ? "Prezent" : exp.EndDate?.ToString("MM/yyyy"))
+                                            </p>
+                                            @if (!string.IsNullOrEmpty(exp.Location))
+                                            { <p style="font-size:10px;color:#9ca3af;margin:2px 0 0 0;">@exp.Location</p> }
                                         </div>
-                                        <span style="font-size:9px; font-weight:600; color:#6b7280; letter-spacing:1px; text-transform:uppercase; font-family:'Roboto Mono',monospace;">@GetLevelLabel(lang.ProficiencyLevel)</span>
+                                        <div style="width:1px;background:#e5e7eb;flex-shrink:0;"></div>
+                                        <div style="flex:1;">
+                                            <p style="font-size:13px;font-weight:700;color:#111827;margin:0 0 2px 0;">@exp.Position</p>
+                                            <p style="font-size:11px;color:#6366f1;font-weight:600;margin:0 0 4px 0;font-family:'Roboto Mono',monospace;">
+                                                @exp.CompanyName
+                                                @if (exp.EmploymentType.HasValue)
+                                                { <span style="color:#9ca3af;font-weight:400;"> · @GetEmploymentTypeLabel(exp.EmploymentType.Value)</span> }
+                                            </p>
+                                            @if (!string.IsNullOrEmpty(exp.Description))
+                                            { <p style="font-size:12px;color:#6b7280;line-height:1.6;margin:0;">@exp.Description</p> }
+                                        </div>
                                     </div>
                                 }
                             </div>
+                        }
+                        @if (_educations != null && _educations.Any())
+                        {
+                            <div style="margin-bottom:22px;">
+                                <p style="@CvLabel">Educație</p>
+                                <div style="border-bottom:1px solid #e5e7eb;margin-bottom:12px;"></div>
+                                @foreach (var edu in _educations)
+                                {
+                                    <div style="display:flex;gap:16px;margin-bottom:12px;">
+                                        <div style="width:110px;flex-shrink:0;text-align:right;">
+                                            <p style="font-size:10px;font-weight:600;color:#6b7280;font-family:'Roboto Mono',monospace;margin:3px 0 0 0;">
+                                                @edu.StartDate.Year – @(edu.EndDate?.Year.ToString() ?? "Prezent")
+                                            </p>
+                                        </div>
+                                        <div style="width:1px;background:#e5e7eb;flex-shrink:0;"></div>
+                                        <div style="flex:1;">
+                                            <p style="font-size:13px;font-weight:700;color:#111827;margin:0 0 2px 0;">@edu.Institution</p>
+                                            <p style="font-size:11px;color:#6366f1;font-weight:600;margin:0 0 3px 0;font-family:'Roboto Mono',monospace;">
+                                                @edu.Degree
+                                                @if (!string.IsNullOrEmpty(edu.FieldOfStudy))
+                                                { <span style="color:#9ca3af;font-weight:400;"> · @edu.FieldOfStudy</span> }
+                                            </p>
+                                            @if (!string.IsNullOrEmpty(edu.Description))
+                                            { <p style="font-size:12px;color:#6b7280;line-height:1.5;margin:0;">@edu.Description</p> }
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        }
+                        @if (_skills != null && _skills.Any())
+                        {
+                            <div style="margin-bottom:22px;">
+                                <p style="@CvLabel">Competențe</p>
+                                <div style="border-bottom:1px solid #e5e7eb;margin-bottom:12px;"></div>
+                                <div style="display:flex;gap:7px;flex-wrap:wrap;">
+                                    @foreach (var skill in _skills)
+                                    { <span style="font-size:11px;font-weight:600;color:#6b7280;border:1px solid #e5e7eb;padding:4px 10px;font-family:'Roboto Mono',monospace;">@skill.SkillName</span> }
+                                </div>
+                            </div>
+                        }
+                        @if (_languages != null && _languages.Any())
+                        {
+                            <div style="margin-bottom:22px;">
+                                <p style="@CvLabel">Limbi cunoscute</p>
+                                <div style="border-bottom:1px solid #e5e7eb;margin-bottom:12px;"></div>
+                                <div style="display:flex;flex-direction:column;gap:8px;">
+                                    @foreach (var lang in _languages)
+                                    {
+                                        <div style="display:flex;align-items:center;gap:14px;">
+                                            <span style="font-size:12px;font-weight:700;color:#111827;min-width:100px;font-family:'Roboto Mono',monospace;">@lang.LanguageName</span>
+                                            <div style="display:flex;gap:3px;">
+                                                @for (int i = 1; i <= 5; i++)
+                                                {
+                                                    var f = i <= LevelToInt(lang.ProficiencyLevel);
+                                                    <div style="width:22px;height:4px;background:@(f?"#111827":"#e5e7eb");"></div>
+                                                }
+                                            </div>
+                                            <span style="font-size:9px;font-weight:600;color:#6b7280;letter-spacing:1px;text-transform:uppercase;font-family:'Roboto Mono',monospace;">@GetLevelLabel(lang.ProficiencyLevel)</span>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        }
+                        <div style="border-top:1px solid #e5e7eb;padding-top:12px;margin-top:8px;display:flex;justify-content:space-between;">
+                            <p style="font-size:9px;color:#d1d5db;margin:0;font-family:'Roboto Mono',monospace;letter-spacing:1px;">GENERAT CU RECRUITBOARD · FORMAT EUROPASS</p>
+                            <p style="font-size:9px;color:#d1d5db;margin:0;font-family:'Roboto Mono',monospace;">@DateTime.Now.ToString("dd.MM.yyyy")</p>
                         </div>
-                    }
-                    <div style="border-top:1px solid #e5e7eb; padding-top:12px; margin-top:8px; display:flex; justify-content:space-between;">
-                        <p style="font-size:9px; color:#d1d5db; margin:0; font-family:'Roboto Mono',monospace; letter-spacing:1px;">GENERAT CU RECRUITBOARD · FORMAT EUROPASS</p>
-                        <p style="font-size:9px; color:#d1d5db; margin:0; font-family:'Roboto Mono',monospace;">@DateTime.Now.ToString("dd.MM.yyyy")</p>
                     </div>
                 </div>
-            </div>
-        </MudTabPanel>
+            </MudTabPanel>
 
-    </MudTabs>
+        </MudTabs>
+    </div>
+
+    @* ── SIDEBAR DREAPTA ── *@
+    <div style="display:flex;flex-direction:column;gap:16px;position:sticky;top:20px;">
+
+        <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:22px 24px;text-align:center;">
+            <div style="font-size:36px;margin-bottom:10px;">📄</div>
+            <MudText Typo="Typo.body1" Style="font-weight:700;color:#111827;margin-bottom:6px;">CV-ul tău Europass</MudText>
+            <MudText Typo="Typo.caption" Style="color:#6b7280;display:block;margin-bottom:16px;line-height:1.5;">
+                Generat automat din profilul tău.<br />Mereu actualizat.
+            </MudText>
+            <MudButton OnClick="DownloadPdf" Variant="Variant.Filled" FullWidth="true"
+                       StartIcon="@Icons.Material.Filled.Download"
+                       Style="background:#1e293b;color:#fff;border-radius:8px;font-size:13px;text-transform:none;padding:10px;">
+                Descarcă PDF
+            </MudButton>
+            <MudButton OnClick="@(() => _activeTab = 5)" Variant="Variant.Text" FullWidth="true"
+                       Style="color:#6b7280;font-size:12px;text-transform:none;margin-top:6px;padding:6px;">
+                👁 Previzualizează
+            </MudButton>
+            <MudText Typo="Typo.caption" Style="color:#9ca3af;display:block;margin-top:4px;">
+                Format Europass · Actualizat azi
+            </MudText>
+        </div>
+
+        <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:18px 20px;">
+            <MudText Typo="Typo.body2" Style="font-weight:700;color:#111827;margin-bottom:10px;">Status disponibilitate</MudText>
+            <div style="display:flex;align-items:center;gap:10px;">
+                <span style="width:10px;height:10px;border-radius:50%;flex-shrink:0;background:@StatusColor;display:inline-block;"></span>
+                <MudText Typo="Typo.body2" Style="color:#374151;">@StatusLabel</MudText>
+            </div>
+            <MudButton OnClick="@(() => _activeTab = 0)" Size="Size.Small"
+                       Style="margin-top:10px;color:#6366f1;font-size:12px;text-transform:none;padding:0;">
+                Schimbă statusul →
+            </MudButton>
+        </div>
+
+        <div style="background:#f8fafc;border:1px solid #e5e7eb;border-radius:12px;padding:18px 20px;">
+            <MudText Typo="Typo.body2" Style="font-weight:700;color:#111827;margin-bottom:12px;">💡 Îmbunătățește-ți profilul</MudText>
+            @foreach (var tip in ProfileTips)
+            {
+                <div style="display:flex;gap:10px;margin-bottom:10px;align-items:flex-start;">
+                    <span style="width:6px;height:6px;border-radius:50%;background:#334155;margin-top:5px;flex-shrink:0;display:inline-block;"></span>
+                    <MudText Typo="Typo.caption" Style="color:#6b7280;line-height:1.5;">@tip</MudText>
+                </div>
+            }
+        </div>
+
+    </div>
+
+</div>
+
 }
 
 <style>
     .mud-tab {
-        border-radius: 0 !important;
+        font-size: 11px !important;
+        font-weight: 600 !important;
+        letter-spacing: 0.5px !important;
+        min-width: 0 !important;
+        padding: 0 12px !important;
     }
-
     @@media print {
-        body > * {
-            display: none !important;
-        }
-
-        #cv-preview {
-            display: block !important;
-            border: none !important;
-        }
+        body > * { display:none !important; }
+        #cv-preview { display:block !important; border:none !important; }
     }
 </style>
 
@@ -446,60 +458,98 @@ else
         "font-size:9px; font-weight:600; letter-spacing:3px; text-transform:uppercase; " +
         "color:#6b7280; margin:0 0 8px 0; font-family:'Roboto Mono',monospace;";
 
-    private UpdateCandidateProfileDto _profile = new();
-    private CandidateProfileDto? _profileData;
-    private List<EducationDto>? _educations;
-    private List<ExperienceDto>? _experiences;
-    private List<CandidateSkillDto>? _skills;
-    private List<CandidateLanguageDto>? _languages;
-    private List<JobCategoryDto> _jobCategories = new();
+    private UpdateCandidateProfileDto  _profile       = new();
+    private CandidateProfileDto?       _profileData;
+    private List<EducationDto>?        _educations;
+    private List<ExperienceDto>?       _experiences;
+    private List<CandidateSkillDto>?   _skills;
+    private List<CandidateLanguageDto>?_languages;
+    private List<JobCategoryDto>       _jobCategories = new();
 
-    // ── Avatar ────────────────────────────────────────────────────────────
     private string? _currentAvatarUrl;
-    private bool _isUploadingAvatar = false;
-
-    private bool _isLoading = true;
-    private bool _isSaving = false;
-    private bool _saveSuccess = false;
-    private bool _showValidation = false;
-    private string _saveError = "";
+    private bool    _isUploadingAvatar = false;
+    private bool    _isLoading         = true;
+    private bool    _isSaving          = false;
+    private bool    _saveSuccess       = false;
+    private bool    _showValidation    = false;
+    private string  _saveError         = "";
+    private int     _activeTab         = 0;
 
     private string AvatarInitials =>
         $"{_profile.FirstName?.FirstOrDefault()}{_profile.LastName?.FirstOrDefault()}".ToUpper().Trim();
 
-    private int _completionPct => ComputeCompletion();
-    private string _completionHint => _completionPct switch
+    private int    _completionPct   => ComputeCompletion();
+    private string CompletionPctStyle =>
+        _completionPct >= 80 ? "font-weight:600;color:#16a34a;" : "font-weight:600;color:#6366f1;";
+    private string CompletionLabel => _completionPct switch
     {
-        int n when n < 25 => "Adaugă prenumele și numele pentru a începe.",
-        int n when n < 45 => "Adaugă educația pentru +20%.",
-        int n when n < 65 => "Adaugă experiența profesională pentru +20%.",
-        int n when n < 85 => "Adaugă competențe și limbi cunoscute.",
-        int n when n < 100 => "Completează domeniul preferat și statusul.",
-        _ => "Profilul tău este complet!"
+        >= 90 => "Profil excelent ✨",
+        >= 70 => "Profil bun",
+        >= 40 => "Profil parțial",
+        _     => "Profil incomplet"
     };
-
+    private List<(string Label, bool Done)> CompletionHints => new()
+    {
+        ("Date personale", !string.IsNullOrWhiteSpace(_profile.FirstName) && !string.IsNullOrWhiteSpace(_profile.LastName)),
+        ("Fotografie",     !string.IsNullOrWhiteSpace(_currentAvatarUrl)),
+        ("Rezumat",        !string.IsNullOrWhiteSpace(_profile.Summary)),
+        ("Experiență",     _experiences?.Any() == true),
+        ("Educație",       _educations?.Any()  == true),
+        ("Competențe",     _skills?.Any()      == true),
+        ("Limbi",          _languages?.Any()   == true),
+    };
     private int ComputeCompletion()
     {
         int score = 0;
         if (!string.IsNullOrWhiteSpace(_profile.FirstName)) score += 10;
-        if (!string.IsNullOrWhiteSpace(_profile.LastName)) score += 10;
-        if (!string.IsNullOrWhiteSpace(_profile.Headline)) score += 5;
-        if (!string.IsNullOrWhiteSpace(_profile.Location)) score += 5;
-        if (!string.IsNullOrWhiteSpace(_profile.Phone)) score += 5;
-        if (!string.IsNullOrWhiteSpace(_profile.Summary)) score += 10;
-        if (_profile.DateOfBirth.HasValue) score += 5;
-        if (_profile.PreferredJobCategoryId.HasValue) score += 5;
-        if (_educations?.Count > 0) score += 20;
+        if (!string.IsNullOrWhiteSpace(_profile.LastName))  score += 10;
+        if (!string.IsNullOrWhiteSpace(_profile.Headline))  score += 5;
+        if (!string.IsNullOrWhiteSpace(_profile.Location))  score += 5;
+        if (!string.IsNullOrWhiteSpace(_profile.Phone))     score += 5;
+        if (!string.IsNullOrWhiteSpace(_profile.Summary))   score += 10;
+        if (_profile.DateOfBirth.HasValue)                   score += 5;
+        if (_profile.PreferredJobCategoryId.HasValue)        score += 5;
+        if (_educations?.Count  > 0) score += 20;
         if (_experiences?.Count > 0) score += 15;
-        if (_skills?.Count > 0) score += 5;
-        if (_languages?.Count > 0) score += 5;
+        if (_skills?.Count      > 0) score += 5;
+        if (_languages?.Count   > 0) score += 5;
         return Math.Min(score, 100);
     }
 
-    protected override async Task OnInitializedAsync()
+    private string StatusLabel => _profile.Status switch
     {
-        await Task.WhenAll(LoadProfile(), LoadJobCategories());
+        CandidateStatus.ActivelyLooking => "Caut activ un job",
+        CandidateStatus.OpenToOffers    => "Deschis la oferte",
+        CandidateStatus.Employed        => "Angajat momentan",
+        CandidateStatus.NotLooking      => "Nu caut acum",
+        _                               => "Nespecificat"
+    };
+    private string StatusColor => _profile.Status switch
+    {
+        CandidateStatus.ActivelyLooking => "#22c55e",
+        CandidateStatus.OpenToOffers    => "#f59e0b",
+        CandidateStatus.Employed        => "#3b82f6",
+        _                               => "#9ca3af"
+    };
+    private IEnumerable<string> ProfileTips
+    {
+        get
+        {
+            if (string.IsNullOrWhiteSpace(_currentAvatarUrl))
+                yield return "Adaugă o fotografie — profilele cu poză primesc de 3× mai multe vizualizări.";
+            if (string.IsNullOrWhiteSpace(_profile.Summary))
+                yield return "Completează rezumatul pentru a ieși în evidență.";
+            if (!(_skills?.Count >= 3))
+                yield return "Adaugă cel puțin 5 competențe pentru recomandări mai precise.";
+            if (!(_experiences?.Any() == true))
+                yield return "Adaugă experiența profesională pentru un profil complet.";
+            if (!(_languages?.Any() == true))
+                yield return "Adaugă limbile pe care le cunoști.";
+        }
     }
+
+    protected override async Task OnInitializedAsync()
+        => await Task.WhenAll(LoadProfile(), LoadJobCategories());
 
     private async Task LoadProfile()
     {
@@ -516,25 +566,24 @@ else
                 {
                     _profile = new UpdateCandidateProfileDto
                     {
-                        FirstName = _profileData.FirstName,
-                        LastName = _profileData.LastName,
-                        Headline = _profileData.Headline,
-                        Location = _profileData.Location,
-                        Summary = _profileData.Summary,
-                        Email = _profileData.Email,
-                        Phone = _profileData.Phone,
-                        LinkedIn = _profileData.LinkedIn,
-                        Nationality = _profileData.Nationality,
-                        DateOfBirth = _profileData.DateOfBirth,
-                        Status = _profileData.Status,
+                        FirstName              = _profileData.FirstName,
+                        LastName               = _profileData.LastName,
+                        Headline               = _profileData.Headline,
+                        Location               = _profileData.Location,
+                        Summary                = _profileData.Summary,
+                        Email                  = _profileData.Email,
+                        Phone                  = _profileData.Phone,
+                        LinkedIn               = _profileData.LinkedIn,
+                        Nationality            = _profileData.Nationality,
+                        DateOfBirth            = _profileData.DateOfBirth,
+                        Status                 = _profileData.Status,
                         PreferredJobCategoryId = _profileData.PreferredJobCategoryId,
-                        PreferredJobType = _profileData.PreferredJobType,
+                        PreferredJobType       = _profileData.PreferredJobType,
                     };
-                    _educations = _profileData.Educations;
-                    _experiences = _profileData.Experiences;
-                    _skills = _profileData.Skills;
-                    _languages = _profileData.Languages;
-                    // ── Avatar URL din profil ──
+                    _educations       = _profileData.Educations;
+                    _experiences      = _profileData.Experiences;
+                    _skills           = _profileData.Skills;
+                    _languages        = _profileData.Languages;
                     _currentAvatarUrl = _profileData.AvatarUrl;
                 }
             }
@@ -562,23 +611,21 @@ else
 
     private static List<JobCategoryDto> GetDefaultCategories() => new()
     {
-        new() { Id=1,  Name="IT & Software" },          new() { Id=2,  Name="Web Development" },
-        new() { Id=3,  Name="Mobile Development" },     new() { Id=4,  Name="Data & AI" },
-        new() { Id=5,  Name="DevOps & Cloud" },         new() { Id=6,  Name="Cybersecurity" },
-        new() { Id=7,  Name="Management & Business" },  new() { Id=8,  Name="Resurse umane" },
-        new() { Id=9,  Name="Finanțe & Contabilitate" },new() { Id=10, Name="Vânzări & Marketing" },
-        new() { Id=11, Name="Juridic & Administrație" },new() { Id=12, Name="Educație & Cercetare" },
-        new() { Id=13, Name="Sănătate & Medicină" },    new() { Id=14, Name="Construcții & Imobiliare" },
-        new() { Id=15, Name="Producție & Inginerie" },  new() { Id=16, Name="Transport & Logistică" },
-        new() { Id=17, Name="Agricultură & Mediu" },    new() { Id=18, Name="Turism & HoReCa" },
-        new() { Id=19, Name="Media & Design" },         new() { Id=20, Name="Servicii & Altele" },
+        new(){Id=1,Name="IT & Software"},        new(){Id=2,Name="Web Development"},
+        new(){Id=3,Name="Mobile Development"},   new(){Id=4,Name="Data & AI"},
+        new(){Id=5,Name="DevOps & Cloud"},        new(){Id=6,Name="Cybersecurity"},
+        new(){Id=7,Name="Management & Business"}, new(){Id=8,Name="Resurse umane"},
+        new(){Id=9,Name="Finanțe & Contabilitate"},new(){Id=10,Name="Vânzări & Marketing"},
+        new(){Id=11,Name="Juridic & Administrație"},new(){Id=12,Name="Educație & Cercetare"},
+        new(){Id=13,Name="Sănătate & Medicină"},  new(){Id=14,Name="Construcții & Imobiliare"},
+        new(){Id=15,Name="Producție & Inginerie"},new(){Id=16,Name="Transport & Logistică"},
+        new(){Id=17,Name="Agricultură & Mediu"},  new(){Id=18,Name="Turism & HoReCa"},
+        new(){Id=19,Name="Media & Design"},       new(){Id=20,Name="Servicii & Altele"},
     };
 
     private async Task HandleSavePersonal()
     {
-        _showValidation = true;
-        _saveError = "";
-        _saveSuccess = false;
+        _showValidation = true; _saveError = ""; _saveSuccess = false;
         if (string.IsNullOrWhiteSpace(_profile.FirstName) || string.IsNullOrWhiteSpace(_profile.LastName))
         { _saveError = "Prenumele și numele sunt obligatorii."; return; }
         _isSaving = true;
@@ -597,97 +644,57 @@ else
                 var ec = await response.Content.ReadAsStringAsync();
                 var er = JsonSerializer.Deserialize<Dictionary<string, object>>(ec,
                     new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                _saveError = er?.ContainsKey("message") == true
-                    ? er["message"]?.ToString() ?? "Eroare" : "Eroare la salvare.";
+                _saveError = er?.ContainsKey("message") == true ? er["message"]?.ToString() ?? "Eroare" : "Eroare la salvare.";
                 Snackbar.Add(_saveError, Severity.Error);
             }
         }
-        catch (Exception ex)
-        {
-            _saveError = $"Eroare: {ex.Message}";
-            Snackbar.Add(_saveError, Severity.Error);
-        }
+        catch (Exception ex) { _saveError = $"Eroare: {ex.Message}"; Snackbar.Add(_saveError, Severity.Error); }
         finally { _isSaving = false; StateHasChanged(); }
     }
 
-    // ── Avatar: trigger input file ────────────────────────────────────────
     private async Task TriggerFileInput()
-    {
-        await JS.InvokeVoidAsync("eval", "document.getElementById('avatarInput').click()");
-    }
+        => await JS.InvokeVoidAsync("eval", "document.getElementById('avatarInput').click()");
 
-    // ── Avatar: handler selecție fișier ──────────────────────────────────
     private async Task HandleAvatarSelected(InputFileChangeEventArgs e)
     {
         var file = e.File;
         if (file == null) return;
-
-        if (file.Size > 2 * 1024 * 1024)
-        {
-            Snackbar.Add("Fișierul depășește limita de 2MB.", Severity.Warning);
-            return;
-        }
-
+        if (file.Size > 2 * 1024 * 1024) { Snackbar.Add("Fișierul depășește limita de 2MB.", Severity.Warning); return; }
         var allowed = new[] { "image/jpeg", "image/png", "image/webp" };
-        if (!allowed.Contains(file.ContentType))
-        {
-            Snackbar.Add("Doar JPG, PNG sau WEBP sunt acceptate.", Severity.Warning);
-            return;
-        }
-
-        _isUploadingAvatar = true;
-        StateHasChanged();
-
+        if (!allowed.Contains(file.ContentType)) { Snackbar.Add("Doar JPG, PNG sau WEBP sunt acceptate.", Severity.Warning); return; }
+        _isUploadingAvatar = true; StateHasChanged();
         try
         {
             using var stream = file.OpenReadStream(maxAllowedSize: 2 * 1024 * 1024);
             using var ms = new MemoryStream();
-            await stream.CopyToAsync(ms);
-            ms.Position = 0;
-
+            await stream.CopyToAsync(ms); ms.Position = 0;
             var content = new MultipartFormDataContent();
             var fileContent = new ByteArrayContent(ms.ToArray());
-            fileContent.Headers.ContentType =
-                new System.Net.Http.Headers.MediaTypeHeaderValue(file.ContentType);
+            fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(file.ContentType);
             content.Add(fileContent, "file", file.Name);
-
             var response = await Http.PostAsync("api/avatar", content);
-
             if (response.IsSuccessStatusCode)
             {
                 var json = await response.Content.ReadAsStringAsync();
-                var result = JsonSerializer.Deserialize<Dictionary<string, string>>(json,
-                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-
+                var result = JsonSerializer.Deserialize<Dictionary<string, string>>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
                 if (result != null && result.TryGetValue("avatarUrl", out var url))
                 {
-                    // Cache-bust pentru browser
                     _currentAvatarUrl = url + "?t=" + DateTimeOffset.UtcNow.ToUnixTimeSeconds();
                     if (_profileData != null) _profileData.AvatarUrl = url;
                 }
-
                 Snackbar.Add("Fotografia a fost actualizată!", Severity.Success);
             }
             else
             {
                 var json = await response.Content.ReadAsStringAsync();
-                var err = JsonSerializer.Deserialize<Dictionary<string, string>>(json,
-                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                var err = JsonSerializer.Deserialize<Dictionary<string, string>>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
                 Snackbar.Add(err?.GetValueOrDefault("message") ?? "Eroare la upload.", Severity.Error);
             }
         }
-        catch (Exception ex)
-        {
-            Snackbar.Add($"Eroare: {ex.Message}", Severity.Error);
-        }
-        finally
-        {
-            _isUploadingAvatar = false;
-            StateHasChanged();
-        }
+        catch (Exception ex) { Snackbar.Add($"Eroare: {ex.Message}", Severity.Error); }
+        finally { _isUploadingAvatar = false; StateHasChanged(); }
     }
 
-    // ── Avatar: ștergere ──────────────────────────────────────────────────
     private async Task DeleteAvatar()
     {
         _isUploadingAvatar = true;
@@ -700,16 +707,9 @@ else
                 if (_profileData != null) _profileData.AvatarUrl = null;
                 Snackbar.Add("Fotografia a fost ștearsă.", Severity.Success);
             }
-            else
-            {
-                Snackbar.Add("Eroare la ștergere.", Severity.Error);
-            }
+            else { Snackbar.Add("Eroare la ștergere.", Severity.Error); }
         }
-        finally
-        {
-            _isUploadingAvatar = false;
-            StateHasChanged();
-        }
+        finally { _isUploadingAvatar = false; StateHasChanged(); }
     }
 
     private async Task DownloadPdf() => await JS.InvokeVoidAsync("window.print");
@@ -717,44 +717,27 @@ else
 
     private static int LevelToInt(LanguageProficiencyLevel l) => l switch
     {
-        LanguageProficiencyLevel.A1 => 1,
-        LanguageProficiencyLevel.A2 => 2,
-        LanguageProficiencyLevel.B1 => 3,
-        LanguageProficiencyLevel.B2 => 4,
-        LanguageProficiencyLevel.C1 => 5,
-        LanguageProficiencyLevel.C2 => 5,
-        LanguageProficiencyLevel.Native => 5,
-        _ => 0
+        LanguageProficiencyLevel.A1=>1, LanguageProficiencyLevel.A2=>2,
+        LanguageProficiencyLevel.B1=>3, LanguageProficiencyLevel.B2=>4,
+        LanguageProficiencyLevel.C1=>5, LanguageProficiencyLevel.C2=>5,
+        LanguageProficiencyLevel.Native=>5, _=>0
     };
-
     private static string GetLevelLabel(LanguageProficiencyLevel l) => l switch
     {
-        LanguageProficiencyLevel.A1 => "A1",
-        LanguageProficiencyLevel.A2 => "A2",
-        LanguageProficiencyLevel.B1 => "B1",
-        LanguageProficiencyLevel.B2 => "B2",
-        LanguageProficiencyLevel.C1 => "C1",
-        LanguageProficiencyLevel.C2 => "C2",
-        LanguageProficiencyLevel.Native => "MATERNĂ",
-        _ => ""
+        LanguageProficiencyLevel.A1=>"A1", LanguageProficiencyLevel.A2=>"A2",
+        LanguageProficiencyLevel.B1=>"B1", LanguageProficiencyLevel.B2=>"B2",
+        LanguageProficiencyLevel.C1=>"C1", LanguageProficiencyLevel.C2=>"C2",
+        LanguageProficiencyLevel.Native=>"MATERNĂ", _=>""
     };
-
     private static string GetSkillLevelLabel(SkillLevel l) => l switch
     {
-        SkillLevel.Beginner => "Începător",
-        SkillLevel.Intermediate => "Intermediar",
-        SkillLevel.Advanced => "Avansat",
-        SkillLevel.Expert => "Expert",
-        _ => ""
+        SkillLevel.Beginner=>"Începător", SkillLevel.Intermediate=>"Intermediar",
+        SkillLevel.Advanced=>"Avansat",   SkillLevel.Expert=>"Expert", _=>""
     };
-
     private static string GetEmploymentTypeLabel(EmploymentType t) => t switch
     {
-        EmploymentType.FullTime => "Full-time",
-        EmploymentType.PartTime => "Part-time",
-        EmploymentType.Freelance => "Freelance",
-        EmploymentType.Internship => "Internship",
-        EmploymentType.Contract => "Contract",
-        _ => ""
+        EmploymentType.FullTime=>"Full-time",   EmploymentType.PartTime=>"Part-time",
+        EmploymentType.Freelance=>"Freelance",  EmploymentType.Internship=>"Internship",
+        EmploymentType.Contract=>"Contract",    _=>""
     };
 }
