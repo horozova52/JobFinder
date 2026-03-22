@@ -1,0 +1,459 @@
+﻿@using JobFinder.Shared.DTOs.Candidates
+@using JobFinder.Shared.DTOs.Common
+@using JobFinder.Shared.Enums
+@using System.Net.Http.Json
+@using System.Text.Json
+
+@inject HttpClient Http
+@inject ISnackbar Snackbar
+
+<div>
+
+    @* ══════════════════════════════════════
+       HEADER
+    ══════════════════════════════════════ *@
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:20px;">
+        <div>
+            <MudText Typo="Typo.h6" Style="font-weight:700; color:#111827;">Competențe</MudText>
+            <MudText Typo="Typo.body2" Style="color:#6b7280; margin-top:2px;">
+                Competențele tale sunt folosite pentru
+                <strong style="color:#6366f1;">matching automat</strong> cu ofertele de lucru.
+            </MudText>
+        </div>
+    </div>
+
+    @* ══════════════════════════════════════
+       BANNER MATCHING INFO
+    ══════════════════════════════════════ *@
+    <MudPaper Elevation="0" Class="pa-4 mb-6"
+              Style="border-left:4px solid #6366f1; background:#f5f3ff; border-radius:0;">
+        <div style="display:flex; align-items:center; gap:12px;">
+            <MudIcon Icon="@Icons.Material.Outlined.AutoAwesome"
+                     Style="color:#6366f1; font-size:22px; flex-shrink:0;" />
+            <div>
+                <MudText Typo="Typo.body2" Style="font-weight:700; color:#4338ca; margin-bottom:2px;">
+                    Cum funcționează matching-ul?
+                </MudText>
+                <MudText Typo="Typo.caption" Style="color:#6b7280; line-height:1.5;">
+                    Platforma compară competențele tale cu cerințele fiecărui job și calculează un scor de
+                    compatibilitate. Poți adăuga orice competență — din lista noastră sau una personalizată.
+                </MudText>
+            </div>
+        </div>
+    </MudPaper>
+
+    @* ══════════════════════════════════════
+       FORMULAR ADĂUGARE — input hibrid
+    ══════════════════════════════════════ *@
+    <MudPaper Elevation="0" Class="pa-5 mb-6"
+              Style="border:1px solid #e5e7eb; background:#fafafa;">
+
+        <MudText Typo="Typo.caption"
+                 Style="font-weight:700; letter-spacing:2px; text-transform:uppercase;
+                        color:#6b7280; display:block; margin-bottom:16px;">
+            Adaugă competență
+        </MudText>
+
+        <MudGrid Spacing="3" AlignItems="AlignItems.End">
+
+            @* ── Input hibrid: scrii liber + sugestii relevante jos ── *@
+            <MudItem xs="12" sm="6">
+                <MudAutocomplete T="string"
+                                 Label="Competență *"
+                                 @bind-Value="_skillInput"
+                                 SearchFunc="SearchSkills"
+                                 Variant="Variant.Outlined"
+                                 Style="border-radius:0;"
+                                 Placeholder="ex: C#, React, SQL, Comunicare..."
+                                 MinCharacters="1"
+                                 ResetValueOnEmptyText="false"
+                                 CoerceText="true"
+                                 CoerceValue="true"
+                                 Immediate="true"
+                                 MaxItems="10"
+                                 Error="@(_showValidation && string.IsNullOrWhiteSpace(_skillInput))"
+                                 ErrorText="Introdu sau selectează o competență"
+                                 HelperText="Scrie liber sau alege din sugestii">
+
+                    <ItemTemplate Context="skillName">
+                        @{
+                            var skillObj = _allSkills.FirstOrDefault(s => s.Name == skillName);
+                            var isInMyDomain = skillObj?.Category != null && _myCategories.Contains(skillObj.Category);
+                        }
+                        <div style="display:flex; justify-content:space-between;
+                                    align-items:center; padding:4px 0; width:100%;">
+                            <MudText Typo="Typo.body2" Style="font-weight:600; color:#111827;">
+                                @skillName
+                            </MudText>
+                            <div style="display:flex; align-items:center; gap:6px;">
+                                @if (isInMyDomain)
+                                {
+                                    <span style="font-size:10px; font-weight:700;
+                                                     color:#6366f1; letter-spacing:0.5px;
+                                                     background:#ede9fe; padding:2px 6px;">
+                                        RECOMANDAT
+                                    </span>
+                                }
+                                @if (skillObj != null && !string.IsNullOrEmpty(skillObj.Category))
+                                {
+                                    <MudText Typo="Typo.caption" Style="color:#9ca3af; font-size:11px;">
+                                        @skillObj.Category
+                                    </MudText>
+                                }
+                            </div>
+                        </div>
+                    </ItemTemplate>
+
+                    <NoItemsTemplate>
+                        <div style="padding:10px 12px;">
+                            <MudText Typo="Typo.caption" Style="color:#6b7280; display:block; margin-bottom:2px;">
+                                „<strong>@_skillInput</strong>" nu e în lista noastră.
+                            </MudText>
+                            <MudText Typo="Typo.caption" Style="color:#6366f1; font-weight:600;">
+                                ✨ Apasă „Adaugă" pentru a o crea ca skill personalizat.
+                            </MudText>
+                        </div>
+                    </NoItemsTemplate>
+
+                </MudAutocomplete>
+            </MudItem>
+
+            @* Nivel *@
+            <MudItem xs="12" sm="4">
+                <MudSelect @bind-Value="_selectedLevel"
+                           Label="Nivel *"
+                           Variant="Variant.Outlined"
+                           Style="border-radius:0;">
+                    <MudSelectItem Value="@SkillLevel.Beginner">🟢 Începător</MudSelectItem>
+                    <MudSelectItem Value="@SkillLevel.Intermediate">🔵 Intermediar</MudSelectItem>
+                    <MudSelectItem Value="@SkillLevel.Advanced">🟠 Avansat</MudSelectItem>
+                    <MudSelectItem Value="@SkillLevel.Expert">🔴 Expert</MudSelectItem>
+                </MudSelect>
+            </MudItem>
+
+            @* Buton *@
+            <MudItem xs="12" sm="2">
+                <MudButton Variant="Variant.Filled"
+                           OnClick="AddSkill"
+                           Disabled="@_isSaving"
+                           FullWidth="true"
+                           Style="background:#6366f1; color:#fff; border-radius:0;
+                                  font-size:11px; font-weight:600; letter-spacing:1px;
+                                  text-transform:uppercase; height:56px;">
+                    @(_isSaving ? "..." : "Adaugă")
+                </MudButton>
+            </MudItem>
+
+        </MudGrid>
+
+        @* Hint vizual — skill personalizat *@
+        @if (!string.IsNullOrWhiteSpace(_skillInput) &&
+                !_allSkills.Any(s => s.Name.Equals(_skillInput, StringComparison.OrdinalIgnoreCase)))
+        {
+            <div style="margin-top:10px; display:flex; align-items:center; gap:6px;">
+                <MudIcon Icon="@Icons.Material.Outlined.AddCircleOutline"
+                         Style="font-size:16px; color:#6366f1;" />
+                <MudText Typo="Typo.caption" Style="color:#6366f1; font-weight:600;">
+                    „@_skillInput" va fi adăugată ca competență personalizată
+                </MudText>
+            </div>
+        }
+
+    </MudPaper>
+
+    @* ══════════════════════════════════════
+       LISTA COMPETENȚE — grupate pe nivel
+    ══════════════════════════════════════ *@
+    @if (_items.Any())
+    {
+        @foreach (var levelGroup in _levelOrder)
+        {
+            var groupItems = _items.Where(s => s.Level == levelGroup).ToList();
+            if (!groupItems.Any()) continue;
+
+            <div style="margin-bottom:20px;">
+                <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
+                    <span style="font-size:13px;">@GetLevelEmoji(levelGroup)</span>
+                    <MudText Typo="Typo.caption"
+                             Style="font-weight:700; letter-spacing:2px;
+                                            text-transform:uppercase; color:#6b7280;">
+                        @GetLevelLabel(levelGroup)
+                    </MudText>
+                    <div style="flex:1; height:1px; background:#e5e7eb;"></div>
+                    <MudText Typo="Typo.caption" Style="color:#9ca3af;">
+                        @groupItems.Count competențe
+                    </MudText>
+                </div>
+
+                <div style="display:flex; flex-wrap:wrap; gap:8px;">
+                    @foreach (var skill in groupItems)
+                    {
+                        var sid = skill.Id;
+                        <MudChip T="string"
+                                 Style="@($"border-radius:0; font-size:12px; font-weight:600; height:34px; {GetLevelChipStyle(skill.Level)}")"
+                                 OnClose="@(() => RemoveSkill(sid))"
+                                 CloseIcon="@Icons.Material.Filled.Close">
+                            @skill.SkillName
+                        </MudChip>
+                    }
+                </div>
+            </div>
+        }
+
+        @* Sumar total *@
+        <MudPaper Elevation="0" Class="pa-3 mt-4"
+                  Style="border:1px solid #e5e7eb; background:#fafafa;
+                             display:flex; gap:24px; flex-wrap:wrap; align-items:center;">
+            <div style="text-align:center;">
+                <MudText Typo="Typo.h6" Style="font-weight:700; color:#6366f1;">@_items.Count</MudText>
+                <MudText Typo="Typo.caption" Style="color:#6b7280;">Total</MudText>
+            </div>
+            @foreach (var lvl in _levelOrder)
+            {
+                var cnt = _items.Count(s => s.Level == lvl);
+                if (cnt == 0) continue;
+                <div style="text-align:center;">
+                    <MudText Typo="Typo.body1" Style="font-weight:700; color:#111827;">
+                        @GetLevelEmoji(lvl) @cnt
+                    </MudText>
+                    <MudText Typo="Typo.caption" Style="color:#6b7280;">@GetLevelLabel(lvl)</MudText>
+                </div>
+            }
+        </MudPaper>
+    }
+    else
+    {
+        <div style="text-align:center; padding:48px 24px; border:2px dashed #e5e7eb;">
+            <MudIcon Icon="@Icons.Material.Outlined.Psychology"
+                     Style="font-size:48px; color:#d1d5db; margin-bottom:16px;" />
+            <MudText Typo="Typo.body1" Style="font-weight:600; color:#374151; margin-bottom:8px;">
+                Nicio competență adăugată
+            </MudText>
+            <MudText Typo="Typo.body2" Style="color:#6b7280;">
+                Adaugă primele competențe pentru a activa matching-ul automat cu joburi.
+            </MudText>
+        </div>
+    }
+
+</div>
+
+@code {
+
+    // ── Parametri ────────────────────────────────────────────────────────
+    [Parameter] public List<CandidateSkillDto> Items { get; set; } = [];
+    [Parameter] public EventCallback<List<CandidateSkillDto>> ItemsChanged { get; set; }
+
+    // ── Stare internă ────────────────────────────────────────────────────
+    private List<CandidateSkillDto> _items = [];
+    private List<SkillDto> _allSkills = [];
+    private string? _skillInput;
+    private SkillLevel _selectedLevel = SkillLevel.Intermediate;
+    private bool _isSaving = false;
+    private bool _showValidation = false;
+
+    // Categoriile skill-urilor deja adăugate de user — pentru relevanță sugestii
+    private HashSet<string> _myCategories = [];
+
+    private readonly SkillLevel[] _levelOrder =
+        [SkillLevel.Expert, SkillLevel.Advanced, SkillLevel.Intermediate, SkillLevel.Beginner];
+
+    // ── Lifecycle ────────────────────────────────────────────────────────
+    protected override void OnParametersSet()
+    {
+        _items = Items ?? [];
+        RebuildMyCategories();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAllSkills();
+    }
+
+    /// <summary>
+    /// Recalculează categoriile dominante ale userului după fiecare modificare a listei.
+    /// Acestea conduc relevanța sugestiilor din autocomplete.
+    /// </summary>
+    private void RebuildMyCategories()
+    {
+        _myCategories = _allSkills
+            .Where(s => _items.Any(i => i.SkillName.Equals(s.Name, StringComparison.OrdinalIgnoreCase)))
+            .Select(s => s.Category)
+            .Where(c => !string.IsNullOrEmpty(c))
+            .Cast<string>()
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+    }
+
+    private async Task LoadAllSkills()
+    {
+        try
+        {
+            var response = await Http.GetAsync("api/skills");
+            if (response.IsSuccessStatusCode)
+            {
+                var json = await response.Content.ReadAsStringAsync();
+                _allSkills = JsonSerializer.Deserialize<List<SkillDto>>(json,
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? [];
+
+                // Acum că avem lista, recalculăm categoriile
+                RebuildMyCategories();
+            }
+        }
+        catch { }
+    }
+
+    // ── Sugestii după relevanță ───────────────────────────────────────────
+    // Scor relevanță per skill:
+    //   +3 = categoria skill-ului e una din categoriile mele dominante
+    //   +2 = numele skill-ului conține exact ce am scris (starts-with)
+    //   +1 = conține textul scris (contains)
+    //   Ordine finală: scor DESC → alfabetic ASC
+    private Task<IEnumerable<string>> SearchSkills(string value, CancellationToken token)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return Task.FromResult<IEnumerable<string>>([]);
+
+        var alreadyAdded = _items
+            .Select(s => s.SkillName.ToLower())
+            .ToHashSet();
+
+        var valueLower = value.ToLower().Trim();
+
+        var results = _allSkills
+            .Where(s =>
+                !alreadyAdded.Contains(s.Name.ToLower()) &&
+                s.Name.Contains(value, StringComparison.OrdinalIgnoreCase))
+            .Select(s =>
+            {
+                int score = 0;
+
+                // Bonus relevanță — categoria mea dominantă
+                if (s.Category != null && _myCategories.Contains(s.Category))
+                    score += 3;
+
+                // Bonus potrivire text — starts-with e mai bun decât contains
+                if (s.Name.StartsWith(value, StringComparison.OrdinalIgnoreCase))
+                    score += 2;
+                else
+                    score += 1;
+
+                return (s.Name, score);
+            })
+            .OrderByDescending(x => x.score)
+            .ThenBy(x => x.Name)
+            .Take(10)
+            .Select(x => x.Name);
+
+        return Task.FromResult(results);
+    }
+
+    // ── Adaugă skill ──────────────────────────────────────────────────────
+    private async Task AddSkill()
+    {
+        _showValidation = true;
+        var name = _skillInput?.Trim();
+        if (string.IsNullOrWhiteSpace(name)) return;
+
+        if (_items.Any(s => s.SkillName.Equals(name, StringComparison.OrdinalIgnoreCase)))
+        {
+            Snackbar.Add("Această competență este deja adăugată.", Severity.Warning);
+            return;
+        }
+
+        _isSaving = true;
+        try
+        {
+            var payload = new { SkillName = name, Level = (int)_selectedLevel };
+            var response = await Http.PostAsJsonAsync("api/candidateskills", payload);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var json = await response.Content.ReadAsStringAsync();
+                var saved = JsonSerializer.Deserialize<CandidateSkillDto>(json,
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                if (saved != null)
+                {
+                    _items.Add(saved);
+
+                    // Dacă e skill personalizat (nu era în seed) — îl adăugăm local
+                    // pentru ca sugestiile viitoare să îl cunoască
+                    if (!_allSkills.Any(s => s.Id == saved.SkillId))
+                        _allSkills.Add(new SkillDto { Id = saved.SkillId, Name = saved.SkillName });
+
+                    // Recalculăm categoriile dominante după adăugare
+                    RebuildMyCategories();
+                }
+
+                await ItemsChanged.InvokeAsync(_items);
+
+                _skillInput = null;
+                _selectedLevel = SkillLevel.Intermediate;
+                _showValidation = false;
+
+                Snackbar.Add($"Competența \"{saved?.SkillName}\" a fost adăugată!", Severity.Success);
+            }
+            else
+            {
+                var json = await response.Content.ReadAsStringAsync();
+                var err = JsonSerializer.Deserialize<Dictionary<string, object>>(json,
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                var msg = err?.ContainsKey("message") == true
+                    ? err["message"]?.ToString() : "Eroare la adăugare.";
+                Snackbar.Add(msg, Severity.Warning);
+            }
+        }
+        finally { _isSaving = false; }
+    }
+
+    // ── Șterge skill ──────────────────────────────────────────────────────
+    private async Task RemoveSkill(int id)
+    {
+        var skill = _items.FirstOrDefault(s => s.Id == id);
+        if (skill == null) return;
+
+        try
+        {
+            var response = await Http.DeleteAsync($"api/candidateskills/{id}");
+            if (response.IsSuccessStatusCode)
+            {
+                _items.RemoveAll(s => s.Id == id);
+                await ItemsChanged.InvokeAsync(_items);
+
+                // Recalculăm categoriile după ștergere
+                RebuildMyCategories();
+
+                Snackbar.Add($"Competența \"{skill.SkillName}\" a fost ștearsă.", Severity.Success);
+            }
+            else { Snackbar.Add("Eroare la ștergere.", Severity.Error); }
+        }
+        catch { Snackbar.Add("Eroare la ștergere.", Severity.Error); }
+    }
+
+    // ── Helpers UI ────────────────────────────────────────────────────────
+    private static string GetLevelLabel(SkillLevel l) => l switch
+    {
+        SkillLevel.Beginner => "Începător",
+        SkillLevel.Intermediate => "Intermediar",
+        SkillLevel.Advanced => "Avansat",
+        SkillLevel.Expert => "Expert",
+        _ => l.ToString()
+    };
+
+    private static string GetLevelEmoji(SkillLevel l) => l switch
+    {
+        SkillLevel.Beginner => "🟢",
+        SkillLevel.Intermediate => "🔵",
+        SkillLevel.Advanced => "🟠",
+        SkillLevel.Expert => "🔴",
+        _ => "⚪"
+    };
+
+    private static string GetLevelChipStyle(SkillLevel l) => l switch
+    {
+        SkillLevel.Expert => "background:#fef2f2; color:#b91c1c; border:1px solid #fecaca;",
+        SkillLevel.Advanced => "background:#fff7ed; color:#c2410c; border:1px solid #fed7aa;",
+        SkillLevel.Intermediate => "background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe;",
+        SkillLevel.Beginner => "background:#f0fdf4; color:#15803d; border:1px solid #bbf7d0;",
+        _ => "background:#f9fafb; color:#374151; border:1px solid #e5e7eb;"
+    };
+}

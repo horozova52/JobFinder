@@ -69,7 +69,8 @@ public class Program
             .AddDefaultTokenProviders();
 
         builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
-   builder.Services.AddScoped<IExperienceRepository, ExperienceRepository>();
+        builder.Services.AddScoped<IExperienceRepository, ExperienceRepository>();
+        builder.Services.AddScoped<ICandidateSkillRepository, CandidateSkillRepository>();
         /// builder.Services.AddAutoMapper(typeof(Program));
         builder.Services.AddScoped(sp =>
         {
