@@ -148,43 +148,10 @@ else
                               ItemsChanged="list => { _educations = list; StateHasChanged(); }" />
         </MudTabPanel>
 
+
         <MudTabPanel Text="EXPERIENȚĂ">
-            <MudText Typo="Typo.subtitle1" Style="font-weight:700; color:#111827; margin-bottom:20px;">Experiență profesională</MudText>
-            @if (_experiences != null && _experiences.Any())
-            {
-                @foreach (var exp in _experiences)
-                {
-                    <MudPaper Elevation="0" Class="pa-4 mb-3" Style="border:1px solid #e5e7eb;">
-                        <div style="display:flex; align-items:center; gap:8px; margin-bottom:3px;">
-                            <MudText Typo="Typo.body1" Style="font-weight:700; color:#111827;">@exp.Position</MudText>
-                            @if (exp.EmploymentType.HasValue)
-                            {
-                                <MudChip T="string" Variant="Variant.Outlined"
-                                         Style="border-radius:0; font-size:11px; font-weight:600;
-                                    color:#6b7280; border-color:#e5e7eb;">
-                                    @GetEmploymentTypeLabel(exp.EmploymentType.Value)
-                                </MudChip>
-                            }
-                        </div>
-                        <MudText Typo="Typo.body2" Style="color:#6366f1; font-weight:600; margin-bottom:4px;">@exp.CompanyName</MudText>
-                        <MudText Typo="Typo.caption" Style="color:#9ca3af;">
-                            @exp.StartDate.ToString("MM/yyyy") – @(exp.IsCurrent ? "Prezent" : exp.EndDate?.ToString("MM/yyyy") ?? "Prezent")
-                            @if (!string.IsNullOrEmpty(exp.Location)) { <span> · @exp.Location</span> }
-                        </MudText>
-                        @if (!string.IsNullOrEmpty(exp.Description))
-                        { <MudText Typo="Typo.body2" Style="color:#6b7280; margin-top:8px; line-height:1.5;">@exp.Description</MudText> }
-                    </MudPaper>
-                }
-            }
-            else
-            {
-                <MudPaper Elevation="0" Class="pa-6 mb-4" Style="border:1px solid #e5e7eb; text-align:center;">
-                    <MudText Typo="Typo.body2" Style="color:#9ca3af;">Nu ai adăugat încă experiență.</MudText>
-                </MudPaper>
-            }
-            <MudButton Variant="Variant.Text" Style="color:#6366f1; font-size:12px; font-weight:600; text-transform:none; padding:0; margin-top:4px;">
-                + Adaugă experiență
-            </MudButton>
+            <ExperienceSection Items="_experiences ?? new()"
+                               ItemsChanged="list => { _experiences = list; StateHasChanged(); }" />
         </MudTabPanel>
 
         <MudTabPanel Text="COMPETENȚE">

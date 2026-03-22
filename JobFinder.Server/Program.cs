@@ -8,7 +8,9 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
 using JobFinder.UseCases;
-using MudBlazor.Services; 
+using MudBlazor.Services;
+using JobFinder.UseCases.Contracts;
+using JobFinder.Infrastructure.Repositories;
 
 namespace JobFinder;
 
@@ -67,7 +69,8 @@ public class Program
             .AddDefaultTokenProviders();
 
         builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
-       /// builder.Services.AddAutoMapper(typeof(Program));
+   builder.Services.AddScoped<IExperienceRepository, ExperienceRepository>();
+        /// builder.Services.AddAutoMapper(typeof(Program));
         builder.Services.AddScoped(sp =>
         {
             var request = sp.GetRequiredService<IHttpContextAccessor>().HttpContext?.Request;
