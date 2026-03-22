@@ -323,20 +323,20 @@
             </MudItem>
 
             <MudItem xs="12" sm="6">
-                <MudSelect @bind-Value="m.Degree"
+                <MudSelect T="string" @bind-Value="m.Degree"
                            Label="Grad / Titlu *"
                            Variant="Variant.Outlined"
+                           Placeholder="— Selectează —"
                            Error="@(_showValidation && string.IsNullOrWhiteSpace(m.Degree))"
                            ErrorText="Selectează un grad."
                            Style="border-radius:0;">
-                    <MudSelectItem Value="@("")">— Selectează —</MudSelectItem>
-                    <MudSelectItem Value="@("Licență")">🎓 Licență</MudSelectItem>
-                    <MudSelectItem Value="@("Master")">🎓 Master</MudSelectItem>
-                    <MudSelectItem Value="@("Doctorat")">🎓 Doctorat</MudSelectItem>
-                    <MudSelectItem Value="@("Bacalaureat")">📚 Bacalaureat</MudSelectItem>
-                    <MudSelectItem Value="@("Curs profesional")">📖 Curs profesional</MudSelectItem>
-                    <MudSelectItem Value="@("Certificare")">📜 Certificare</MudSelectItem>
-                    <MudSelectItem Value="@("Altele")">Altele</MudSelectItem>
+                    <MudSelectItem T="string" Value="@("Licență")">Licență</MudSelectItem>
+                    <MudSelectItem T="string" Value="@("Master")">Master</MudSelectItem>
+                    <MudSelectItem T="string" Value="@("Doctorat")">Doctorat</MudSelectItem>
+                    <MudSelectItem T="string" Value="@("Bacalaureat")">Bacalaureat</MudSelectItem>
+                    <MudSelectItem T="string" Value="@("Curs profesional")">Curs profesional</MudSelectItem>
+                    <MudSelectItem T="string" Value="@("Certificare")">Certificare</MudSelectItem>
+                    <MudSelectItem T="string" Value="@("Altele")">Altele</MudSelectItem>
                 </MudSelect>
             </MudItem>
 
