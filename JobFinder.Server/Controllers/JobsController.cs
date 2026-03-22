@@ -10,6 +10,7 @@ namespace JobFinder.Server.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[IgnoreAntiforgeryToken]
 public class JobsController : ControllerBase
 {
     private readonly IMediator _mediator;

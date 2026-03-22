@@ -15,15 +15,15 @@
 
     <!-- CSS-ul tău -->
     <link rel="stylesheet" href="@Assets["app.css"]" />
-    <link rel="stylesheet" href="@Assets["JobFinder.Client.styles.css"]" />
+    <link rel="stylesheet" href="@Assets["JobFinder.Server.styles.css"]" />
 
     <ImportMap />
     <link rel="icon" type="image/png" href="favicon.png" />
-    <HeadOutlet />
+    <HeadOutlet @rendermode="new InteractiveWebAssemblyRenderMode(prerender: false)" />
 </head>
 
 <body>
-    <Routes />
+    <Routes @rendermode="new InteractiveWebAssemblyRenderMode(prerender: false)" />
 
     <!-- MudBlazor JS — ÎNAINTE de blazor.web.js -->
 

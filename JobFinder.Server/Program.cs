@@ -19,6 +19,7 @@ public class Program
         var builder = WebApplication.CreateBuilder(args);
 
         builder.Services.AddMudServices();
+        builder.Services.AddHttpContextAccessor();
 
         // Blazor + Identity UI components
         builder.Services.AddRazorComponents()
@@ -67,9 +68,13 @@ public class Program
 
         builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
        /// builder.Services.AddAutoMapper(typeof(Program));
-        builder.Services.AddScoped(sp => new HttpClient
+        builder.Services.AddScoped(sp =>
         {
-            BaseAddress = new Uri("https://localhost:7169/")
+            var request = sp.GetRequiredService<IHttpContextAccessor>().HttpContext?.Request;
+            var baseAddress = request != null
+                ? $"{request.Scheme}://{request.Host}"
+                : "http://localhost:5054";
+            return new HttpClient { BaseAddress = new Uri(baseAddress) };
         });
         builder.Services.ConfigureApplicationCookie(options =>
         {
