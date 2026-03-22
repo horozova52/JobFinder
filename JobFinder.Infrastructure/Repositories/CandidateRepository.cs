@@ -14,6 +14,7 @@ public class CandidateRepository : ICandidateRepository
         _context = context;
     }
 
+    // AsNoTracking — pentru citire rapidă (GET)
     public async Task<CandidateProfile?> GetByIdAsync(int id, CancellationToken cancellationToken = default)
     {
         return await _context.CandidateProfiles
@@ -26,6 +27,7 @@ public class CandidateRepository : ICandidateRepository
             .FirstOrDefaultAsync(c => c.Id == id, cancellationToken);
     }
 
+    // AsNoTracking — pentru citire rapidă (GET)
     public async Task<CandidateProfile?> GetByUserIdAsync(string userId, CancellationToken cancellationToken = default)
     {
         return await _context.CandidateProfiles
@@ -35,6 +37,18 @@ public class CandidateRepository : ICandidateRepository
             .Include(c => c.Certifications)
             .Include(c => c.Languages).ThenInclude(l => l.Language)
             .AsNoTracking()
+            .FirstOrDefaultAsync(c => c.UserId == userId, cancellationToken);
+    }
+
+    // Tracked — fără AsNoTracking, necesar pentru UPDATE
+    public async Task<CandidateProfile?> GetTrackedByUserIdAsync(string userId, CancellationToken cancellationToken = default)
+    {
+        return await _context.CandidateProfiles
+            .Include(c => c.Experiences)
+            .Include(c => c.Educations)
+            .Include(c => c.Skills).ThenInclude(s => s.Skill)
+            .Include(c => c.Certifications)
+            .Include(c => c.Languages).ThenInclude(l => l.Language)
             .FirstOrDefaultAsync(c => c.UserId == userId, cancellationToken);
     }
 

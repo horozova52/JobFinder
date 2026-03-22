@@ -7,11 +7,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Features\Candidates\Commands\" />
-    <Folder Include="Features\Candidates\" />
-    <Folder Include="Features\Candidates\Queries\" />
-    <Folder Include="Features\Employers\Commands\" />
-    <Folder Include="Features\Employers\Queries\" />
+    <Compile Remove="Features\Employers\**" />
+    <EmbeddedResource Remove="Features\Employers\**" />
+    <None Remove="Features\Employers\**" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,4 +1,6 @@
-﻿namespace JobFinder.Shared.DTOs.Candidates;
+﻿using JobFinder.Shared.Enums;
+
+namespace JobFinder.Shared.DTOs.Candidates;
 
 public class ExperienceDto
 {
@@ -9,4 +11,6 @@ public class ExperienceDto
     public DateTime? EndDate { get; set; }
     public bool IsCurrent { get; set; }
     public string? Description { get; set; }
+    public string? Location { get; set; }
+    public EmploymentType? EmploymentType { get; set; }
 }
