@@ -1,0 +1,471 @@
+﻿@using JobFinder.Shared.DTOs.Candidates
+@using JobFinder.Shared.DTOs.Common
+@using JobFinder.Shared.Enums
+@using System.Net.Http.Json
+@using System.Text.Json
+
+@inject HttpClient Http
+@inject ISnackbar Snackbar
+
+<div>
+
+    @* ══════════════════════════════════════
+       HEADER
+    ══════════════════════════════════════ *@
+    <div style="margin-bottom:28px;">
+        <MudText Typo="Typo.h6" Style="font-weight:700; color:#111827;">Limbi cunoscute</MudText>
+        <MudText Typo="Typo.body2" Style="color:#6b7280; margin-top:2px;">
+            Adaugă limbile pe care le cunoști și nivelul tău conform scalei CEFR.
+        </MudText>
+    </div>
+
+    @* ══════════════════════════════════════
+       FORMULAR ADĂUGARE
+    ══════════════════════════════════════ *@
+    @if (_showAddForm)
+    {
+        <MudPaper Elevation="0" Class="pa-5 mb-5"
+                  Style="border:2px solid #6366f1; background:#fff;">
+
+            <MudText Typo="Typo.caption"
+                     Style="font-weight:700; letter-spacing:2px; text-transform:uppercase;
+                                color:#6366f1; display:block; margin-bottom:16px;">
+                Adaugă limbă
+            </MudText>
+
+            <MudGrid Spacing="3" AlignItems="AlignItems.End">
+                <MudItem xs="12" sm="5">
+                    <MudSelect @bind-Value="_selectedLanguageId"
+                               Label="Limbă *"
+                               Variant="Variant.Outlined"
+                               Style="border-radius:0;"
+                               Error="@(_showValidation && _selectedLanguageId == null)"
+                               ErrorText="Selectează o limbă">
+                        @foreach (var lang in _availableLanguages)
+                        {
+                            <MudSelectItem Value="@((int?)lang.Id)">@lang.Name</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+
+                <MudItem xs="12" sm="5">
+                    <MudSelect @bind-Value="_selectedLevel"
+                               Label="Nivel CEFR *"
+                               Variant="Variant.Outlined"
+                               Style="border-radius:0;">
+                        <MudSelectItem Value="@LanguageProficiencyLevel.A1">A1 — Începător</MudSelectItem>
+                        <MudSelectItem Value="@LanguageProficiencyLevel.A2">A2 — Elementar</MudSelectItem>
+                        <MudSelectItem Value="@LanguageProficiencyLevel.B1">B1 — Intermediar</MudSelectItem>
+                        <MudSelectItem Value="@LanguageProficiencyLevel.B2">B2 — Intermediar superior</MudSelectItem>
+                        <MudSelectItem Value="@LanguageProficiencyLevel.C1">C1 — Avansat</MudSelectItem>
+                        <MudSelectItem Value="@LanguageProficiencyLevel.C2">C2 — Competență deplină</MudSelectItem>
+                        <MudSelectItem Value="@LanguageProficiencyLevel.Native">Maternă</MudSelectItem>
+                    </MudSelect>
+                </MudItem>
+
+                <MudItem xs="12" sm="2">
+                    <MudButton Variant="Variant.Filled"
+                               OnClick="SaveAdd"
+                               Disabled="@_isSaving"
+                               FullWidth="true"
+                               Style="background:#6366f1; color:#fff; border-radius:0;
+                                          font-size:11px; font-weight:600; letter-spacing:1px;
+                                          text-transform:uppercase; height:56px;">
+                        @(_isSaving ? "..." : "Salvează")
+                    </MudButton>
+                </MudItem>
+            </MudGrid>
+
+            <MudButton Variant="Variant.Text" OnClick="CancelAdd"
+                       Style="color:#6b7280; font-size:11px; font-weight:600;
+                                  letter-spacing:1px; text-transform:uppercase; margin-top:12px;">
+                Anulează
+            </MudButton>
+
+        </MudPaper>
+    }
+
+    @* ══════════════════════════════════════
+       LISTA LIMBI
+    ══════════════════════════════════════ *@
+    @if (_items.Any())
+    {
+        <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:20px;">
+            @foreach (var item in _items.OrderByDescending(l => (int)l.ProficiencyLevel))
+            {
+                var itemId = item.Id;
+                var isEditing = _editingId == itemId;
+
+                <MudPaper Elevation="0"
+                          Style="@($"border:1px solid {(isEditing ? "#6366f1" : "#e5e7eb")}; background:#fff; padding:16px 20px;")">
+
+                    @if (isEditing)
+                    {
+                        @* ── Editare inline nivel ── *@
+                        <div style="display:flex; align-items:center; gap:16px; flex-wrap:wrap;">
+                            <MudText Typo="Typo.body1"
+                                     Style="font-weight:700; color:#111827; min-width:120px;">
+                                @item.LanguageName
+                            </MudText>
+                            <div style="flex:1; min-width:200px;">
+                                <MudSelect @bind-Value="_editLevel"
+                                           Label="Nivel CEFR"
+                                           Variant="Variant.Outlined"
+                                           Style="border-radius:0;">
+                                    <MudSelectItem Value="@LanguageProficiencyLevel.A1">A1 — Începător</MudSelectItem>
+                                    <MudSelectItem Value="@LanguageProficiencyLevel.A2">A2 — Elementar</MudSelectItem>
+                                    <MudSelectItem Value="@LanguageProficiencyLevel.B1">B1 — Intermediar</MudSelectItem>
+                                    <MudSelectItem Value="@LanguageProficiencyLevel.B2">B2 — Intermediar superior</MudSelectItem>
+                                    <MudSelectItem Value="@LanguageProficiencyLevel.C1">C1 — Avansat</MudSelectItem>
+                                    <MudSelectItem Value="@LanguageProficiencyLevel.C2">C2 — Competență deplină</MudSelectItem>
+                                    <MudSelectItem Value="@LanguageProficiencyLevel.Native">Maternă</MudSelectItem>
+                                </MudSelect>
+                            </div>
+                            <div style="display:flex; gap:8px;">
+                                <MudButton Variant="Variant.Filled"
+                                           OnClick="SaveEdit"
+                                           Disabled="@_isSaving"
+                                           Style="background:#6366f1; color:#fff; border-radius:0;
+                                                              font-size:11px; font-weight:600; letter-spacing:1px;
+                                                              text-transform:uppercase;">
+                                    @(_isSaving ? "..." : "Salvează")
+                                </MudButton>
+                                <MudButton Variant="Variant.Text"
+                                           OnClick="CancelEdit"
+                                           Style="color:#6b7280; border-radius:0; font-size:11px;
+                                                              font-weight:600; letter-spacing:1px; text-transform:uppercase;">
+                                    Anulează
+                                </MudButton>
+                                @if (_confirmDelete)
+                                {
+                                    <MudButton Variant="Variant.Filled"
+                                               OnClick="@(() => DeleteItem(itemId))"
+                                               Style="background:#ef4444; color:#fff; border-radius:0;
+                                                                      font-size:11px; font-weight:600; letter-spacing:1px;
+                                                                      text-transform:uppercase;">
+                                        Confirmă
+                                    </MudButton>
+                                    <MudButton Variant="Variant.Text"
+                                               OnClick="@(() => _confirmDelete = false)"
+                                               Style="color:#6b7280; border-radius:0; font-size:11px;
+                                                                      text-transform:uppercase;">
+                                        Nu
+                                    </MudButton>
+                                }
+                                else
+                                {
+                                    <MudIconButton Icon="@Icons.Material.Outlined.Delete"
+                                                   Size="Size.Small"
+                                                   OnClick="@(() => _confirmDelete = true)"
+                                                   Style="color:#ef4444;" />
+                                }
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        @* ── Vizualizare ── *@
+                        <div style="display:flex; align-items:center; gap:20px; flex-wrap:wrap;">
+
+                            @* Nume limbă *@
+                            <MudText Typo="Typo.body1"
+                                     Style="font-weight:700; color:#111827; min-width:120px;">
+                                @item.LanguageName
+                            </MudText>
+
+                            @* Bara CEFR vizuală *@
+                            <div style="display:flex; align-items:center; gap:4px; flex:1;">
+                                @for (int i = 0; i < 6; i++)
+                                {
+                                    var filled = i < LevelToInt(item.ProficiencyLevel);
+                                    var isNative = item.ProficiencyLevel == LanguageProficiencyLevel.Native;
+                                    <div style="@($"width:32px; height:6px; border-radius:2px; background:{((isNative || filled) ? "#6366f1" : "#e5e7eb")};")"></div>
+                                }
+                                <MudText Typo="Typo.caption"
+                                         Style="font-weight:700; color:#6366f1;
+                                                            letter-spacing:1px; margin-left:10px; min-width:80px;">
+                                    @GetLevelLabel(item.ProficiencyLevel)
+                                </MudText>
+                                <MudText Typo="Typo.caption" Style="color:#9ca3af; font-size:11px;">
+                                    @GetLevelDescription(item.ProficiencyLevel)
+                                </MudText>
+                            </div>
+
+                            @* Buton editare *@
+                            <MudIconButton Icon="@Icons.Material.Outlined.Edit"
+                                           Size="Size.Small"
+                                           OnClick="@(() => StartEdit(item))"
+                                           Style="color:#9ca3af;" />
+                        </div>
+                    }
+                </MudPaper>
+            }
+        </div>
+    }
+    else if (!_showAddForm)
+    {
+        <div style="text-align:center; padding:48px 24px; border:2px dashed #e5e7eb; margin-bottom:20px;">
+            <MudIcon Icon="@Icons.Material.Outlined.Translate"
+                     Style="font-size:48px; color:#d1d5db; margin-bottom:16px;" />
+            <MudText Typo="Typo.body1" Style="font-weight:600; color:#374151; margin-bottom:8px;">
+                Nicio limbă adăugată
+            </MudText>
+            <MudText Typo="Typo.body2" Style="color:#6b7280;">
+                Adaugă limbile pe care le cunoști — angajatorii apreciază candidații multilingvi.
+            </MudText>
+        </div>
+    }
+
+    @* Buton Adaugă (vizibil când nu e form deschis) *@
+    @if (!_showAddForm && _editingId == null)
+    {
+        <MudButton Variant="Variant.Filled"
+                   StartIcon="@Icons.Material.Filled.Add"
+                   OnClick="ShowAddForm"
+                   Style="background:#6366f1; color:#fff; border-radius:0;
+                              font-size:11px; font-weight:600; letter-spacing:1px;
+                              text-transform:uppercase;">
+            Adaugă limbă
+        </MudButton>
+    }
+
+    @* Legendă CEFR *@
+    <MudPaper Elevation="0" Class="pa-4 mt-5"
+              Style="border:1px solid #e5e7eb; background:#fafafa;">
+        <MudText Typo="Typo.caption"
+                 Style="font-weight:700; letter-spacing:2px; text-transform:uppercase;
+                        color:#6b7280; display:block; margin-bottom:10px;">
+            Scala CEFR — Cadrul European Comun de Referință
+        </MudText>
+        <div style="display:flex; flex-wrap:wrap; gap:8px 20px;">
+            @foreach (var (level, desc) in _cefrDescriptions)
+            {
+                <div style="display:flex; align-items:center; gap:6px;">
+                    <MudText Typo="Typo.caption"
+                             Style="font-weight:700; color:#6366f1; min-width:28px;">
+                        @GetLevelLabel(level)
+                    </MudText>
+                    <MudText Typo="Typo.caption" Style="color:#6b7280;">@desc</MudText>
+                </div>
+            }
+        </div>
+    </MudPaper>
+
+</div>
+
+@code {
+
+    [Parameter] public List<CandidateLanguageDto> Items { get; set; } = [];
+    [Parameter] public EventCallback<List<CandidateLanguageDto>> ItemsChanged { get; set; }
+
+    private List<CandidateLanguageDto> _items = [];
+    private List<LanguageDto> _availableLanguages = [];
+    private bool _showAddForm = false;
+    private bool _isSaving = false;
+    private bool _showValidation = false;
+    private bool _confirmDelete = false;
+    private int? _editingId;
+
+    // Formular adăugare
+    private int? _selectedLanguageId;
+    private LanguageProficiencyLevel _selectedLevel = LanguageProficiencyLevel.B1;
+
+    // Formular editare
+    private LanguageProficiencyLevel _editLevel;
+
+    // Legendă CEFR
+    private readonly (LanguageProficiencyLevel, string)[] _cefrDescriptions =
+    [
+        (LanguageProficiencyLevel.A1, "Începător"),
+        (LanguageProficiencyLevel.A2, "Elementar"),
+        (LanguageProficiencyLevel.B1, "Intermediar"),
+        (LanguageProficiencyLevel.B2, "Intermediar superior"),
+        (LanguageProficiencyLevel.C1, "Avansat"),
+        (LanguageProficiencyLevel.C2, "Competență deplină"),
+        (LanguageProficiencyLevel.Native, "Limbă maternă"),
+    ];
+
+    protected override void OnParametersSet()
+    {
+        _items = Items ?? [];
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadLanguages();
+    }
+
+    private async Task LoadLanguages()
+    {
+        try
+        {
+            var response = await Http.GetAsync("api/languages");
+            if (response.IsSuccessStatusCode)
+            {
+                var json = await response.Content.ReadAsStringAsync();
+                var all = JsonSerializer.Deserialize<List<LanguageDto>>(json,
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? [];
+
+                // Excludem limbile deja adăugate
+                var addedIds = _items.Select(i => i.LanguageId).ToHashSet();
+                _availableLanguages = all.Where(l => !addedIds.Contains(l.Id)).ToList();
+            }
+        }
+        catch { }
+    }
+
+    private void ShowAddForm()
+    {
+        _showAddForm = true;
+        _editingId = null;
+        _confirmDelete = false;
+        _showValidation = false;
+        _selectedLanguageId = null;
+        _selectedLevel = LanguageProficiencyLevel.B1;
+
+        // Actualizăm lista disponibilă (fără cele deja adăugate)
+        var addedIds = _items.Select(i => i.LanguageId).ToHashSet();
+        _availableLanguages = _availableLanguages
+            .Where(l => !addedIds.Contains(l.Id)).ToList();
+    }
+
+    private void CancelAdd()
+    {
+        _showAddForm = false;
+        _showValidation = false;
+    }
+
+    private async Task SaveAdd()
+    {
+        _showValidation = true;
+        if (_selectedLanguageId == null) return;
+
+        _isSaving = true;
+        try
+        {
+            var payload = new { LanguageId = _selectedLanguageId.Value, ProficiencyLevel = (int)_selectedLevel };
+            var response = await Http.PostAsJsonAsync("api/candidatelanguages", payload);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var json = await response.Content.ReadAsStringAsync();
+                var saved = JsonSerializer.Deserialize<CandidateLanguageDto>(json,
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                if (saved != null)
+                {
+                    _items.Add(saved);
+                    // Scoatem limba din lista disponibilă
+                    _availableLanguages.RemoveAll(l => l.Id == saved.LanguageId);
+                }
+
+                await ItemsChanged.InvokeAsync(_items);
+                _showAddForm = false;
+                _showValidation = false;
+                Snackbar.Add($"Limba \"{saved?.LanguageName}\" a fost adăugată!", Severity.Success);
+            }
+            else
+            {
+                var json = await response.Content.ReadAsStringAsync();
+                var err = JsonSerializer.Deserialize<Dictionary<string, object>>(json,
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                Snackbar.Add(err?["message"]?.ToString() ?? "Eroare.", Severity.Error);
+            }
+        }
+        finally { _isSaving = false; }
+    }
+
+    private void StartEdit(CandidateLanguageDto item)
+    {
+        _editingId = item.Id;
+        _editLevel = item.ProficiencyLevel;
+        _confirmDelete = false;
+        _showAddForm = false;
+    }
+
+    private void CancelEdit()
+    {
+        _editingId = null;
+        _confirmDelete = false;
+    }
+
+    private async Task SaveEdit()
+    {
+        _isSaving = true;
+        try
+        {
+            var payload = new { ProficiencyLevel = (int)_editLevel };
+            var response = await Http.PutAsJsonAsync($"api/candidatelanguages/{_editingId}", payload);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var json = await response.Content.ReadAsStringAsync();
+                var saved = JsonSerializer.Deserialize<CandidateLanguageDto>(json,
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                if (saved != null)
+                {
+                    var idx = _items.FindIndex(x => x.Id == _editingId);
+                    if (idx >= 0) _items[idx] = saved;
+                }
+
+                await ItemsChanged.InvokeAsync(_items);
+                _editingId = null;
+                Snackbar.Add("Nivel actualizat!", Severity.Success);
+            }
+            else { Snackbar.Add("Eroare la actualizare.", Severity.Error); }
+        }
+        finally { _isSaving = false; }
+    }
+
+    private async Task DeleteItem(int id)
+    {
+        _isSaving = true;
+        try
+        {
+            var lang = _items.FirstOrDefault(l => l.Id == id);
+            var response = await Http.DeleteAsync($"api/candidatelanguages/{id}");
+
+            if (response.IsSuccessStatusCode)
+            {
+                _items.RemoveAll(l => l.Id == id);
+
+                // Readăugăm limba în lista disponibilă
+                if (lang != null)
+                    _availableLanguages.Add(new LanguageDto { Id = lang.LanguageId, Name = lang.LanguageName });
+
+                await ItemsChanged.InvokeAsync(_items);
+                _editingId = null;
+                _confirmDelete = false;
+                Snackbar.Add("Limbă ștearsă.", Severity.Success);
+            }
+            else { Snackbar.Add("Eroare la ștergere.", Severity.Error); }
+        }
+        finally { _isSaving = false; }
+    }
+
+    // ── Helpers ──────────────────────────────────────────────────────────
+    private static int LevelToInt(LanguageProficiencyLevel l) => l switch
+    {
+        LanguageProficiencyLevel.Native => 6,
+        _ => (int)l + 1
+    };
+
+    private static string GetLevelLabel(LanguageProficiencyLevel l) => l switch
+    {
+        LanguageProficiencyLevel.Native => "Maternă",
+        _ => l.ToString()
+    };
+
+    private static string GetLevelDescription(LanguageProficiencyLevel l) => l switch
+    {
+        LanguageProficiencyLevel.A1 => "Începător",
+        LanguageProficiencyLevel.A2 => "Elementar",
+        LanguageProficiencyLevel.B1 => "Intermediar",
+        LanguageProficiencyLevel.B2 => "Intermediar superior",
+        LanguageProficiencyLevel.C1 => "Avansat",
+        LanguageProficiencyLevel.C2 => "Competență deplină",
+        LanguageProficiencyLevel.Native => "Limbă maternă",
+        _ => ""
+    };
+}

@@ -70,6 +70,7 @@ public class Program
 
         builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
         builder.Services.AddScoped<IExperienceRepository, ExperienceRepository>();
+        builder.Services.AddScoped<ICandidateLanguageRepository, CandidateLanguageRepository>();
         builder.Services.AddScoped<ICandidateSkillRepository, CandidateSkillRepository>();
         /// builder.Services.AddAutoMapper(typeof(Program));
         builder.Services.AddScoped(sp =>
@@ -120,6 +121,7 @@ public class Program
 
         app.UseAuthentication();
         app.UseAuthorization();
+        app.UseStaticFiles();
         app.MapControllers();
         app.MapStaticAssets();
         app.MapRazorComponents<App>()

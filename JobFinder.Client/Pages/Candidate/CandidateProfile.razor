@@ -40,25 +40,82 @@ else
                 <MudText Typo="Typo.caption" Style="color:#9ca3af; margin-top:8px; display:block;">@_completionHint</MudText>
             </MudPaper>
 
+            @* ── Zona Avatar — upload funcțional ── *@
             <div style="display:flex; align-items:center; gap:20px; margin-bottom:28px;">
-                <MudAvatar Style="width:72px; height:72px; background:#ede9fe; border:2px solid #e5e7eb; font-size:22px; font-weight:700; color:#6366f1;">
-                    @if (!string.IsNullOrWhiteSpace(_profileData?.AvatarUrl))
-                    { <MudImage Src="@_profileData.AvatarUrl" Style="width:100%; height:100%; object-fit:cover;" /> }
-                    else { @AvatarInitials }
-                </MudAvatar>
-                <div>
-                    <MudText Typo="Typo.body2" Style="font-weight:600; color:#111827; margin-bottom:4px;">Fotografie de profil</MudText>
-                    <MudText Typo="Typo.caption" Style="color:#9ca3af; display:block; margin-bottom:8px;">JPG sau PNG, max 2MB.</MudText>
-                    <MudButton Variant="Variant.Outlined" Size="Size.Small" Disabled="true" Style="border-radius:0; text-transform:uppercase; font-size:11px; letter-spacing:1px; color:#9ca3af; border-color:#e5e7eb;">
-                        Încarcă fotografie
-                    </MudButton>
+
+                @* Avatar cu overlay la hover *@
+                <div style="position:relative; width:80px; height:80px; cursor:pointer; flex-shrink:0;"
+                     @onclick="TriggerFileInput">
+                    <MudAvatar Style="width:80px; height:80px; background:#ede9fe;
+                                          border:2px solid #e5e7eb; font-size:24px;
+                                          font-weight:700; color:#6366f1;">
+                        @if (!string.IsNullOrWhiteSpace(_currentAvatarUrl))
+                        {
+                            <img src="@_currentAvatarUrl" alt="Avatar"
+                                 style="width:100%; height:100%; object-fit:cover; border-radius:50%;" />
+                        }
+                        else
+                        {
+                            @AvatarInitials
+                        }
+                    </MudAvatar>
+                    @* Overlay cameră *@
+                    <div style="position:absolute; inset:0; border-radius:50%;
+                                    background:rgba(0,0,0,0.4); display:flex;
+                                    align-items:center; justify-content:center;
+                                    opacity:0; transition:opacity 0.2s;"
+                         onmouseover="this.style.opacity='1'"
+                         onmouseout="this.style.opacity='0'">
+                        <MudIcon Icon="@Icons.Material.Filled.CameraAlt"
+                                 Style="color:#fff; font-size:22px;" />
+                    </div>
                 </div>
+
+                <div>
+                    <MudText Typo="Typo.body2" Style="font-weight:600; color:#111827; margin-bottom:4px;">
+                        Fotografie de profil
+                    </MudText>
+                    <MudText Typo="Typo.caption" Style="color:#9ca3af; display:block; margin-bottom:8px;">
+                        JPG, PNG sau WEBP, max 2MB. Apasă pe avatar sau pe buton.
+                    </MudText>
+                    <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                        <MudButton Variant="Variant.Outlined"
+                                   Size="Size.Small"
+                                   OnClick="TriggerFileInput"
+                                   Disabled="@_isUploadingAvatar"
+                                   Style="border-radius:0; text-transform:uppercase; font-size:11px;
+                                              letter-spacing:1px; color:#6366f1; border-color:#6366f1;">
+                            @(_isUploadingAvatar ? "Se încarcă..." : "Încarcă fotografie")
+                        </MudButton>
+                        @if (!string.IsNullOrWhiteSpace(_currentAvatarUrl))
+                        {
+                            <MudButton Variant="Variant.Text"
+                                       Size="Size.Small"
+                                       OnClick="DeleteAvatar"
+                                       Disabled="@_isUploadingAvatar"
+                                       Style="border-radius:0; font-size:11px; letter-spacing:1px;
+                                                      color:#ef4444; text-transform:uppercase;">
+                                Șterge poza
+                            </MudButton>
+                        }
+                    </div>
+                </div>
+
+                @* Input file ascuns *@
+                <InputFile id="avatarInput"
+                           OnChange="HandleAvatarSelected"
+                           accept=".jpg,.jpeg,.png,.webp"
+                           style="display:none;" />
             </div>
 
             @if (!string.IsNullOrEmpty(_saveError))
-            { <MudAlert Severity="Severity.Error" Class="mb-4" Style="border-radius:0;">@_saveError</MudAlert> }
+            {
+                <MudAlert Severity="Severity.Error" Class="mb-4" Style="border-radius:0;">@_saveError</MudAlert>
+            }
             @if (_saveSuccess)
-            { <MudAlert Severity="Severity.Success" Class="mb-4" Style="border-radius:0;">Profilul a fost salvat cu succes.</MudAlert> }
+            {
+                <MudAlert Severity="Severity.Success" Class="mb-4" Style="border-radius:0;">Profilul a fost salvat cu succes.</MudAlert>
+            }
 
             <MudGrid Spacing="3">
                 <MudItem xs="12" sm="6">
@@ -121,7 +178,9 @@ else
                     <MudSelect @bind-Value="_profile.PreferredJobCategoryId" Label="Domeniu preferat de activitate"
                                Variant="Variant.Outlined" Style="border-radius:0;" Clearable="true">
                         @foreach (var cat in _jobCategories)
-                        { <MudSelectItem Value="@((int?)cat.Id)">@cat.Name</MudSelectItem> }
+                        {
+                            <MudSelectItem Value="@((int?)cat.Id)">@cat.Name</MudSelectItem>
+                        }
                     </MudSelect>
                 </MudItem>
                 <MudItem xs="12">
@@ -148,7 +207,6 @@ else
                               ItemsChanged="list => { _educations = list; StateHasChanged(); }" />
         </MudTabPanel>
 
-
         <MudTabPanel Text="EXPERIENȚĂ">
             <ExperienceSection Items="_experiences ?? new()"
                                ItemsChanged="list => { _experiences = list; StateHasChanged(); }" />
@@ -160,35 +218,8 @@ else
         </MudTabPanel>
 
         <MudTabPanel Text="LIMBI">
-            <MudText Typo="Typo.subtitle1" Style="font-weight:700; color:#111827; margin-bottom:20px;">Limbi cunoscute</MudText>
-            @if (_languages != null && _languages.Any())
-            {
-                @foreach (var lang in _languages)
-                {
-                    <MudPaper Elevation="0" Class="pa-3 mb-2" Style="border:1px solid #e5e7eb; display:flex; align-items:center; gap:16px;">
-                        <MudText Typo="Typo.body2" Style="font-weight:700; color:#111827; min-width:110px;">@lang.LanguageName</MudText>
-                        <div style="display:flex; align-items:center; gap:3px; flex:1;">
-                            @for (int i = 1; i <= 5; i++)
-                            {
-                                var filled = i <= LevelToInt(lang.ProficiencyLevel);
-                                <div style="width:24px; height:5px; background:@(filled ? "#111827" : "#e5e7eb");"></div>
-                            }
-                            <MudText Typo="Typo.caption" Style="font-weight:600; color:#6b7280; letter-spacing:1px; text-transform:uppercase; margin-left:10px;">
-                                @GetLevelLabel(lang.ProficiencyLevel)
-                            </MudText>
-                        </div>
-                    </MudPaper>
-                }
-            }
-            else
-            {
-                <MudPaper Elevation="0" Class="pa-6 mb-4" Style="border:1px solid #e5e7eb; text-align:center;">
-                    <MudText Typo="Typo.body2" Style="color:#9ca3af;">Nu ai adăugat încă limbi cunoscute.</MudText>
-                </MudPaper>
-            }
-            <MudButton Variant="Variant.Text" Style="color:#6366f1; font-size:12px; font-weight:600; text-transform:none; padding:0; margin-top:4px;">
-                + Adaugă limbă
-            </MudButton>
+            <LanguagesSection Items="_languages ?? new()"
+                              ItemsChanged="list => { _languages = list; StateHasChanged(); }" />
         </MudTabPanel>
 
         <MudTabPanel Text="CV PREVIEW">
@@ -203,22 +234,71 @@ else
             </div>
 
             <div id="cv-preview" style="background:#fff; border:1px solid #e5e7eb;">
-                <div style="background:#111827; padding:32px 36px; display:flex; justify-content:space-between; align-items:flex-start; gap:20px;">
+
+                @* ── Header CV cu poză ── *@
+                <div style="background:#111827; padding:32px 36px; display:flex;
+                                justify-content:space-between; align-items:flex-start; gap:20px;">
+                    @* Stânga: Nume + Titlu *@
                     <div style="flex:1;">
-                        <p style="font-size:9px; font-weight:600; letter-spacing:3px; text-transform:uppercase; color:#6366f1; margin:0 0 8px 0; font-family:'Roboto Mono',monospace;">Curriculum Vitae</p>
-                        <h1 style="font-size:22px; font-weight:700; color:#fff; margin:0 0 5px 0; letter-spacing:-0.5px; font-family:'Roboto Mono',monospace;">@_profile.FirstName @_profile.LastName</h1>
+                        <p style="font-size:9px; font-weight:600; letter-spacing:3px; text-transform:uppercase;
+                                      color:#6366f1; margin:0 0 8px 0; font-family:'Roboto Mono',monospace;">
+                            Curriculum Vitae
+                        </p>
+                        <h1 style="font-size:22px; font-weight:700; color:#fff; margin:0 0 5px 0;
+                                       letter-spacing:-0.5px; font-family:'Roboto Mono',monospace;">
+                            @_profile.FirstName @_profile.LastName
+                        </h1>
                         @if (!string.IsNullOrWhiteSpace(_profile.Headline))
-                        { <p style="font-size:12px; color:#9ca3af; margin:0; font-family:'Roboto Mono',monospace;">@_profile.Headline</p> }
+                        {
+                            <p style="font-size:12px; color:#9ca3af; margin:0; font-family:'Roboto Mono',monospace;">
+                                @_profile.Headline
+                            </p>
+                        }
                     </div>
-                    <div style="text-align:right; font-size:11px; color:#9ca3af; display:flex; flex-direction:column; gap:4px; font-family:'Roboto Mono',monospace;">
-                        @if (!string.IsNullOrWhiteSpace(_profile.Email))      { <span>@_profile.Email</span> }
-                        @if (!string.IsNullOrWhiteSpace(_profile.Phone))      { <span>@_profile.Phone</span> }
-                        @if (!string.IsNullOrWhiteSpace(_profile.Location))   { <span>@_profile.Location</span> }
-                        @if (!string.IsNullOrWhiteSpace(_profile.LinkedIn))   { <span>@_profile.LinkedIn</span> }
-                        @if (_profile.DateOfBirth.HasValue)                    { <span>@_profile.DateOfBirth.Value.ToString("dd.MM.yyyy")</span> }
-                        @if (!string.IsNullOrWhiteSpace(_profile.Nationality)) { <span>@_profile.Nationality</span> }
+
+                    @* Dreapta: Poză + Contact *@
+                    <div style="display:flex; flex-direction:column; align-items:flex-end; gap:6px;">
+                        @* Poza de profil *@
+                        @if (!string.IsNullOrWhiteSpace(_currentAvatarUrl))
+                        {
+                            <img src="@_currentAvatarUrl"
+                                 alt="Foto profil"
+                                 style="width:72px; height:72px; object-fit:cover;
+                                                border-radius:4px; border:2px solid #374151;
+                                                margin-bottom:4px;" />
+                        }
+                        @* Date contact *@
+                        <div style="text-align:right; font-size:11px; color:#9ca3af;
+                                        display:flex; flex-direction:column; gap:3px;
+                                        font-family:'Roboto Mono',monospace;">
+                            @if (!string.IsNullOrWhiteSpace(_profile.Email))
+                            {
+                                <span>@_profile.Email</span>
+                            }
+                            @if (!string.IsNullOrWhiteSpace(_profile.Phone))
+                            {
+                                <span>@_profile.Phone</span>
+                            }
+                            @if (!string.IsNullOrWhiteSpace(_profile.Location))
+                            {
+                                <span>@_profile.Location</span>
+                            }
+                            @if (!string.IsNullOrWhiteSpace(_profile.LinkedIn))
+                            {
+                                <span>@_profile.LinkedIn</span>
+                            }
+                            @if (_profile.DateOfBirth.HasValue)
+                            {
+                                <span>@_profile.DateOfBirth.Value.ToString("dd.MM.yyyy")</span>
+                            }
+                            @if (!string.IsNullOrWhiteSpace(_profile.Nationality))
+                            {
+                                <span>@_profile.Nationality</span>
+                            }
+                        </div>
                     </div>
                 </div>
+
                 <div style="padding:28px 36px;">
                     @if (!string.IsNullOrWhiteSpace(_profile.Summary))
                     {
@@ -241,7 +321,9 @@ else
                                             @exp.StartDate.ToString("MM/yyyy") – @(exp.IsCurrent ? "Prezent" : exp.EndDate?.ToString("MM/yyyy"))
                                         </p>
                                         @if (!string.IsNullOrEmpty(exp.Location))
-                                        { <p style="font-size:10px; color:#9ca3af; margin:2px 0 0 0;">@exp.Location</p> }
+                                        {
+                                            <p style="font-size:10px; color:#9ca3af; margin:2px 0 0 0;">@exp.Location</p>
+                                        }
                                     </div>
                                     <div style="width:1px; background:#e5e7eb; flex-shrink:0;"></div>
                                     <div style="flex:1;">
@@ -249,10 +331,14 @@ else
                                         <p style="font-size:11px; color:#6366f1; font-weight:600; margin:0 0 4px 0; font-family:'Roboto Mono',monospace;">
                                             @exp.CompanyName
                                             @if (exp.EmploymentType.HasValue)
-                                            { <span style="color:#9ca3af; font-weight:400;"> · @GetEmploymentTypeLabel(exp.EmploymentType.Value)</span> }
+                                            {
+                                                <span style="color:#9ca3af; font-weight:400;"> · @GetEmploymentTypeLabel(exp.EmploymentType.Value)</span>
+                                            }
                                         </p>
                                         @if (!string.IsNullOrEmpty(exp.Description))
-                                        { <p style="font-size:12px; color:#6b7280; line-height:1.6; margin:0;">@exp.Description</p> }
+                                        {
+                                            <p style="font-size:12px; color:#6b7280; line-height:1.6; margin:0;">@exp.Description</p>
+                                        }
                                     </div>
                                 </div>
                             }
@@ -277,10 +363,14 @@ else
                                         <p style="font-size:11px; color:#6366f1; font-weight:600; margin:0 0 3px 0; font-family:'Roboto Mono',monospace;">
                                             @edu.Degree
                                             @if (!string.IsNullOrEmpty(edu.FieldOfStudy))
-                                            { <span style="color:#9ca3af; font-weight:400;"> · @edu.FieldOfStudy</span> }
+                                            {
+                                                <span style="color:#9ca3af; font-weight:400;"> · @edu.FieldOfStudy</span>
+                                            }
                                         </p>
                                         @if (!string.IsNullOrEmpty(edu.Description))
-                                        { <p style="font-size:12px; color:#6b7280; line-height:1.5; margin:0;">@edu.Description</p> }
+                                        {
+                                            <p style="font-size:12px; color:#6b7280; line-height:1.5; margin:0;">@edu.Description</p>
+                                        }
                                     </div>
                                 </div>
                             }
@@ -293,7 +383,9 @@ else
                             <div style="border-bottom:1px solid #e5e7eb; margin-bottom:12px;"></div>
                             <div style="display:flex; gap:7px; flex-wrap:wrap;">
                                 @foreach (var skill in _skills)
-                                { <span style="font-size:11px; font-weight:600; color:#6b7280; border:1px solid #e5e7eb; padding:4px 10px; font-family:'Roboto Mono',monospace;">@skill.SkillName</span> }
+                                {
+                                    <span style="font-size:11px; font-weight:600; color:#6b7280; border:1px solid #e5e7eb; padding:4px 10px; font-family:'Roboto Mono',monospace;">@skill.SkillName</span>
+                                }
                             </div>
                         </div>
                     }
@@ -332,10 +424,19 @@ else
 }
 
 <style>
-    .mud-tab { border-radius: 0 !important; }
+    .mud-tab {
+        border-radius: 0 !important;
+    }
+
     @@media print {
-        body > * { display: none !important; }
-        #cv-preview { display: block !important; border: none !important; }
+        body > * {
+            display: none !important;
+        }
+
+        #cv-preview {
+            display: block !important;
+            border: none !important;
+        }
     }
 </style>
 
@@ -345,49 +446,53 @@ else
         "font-size:9px; font-weight:600; letter-spacing:3px; text-transform:uppercase; " +
         "color:#6b7280; margin:0 0 8px 0; font-family:'Roboto Mono',monospace;";
 
-    private UpdateCandidateProfileDto   _profile       = new();
-    private CandidateProfileDto?        _profileData;
-    private List<EducationDto>?         _educations;
-    private List<ExperienceDto>?        _experiences;
-    private List<CandidateSkillDto>?    _skills;
+    private UpdateCandidateProfileDto _profile = new();
+    private CandidateProfileDto? _profileData;
+    private List<EducationDto>? _educations;
+    private List<ExperienceDto>? _experiences;
+    private List<CandidateSkillDto>? _skills;
     private List<CandidateLanguageDto>? _languages;
-    private List<JobCategoryDto>        _jobCategories = new();
+    private List<JobCategoryDto> _jobCategories = new();
 
-    private bool   _isLoading      = true;
-    private bool   _isSaving       = false;
-    private bool   _saveSuccess    = false;
-    private bool   _showValidation = false;
-    private string _saveError      = "";
+    // ── Avatar ────────────────────────────────────────────────────────────
+    private string? _currentAvatarUrl;
+    private bool _isUploadingAvatar = false;
+
+    private bool _isLoading = true;
+    private bool _isSaving = false;
+    private bool _saveSuccess = false;
+    private bool _showValidation = false;
+    private string _saveError = "";
 
     private string AvatarInitials =>
         $"{_profile.FirstName?.FirstOrDefault()}{_profile.LastName?.FirstOrDefault()}".ToUpper().Trim();
 
-    private int    _completionPct  => ComputeCompletion();
+    private int _completionPct => ComputeCompletion();
     private string _completionHint => _completionPct switch
     {
-        int n when n < 25  => "Adaugă prenumele și numele pentru a începe.",
-        int n when n < 45  => "Adaugă educația pentru +20%.",
-        int n when n < 65  => "Adaugă experiența profesională pentru +20%.",
-        int n when n < 85  => "Adaugă competențe și limbi cunoscute.",
+        int n when n < 25 => "Adaugă prenumele și numele pentru a începe.",
+        int n when n < 45 => "Adaugă educația pentru +20%.",
+        int n when n < 65 => "Adaugă experiența profesională pentru +20%.",
+        int n when n < 85 => "Adaugă competențe și limbi cunoscute.",
         int n when n < 100 => "Completează domeniul preferat și statusul.",
-        _                  => "Profilul tău este complet!"
+        _ => "Profilul tău este complet!"
     };
 
     private int ComputeCompletion()
     {
         int score = 0;
-        if (!string.IsNullOrWhiteSpace(_profile.FirstName))   score += 10;
-        if (!string.IsNullOrWhiteSpace(_profile.LastName))    score += 10;
-        if (!string.IsNullOrWhiteSpace(_profile.Headline))    score += 5;
-        if (!string.IsNullOrWhiteSpace(_profile.Location))    score += 5;
-        if (!string.IsNullOrWhiteSpace(_profile.Phone))       score += 5;
-        if (!string.IsNullOrWhiteSpace(_profile.Summary))     score += 10;
-        if (_profile.DateOfBirth.HasValue)                     score += 5;
-        if (_profile.PreferredJobCategoryId.HasValue)          score += 5;
-        if (_educations?.Count  > 0)                           score += 20;
-        if (_experiences?.Count > 0)                           score += 15;
-        if (_skills?.Count      > 0)                           score += 5;
-        if (_languages?.Count   > 0)                           score += 5;
+        if (!string.IsNullOrWhiteSpace(_profile.FirstName)) score += 10;
+        if (!string.IsNullOrWhiteSpace(_profile.LastName)) score += 10;
+        if (!string.IsNullOrWhiteSpace(_profile.Headline)) score += 5;
+        if (!string.IsNullOrWhiteSpace(_profile.Location)) score += 5;
+        if (!string.IsNullOrWhiteSpace(_profile.Phone)) score += 5;
+        if (!string.IsNullOrWhiteSpace(_profile.Summary)) score += 10;
+        if (_profile.DateOfBirth.HasValue) score += 5;
+        if (_profile.PreferredJobCategoryId.HasValue) score += 5;
+        if (_educations?.Count > 0) score += 20;
+        if (_experiences?.Count > 0) score += 15;
+        if (_skills?.Count > 0) score += 5;
+        if (_languages?.Count > 0) score += 5;
         return Math.Min(score, 100);
     }
 
@@ -411,11 +516,16 @@ else
                 {
                     _profile = new UpdateCandidateProfileDto
                     {
-                        FirstName = _profileData.FirstName, LastName = _profileData.LastName,
-                        Headline = _profileData.Headline, Location = _profileData.Location,
-                        Summary = _profileData.Summary, Email = _profileData.Email,
-                        Phone = _profileData.Phone, LinkedIn = _profileData.LinkedIn,
-                        Nationality = _profileData.Nationality, DateOfBirth = _profileData.DateOfBirth,
+                        FirstName = _profileData.FirstName,
+                        LastName = _profileData.LastName,
+                        Headline = _profileData.Headline,
+                        Location = _profileData.Location,
+                        Summary = _profileData.Summary,
+                        Email = _profileData.Email,
+                        Phone = _profileData.Phone,
+                        LinkedIn = _profileData.LinkedIn,
+                        Nationality = _profileData.Nationality,
+                        DateOfBirth = _profileData.DateOfBirth,
                         Status = _profileData.Status,
                         PreferredJobCategoryId = _profileData.PreferredJobCategoryId,
                         PreferredJobType = _profileData.PreferredJobType,
@@ -424,6 +534,8 @@ else
                     _experiences = _profileData.Experiences;
                     _skills = _profileData.Skills;
                     _languages = _profileData.Languages;
+                    // ── Avatar URL din profil ──
+                    _currentAvatarUrl = _profileData.AvatarUrl;
                 }
             }
             else { Snackbar.Add("Eroare la încărcarea profilului", Severity.Error); }
@@ -450,16 +562,16 @@ else
 
     private static List<JobCategoryDto> GetDefaultCategories() => new()
     {
-        new() { Id=1, Name="IT & Software" }, new() { Id=2, Name="Web Development" },
-        new() { Id=3, Name="Mobile Development" }, new() { Id=4, Name="Data & AI" },
-        new() { Id=5, Name="DevOps & Cloud" }, new() { Id=6, Name="Cybersecurity" },
-        new() { Id=7, Name="Management & Business" }, new() { Id=8, Name="Resurse umane" },
-        new() { Id=9, Name="Finanțe & Contabilitate" }, new() { Id=10, Name="Vânzări & Marketing" },
-        new() { Id=11, Name="Juridic & Administrație" }, new() { Id=12, Name="Educație & Cercetare" },
-        new() { Id=13, Name="Sănătate & Medicină" }, new() { Id=14, Name="Construcții & Imobiliare" },
-        new() { Id=15, Name="Producție & Inginerie" }, new() { Id=16, Name="Transport & Logistică" },
-        new() { Id=17, Name="Agricultură & Mediu" }, new() { Id=18, Name="Turism & HoReCa" },
-        new() { Id=19, Name="Media & Design" }, new() { Id=20, Name="Servicii & Altele" },
+        new() { Id=1,  Name="IT & Software" },          new() { Id=2,  Name="Web Development" },
+        new() { Id=3,  Name="Mobile Development" },     new() { Id=4,  Name="Data & AI" },
+        new() { Id=5,  Name="DevOps & Cloud" },         new() { Id=6,  Name="Cybersecurity" },
+        new() { Id=7,  Name="Management & Business" },  new() { Id=8,  Name="Resurse umane" },
+        new() { Id=9,  Name="Finanțe & Contabilitate" },new() { Id=10, Name="Vânzări & Marketing" },
+        new() { Id=11, Name="Juridic & Administrație" },new() { Id=12, Name="Educație & Cercetare" },
+        new() { Id=13, Name="Sănătate & Medicină" },    new() { Id=14, Name="Construcții & Imobiliare" },
+        new() { Id=15, Name="Producție & Inginerie" },  new() { Id=16, Name="Transport & Logistică" },
+        new() { Id=17, Name="Agricultură & Mediu" },    new() { Id=18, Name="Turism & HoReCa" },
+        new() { Id=19, Name="Media & Design" },         new() { Id=20, Name="Servicii & Altele" },
     };
 
     private async Task HandleSavePersonal()
@@ -483,13 +595,121 @@ else
             else
             {
                 var ec = await response.Content.ReadAsStringAsync();
-                var er = JsonSerializer.Deserialize<Dictionary<string, object>>(ec, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                _saveError = er?.ContainsKey("message") == true ? er["message"]?.ToString() ?? "Eroare" : "Eroare la salvare.";
+                var er = JsonSerializer.Deserialize<Dictionary<string, object>>(ec,
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                _saveError = er?.ContainsKey("message") == true
+                    ? er["message"]?.ToString() ?? "Eroare" : "Eroare la salvare.";
                 Snackbar.Add(_saveError, Severity.Error);
             }
         }
-        catch (Exception ex) { _saveError = $"Eroare: {ex.Message}"; Snackbar.Add(_saveError, Severity.Error); }
+        catch (Exception ex)
+        {
+            _saveError = $"Eroare: {ex.Message}";
+            Snackbar.Add(_saveError, Severity.Error);
+        }
         finally { _isSaving = false; StateHasChanged(); }
+    }
+
+    // ── Avatar: trigger input file ────────────────────────────────────────
+    private async Task TriggerFileInput()
+    {
+        await JS.InvokeVoidAsync("eval", "document.getElementById('avatarInput').click()");
+    }
+
+    // ── Avatar: handler selecție fișier ──────────────────────────────────
+    private async Task HandleAvatarSelected(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        if (file == null) return;
+
+        if (file.Size > 2 * 1024 * 1024)
+        {
+            Snackbar.Add("Fișierul depășește limita de 2MB.", Severity.Warning);
+            return;
+        }
+
+        var allowed = new[] { "image/jpeg", "image/png", "image/webp" };
+        if (!allowed.Contains(file.ContentType))
+        {
+            Snackbar.Add("Doar JPG, PNG sau WEBP sunt acceptate.", Severity.Warning);
+            return;
+        }
+
+        _isUploadingAvatar = true;
+        StateHasChanged();
+
+        try
+        {
+            using var stream = file.OpenReadStream(maxAllowedSize: 2 * 1024 * 1024);
+            using var ms = new MemoryStream();
+            await stream.CopyToAsync(ms);
+            ms.Position = 0;
+
+            var content = new MultipartFormDataContent();
+            var fileContent = new ByteArrayContent(ms.ToArray());
+            fileContent.Headers.ContentType =
+                new System.Net.Http.Headers.MediaTypeHeaderValue(file.ContentType);
+            content.Add(fileContent, "file", file.Name);
+
+            var response = await Http.PostAsync("api/avatar", content);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var json = await response.Content.ReadAsStringAsync();
+                var result = JsonSerializer.Deserialize<Dictionary<string, string>>(json,
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                if (result != null && result.TryGetValue("avatarUrl", out var url))
+                {
+                    // Cache-bust pentru browser
+                    _currentAvatarUrl = url + "?t=" + DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+                    if (_profileData != null) _profileData.AvatarUrl = url;
+                }
+
+                Snackbar.Add("Fotografia a fost actualizată!", Severity.Success);
+            }
+            else
+            {
+                var json = await response.Content.ReadAsStringAsync();
+                var err = JsonSerializer.Deserialize<Dictionary<string, string>>(json,
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                Snackbar.Add(err?.GetValueOrDefault("message") ?? "Eroare la upload.", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Eroare: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _isUploadingAvatar = false;
+            StateHasChanged();
+        }
+    }
+
+    // ── Avatar: ștergere ──────────────────────────────────────────────────
+    private async Task DeleteAvatar()
+    {
+        _isUploadingAvatar = true;
+        try
+        {
+            var response = await Http.DeleteAsync("api/avatar");
+            if (response.IsSuccessStatusCode)
+            {
+                _currentAvatarUrl = null;
+                if (_profileData != null) _profileData.AvatarUrl = null;
+                Snackbar.Add("Fotografia a fost ștearsă.", Severity.Success);
+            }
+            else
+            {
+                Snackbar.Add("Eroare la ștergere.", Severity.Error);
+            }
+        }
+        finally
+        {
+            _isUploadingAvatar = false;
+            StateHasChanged();
+        }
     }
 
     private async Task DownloadPdf() => await JS.InvokeVoidAsync("window.print");
@@ -497,30 +717,44 @@ else
 
     private static int LevelToInt(LanguageProficiencyLevel l) => l switch
     {
-        LanguageProficiencyLevel.A1=>1, LanguageProficiencyLevel.A2=>2,
-        LanguageProficiencyLevel.B1=>3, LanguageProficiencyLevel.B2=>4,
-        LanguageProficiencyLevel.C1=>5, LanguageProficiencyLevel.C2=>5,
-        LanguageProficiencyLevel.Native=>5, _=>0
+        LanguageProficiencyLevel.A1 => 1,
+        LanguageProficiencyLevel.A2 => 2,
+        LanguageProficiencyLevel.B1 => 3,
+        LanguageProficiencyLevel.B2 => 4,
+        LanguageProficiencyLevel.C1 => 5,
+        LanguageProficiencyLevel.C2 => 5,
+        LanguageProficiencyLevel.Native => 5,
+        _ => 0
     };
 
     private static string GetLevelLabel(LanguageProficiencyLevel l) => l switch
     {
-        LanguageProficiencyLevel.A1=>"A1", LanguageProficiencyLevel.A2=>"A2",
-        LanguageProficiencyLevel.B1=>"B1", LanguageProficiencyLevel.B2=>"B2",
-        LanguageProficiencyLevel.C1=>"C1", LanguageProficiencyLevel.C2=>"C2",
-        LanguageProficiencyLevel.Native=>"MATERNĂ", _=>""
+        LanguageProficiencyLevel.A1 => "A1",
+        LanguageProficiencyLevel.A2 => "A2",
+        LanguageProficiencyLevel.B1 => "B1",
+        LanguageProficiencyLevel.B2 => "B2",
+        LanguageProficiencyLevel.C1 => "C1",
+        LanguageProficiencyLevel.C2 => "C2",
+        LanguageProficiencyLevel.Native => "MATERNĂ",
+        _ => ""
     };
 
     private static string GetSkillLevelLabel(SkillLevel l) => l switch
     {
-        SkillLevel.Beginner=>"Începător", SkillLevel.Intermediate=>"Intermediar",
-        SkillLevel.Advanced=>"Avansat", SkillLevel.Expert=>"Expert", _=>""
+        SkillLevel.Beginner => "Începător",
+        SkillLevel.Intermediate => "Intermediar",
+        SkillLevel.Advanced => "Avansat",
+        SkillLevel.Expert => "Expert",
+        _ => ""
     };
 
     private static string GetEmploymentTypeLabel(EmploymentType t) => t switch
     {
-        EmploymentType.FullTime=>"Full-time", EmploymentType.PartTime=>"Part-time",
-        EmploymentType.Freelance=>"Freelance", EmploymentType.Internship=>"Internship",
-        EmploymentType.Contract=>"Contract", _=>""
+        EmploymentType.FullTime => "Full-time",
+        EmploymentType.PartTime => "Part-time",
+        EmploymentType.Freelance => "Freelance",
+        EmploymentType.Internship => "Internship",
+        EmploymentType.Contract => "Contract",
+        _ => ""
     };
 }
