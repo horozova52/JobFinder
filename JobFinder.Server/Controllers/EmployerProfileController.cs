@@ -113,6 +113,31 @@ public class EmployerProfileController : ControllerBase
         return Ok(new { logoUrl });
     }
 
+    [HttpGet("jobs")]
+    public async Task<IActionResult> GetMyJobs(CancellationToken ct)
+    {
+        var userId = GetUserId();
+        if (string.IsNullOrEmpty(userId))
+            return Unauthorized(new { message = "Utilizator neidentificat" });
+
+        var profile = await _db.EmployerProfiles
+            .AsNoTracking()
+            .FirstOrDefaultAsync(p => p.UserId == userId, ct);
+
+        if (profile == null)
+            return Ok(new List<JobPostingDto>());
+
+        var jobs = await _db.JobPostings
+            .Include(j => j.Skills).ThenInclude(s => s.Skill)
+            .Where(j => j.EmployerProfileId == profile.Id)
+            .AsNoTracking()
+            .OrderByDescending(j => j.CreatedAt)
+            .ToListAsync(ct);
+
+        var jobDtos = _mapper.Map<List<JobPostingDto>>(jobs);
+        return Ok(jobDtos);
+    }
+
     [HttpGet("{id:int}")]
     [AllowAnonymous]
     public async Task<IActionResult> GetPublic(int id, CancellationToken ct)

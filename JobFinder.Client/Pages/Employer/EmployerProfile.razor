@@ -2,6 +2,8 @@
 @layout EmployerLayout
 
 @using JobFinder.Shared.DTOs.Employers
+@using JobFinder.Shared.DTOs.Jobs
+@using JobFinder.Shared.Enums
 @using System.Net.Http.Json
 @using System.Text.Json
 @using Microsoft.AspNetCore.Components.Forms
@@ -844,6 +846,141 @@ else
         </MudPaper>
     }
 
+    @* ── Oferte de lucru ── *@
+    <MudPaper Elevation="0" Class="mb-4" Style="border:1px solid #e5e7eb;">
+        <div style="display:flex; justify-content:space-between; align-items:center;
+                    padding:14px 20px; border-bottom:1px solid #e5e7eb;">
+            <span style="@SectionLabelStyle">Oferte de lucru</span>
+            <MudButton Href="/employer/jobs" Variant="Variant.Text"
+                       Style="font-size:11px; font-weight:600; letter-spacing:1px;
+                              text-transform:uppercase; color:#6366f1; padding:4px 12px;">
+                Gestionează anunțuri →
+            </MudButton>
+        </div>
+        <div style="padding:20px;">
+            @if (_myJobs == null || !_myJobs.Any())
+            {
+                <div style="text-align:center; padding:24px 0;">
+                    <MudIcon Icon="@Icons.Material.Filled.WorkOutline"
+                             Style="font-size:40px; color:#d1d5db; margin-bottom:12px;" />
+                    <MudText Typo="Typo.body2" Style="color:#9ca3af; margin-bottom:16px;">
+                        Nu ai publicat nicio ofertă de lucru încă.
+                    </MudText>
+                    <MudButton Href="/employer/jobs/create" Variant="Variant.Filled"
+                               Style="background:#6366f1; color:#fff; border-radius:0;
+                                      font-size:11px; font-weight:600; letter-spacing:2px;
+                                      text-transform:uppercase; padding:10px 24px;">
+                        Publică primul anunț
+                    </MudButton>
+                </div>
+            }
+            else
+            {
+                <div style="display:flex; flex-direction:column; gap:12px;">
+                    @foreach (var job in _myJobs.Take(5))
+                    {
+                        <div style="display:flex; justify-content:space-between; align-items:center;
+                                    padding:14px 16px; background:#f9fafb; border:1px solid #e5e7eb;">
+                            <div style="flex:1;">
+                                <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+                                    <span style="font-size:14px; font-weight:600; color:#111827;">
+                                        @job.Title
+                                    </span>
+                                    <span style="font-size:10px; font-weight:600; padding:2px 8px;
+                                                 letter-spacing:1px; text-transform:uppercase;
+                                                 font-family:'Roboto Mono',monospace;
+                                                 @(job.Status == JobStatus.Published
+                                                     ? "background:#d1fae5; color:#065f46;"
+                                                     : job.Status == JobStatus.Draft
+                                                         ? "background:#e5e7eb; color:#6b7280;"
+                                                         : "background:#fef3c7; color:#92400e;")">
+                                        @(job.Status switch
+                                        {
+                                            JobStatus.Published => "Activ",
+                                            JobStatus.Draft => "Ciornă",
+                                            JobStatus.Closed => "Închis",
+                                            JobStatus.Expired => "Expirat",
+                                            _ => "—"
+                                        })
+                                    </span>
+                                </div>
+                                <div style="display:flex; flex-wrap:wrap; gap:12px;">
+                                    @if (!string.IsNullOrWhiteSpace(job.Location))
+                                    {
+                                        <span style="font-size:11px; color:#6b7280; display:flex; align-items:center; gap:3px;">
+                                            <MudIcon Icon="@Icons.Material.Filled.LocationOn" Size="Size.Small" Style="color:#9ca3af;font-size:14px;" />
+                                            @job.Location
+                                        </span>
+                                    }
+                                    <span style="font-size:11px; color:#6b7280;">
+                                        @(job.JobType switch
+                                        {
+                                            JobType.Remote => "Remote",
+                                            JobType.OnSite => "La birou",
+                                            JobType.Hybrid => "Hibrid",
+                                            _ => "—"
+                                        })
+                                    </span>
+                                    <span style="font-size:11px; color:#6b7280;">
+                                        @(job.EmploymentType switch
+                                        {
+                                            EmploymentType.FullTime => "Full-time",
+                                            EmploymentType.PartTime => "Part-time",
+                                            EmploymentType.Freelance => "Freelance",
+                                            EmploymentType.Internship => "Internship",
+                                            EmploymentType.Contract => "Contract",
+                                            _ => "—"
+                                        })
+                                    </span>
+                                    @if (job.SalaryFrom.HasValue || job.SalaryTo.HasValue)
+                                    {
+                                        <span style="font-size:11px; color:#6366f1; font-weight:600;">
+                                            @if (job.SalaryFrom.HasValue && job.SalaryTo.HasValue)
+                                            {
+                                                @($"{job.SalaryFrom:N0} – {job.SalaryTo:N0} MDL")
+                                            }
+                                            else if (job.SalaryFrom.HasValue)
+                                            {
+                                                @($"de la {job.SalaryFrom:N0} MDL")
+                                            }
+                                            else
+                                            {
+                                                @($"până la {job.SalaryTo:N0} MDL")
+                                            }
+                                        </span>
+                                    }
+                                    else if (job.IsSalaryNegotiable)
+                                    {
+                                        <span style="font-size:11px; color:#6b7280; font-style:italic;">
+                                            Salariu negociabil
+                                        </span>
+                                    }
+                                </div>
+                            </div>
+                            <div style="display:flex; align-items:center; gap:4px; color:#9ca3af; font-size:11px;">
+                                @if (job.PublishedAt.HasValue)
+                                {
+                                    <span>@job.PublishedAt.Value.ToString("dd.MM.yyyy")</span>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                @if (_myJobs.Count > 5)
+                {
+                    <div style="text-align:center; margin-top:16px;">
+                        <MudButton Href="/employer/jobs" Variant="Variant.Text"
+                                   Style="font-size:11px; font-weight:600; letter-spacing:1px;
+                                          text-transform:uppercase; color:#6366f1;">
+                            Vezi toate cele @_myJobs.Count anunțuri →
+                        </MudButton>
+                    </div>
+                }
+            }
+        </div>
+    </MudPaper>
+
     @* Profil gol — îndemn completare *@
     @if (string.IsNullOrWhiteSpace(_profileData?.CompanyName))
     {
@@ -863,6 +1000,8 @@ else
     private EmployerProfileDto?      _profileData;
     private UpdateEmployerProfileDto _draft      = new();
     private List<CompanyLocationDto> _locations  = new();
+
+    private List<JobPostingDto>?    _myJobs;
 
     private bool   _isLoading      = true;
     private bool   _isEditing      = false;
@@ -970,9 +1109,22 @@ else
     protected override async Task OnInitializedAsync()
     {
         await LoadProfile();
+        await LoadJobs();
     }
 
     // ── Load ───────────────────────────────────────────────────────────
+    private async Task LoadJobs()
+    {
+        try
+        {
+            _myJobs = await Http.GetFromJsonAsync<List<JobPostingDto>>("api/employer/profile/jobs");
+        }
+        catch
+        {
+            _myJobs = new();
+        }
+    }
+
     private async Task LoadProfile()
     {
         try
