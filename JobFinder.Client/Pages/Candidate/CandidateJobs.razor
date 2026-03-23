@@ -1,5 +1,6 @@
-﻿@page "/candidate/jobs"
+@page "/candidate/jobs"
 @layout CandidateLayout
+@inject HttpClient Http
 
 <PageTitle>Căutare joburi - JobFinder</PageTitle>
 
@@ -12,67 +13,113 @@
                   Placeholder="Caută după titlu, companie..."
                   Variant="Variant.Outlined"
                   Margin="Margin.Dense"
-                  Style="border-radius:0; flex:1;" />
+                  Style="border-radius:0; flex:1;"
+                  Immediate="true" />
     <MudSelect @bind-Value="_filterType"
                Variant="Variant.Outlined"
                Margin="Margin.Dense"
                Style="border-radius:0; min-width:160px;">
         <MudSelectItem Value="@("")">Toate tipurile</MudSelectItem>
-        <MudSelectItem Value="@("Full-time")">Full-time</MudSelectItem>
         <MudSelectItem Value="@("Remote")">Remote</MudSelectItem>
+        <MudSelectItem Value="@("OnSite")">On-site</MudSelectItem>
         <MudSelectItem Value="@("Hybrid")">Hybrid</MudSelectItem>
     </MudSelect>
 </div>
 
-@foreach (var job in FilteredJobs)
+@if (_loading)
 {
-    <a href="/candidate/jobs/@job.Id"
-       style="display:block; border-bottom:1px solid #e5e7eb; padding:24px 16px;
-              margin:0 -16px; text-decoration:none; color:inherit; transition:background 0.15s;"
-       onmouseover="this.style.background='#f9fafb'"
-       onmouseout="this.style.background='transparent'">
-        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-            <div>
-                <h2 style="font-size:14px; font-weight:700; color:#111827; margin:0 0 4px 0;">
-                    @job.Title
-                </h2>
-                <p style="font-size:14px; color:#6b7280; margin:0 0 8px 0;">
-                    @job.Company · @job.Location
-                </p>
-                <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                    @foreach (var tag in job.Tags)
-                    {
-                        <span style="font-size:11px; font-weight:600; color:#6b7280;
-                                     border:1px solid #e5e7eb; padding:2px 8px;">@tag</span>
-                    }
+    <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
+}
+else if (!FilteredJobs.Any())
+{
+    <p style="font-size:14px; color:#6b7280;">Nu s-au găsit joburi.</p>
+}
+else
+{
+    @foreach (var job in FilteredJobs)
+    {
+        <a href="/candidate/jobs/@job.Id"
+           style="display:block; border-bottom:1px solid #e5e7eb; padding:24px 16px;
+                  margin:0 -16px; text-decoration:none; color:inherit; transition:background 0.15s;"
+           onmouseover="this.style.background='#f9fafb'"
+           onmouseout="this.style.background='transparent'">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                <div>
+                    <h2 style="font-size:14px; font-weight:700; color:#111827; margin:0 0 4px 0;">
+                        @job.Title
+                    </h2>
+                    <p style="font-size:14px; color:#6b7280; margin:0 0 8px 0;">
+                        @job.CompanyName · @job.Location
+                    </p>
+                    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                        @foreach (var tag in job.Skills)
+                        {
+                            <span style="font-size:11px; font-weight:600; color:#6b7280;
+                                         border:1px solid #e5e7eb; padding:2px 8px;">@tag.SkillName</span>
+                        }
+                    </div>
+                </div>
+                <div style="text-align:right; flex-shrink:0; margin-left:24px;">
+                    <StatusBadge Status="@($"{CalculateMatch(job)}% match")" Variant="default" />
+                    <p style="font-size:12px; color:#6b7280; margin-top:4px;">@FormatJobType(job.JobType)</p>
                 </div>
             </div>
-            <div style="text-align:right; flex-shrink:0; margin-left:24px;">
-                <StatusBadge Status="@($"{job.Match} match")" Variant="default" />
-                <p style="font-size:12px; color:#6b7280; margin-top:4px;">@job.Type</p>
-            </div>
-        </div>
-    </a>
+        </a>
+    }
 }
 
 @code {
-    private string _search     = "";
+    private string _search = "";
     private string _filterType = "";
+    private bool _loading = true;
+    private List<JobFinder.Shared.DTOs.Jobs.JobPostingDto> _jobs = new();
+    private HashSet<int> _candidateSkillIds = new();
 
-    private record Job(int Id, string Title, string Company, string Location,
-                       string Match, string[] Tags, string Type);
-
-    private readonly List<Job> _jobs = new()
+    protected override async Task OnInitializedAsync()
     {
-        new(1, "React Developer",     "TechCorp", "București", "85%", new[]{"React","TypeScript"}, "Full-time"),
-        new(2, "Full Stack Engineer", "BuildIt",  "Remote",    "72%", new[]{"React",".NET","SQL"}, "Remote"),
-        new(3, "Frontend Engineer",   "StartupX", "Cluj",      "68%", new[]{"Vue","JavaScript"},   "Hybrid"),
-        new(4, "Software Developer",  "EntCo",    "Timișoara", "60%", new[]{"C#",".NET"},          "Full-time"),
-    };
+        try
+        {
+            var jobsTask = Http.GetFromJsonAsync<List<JobFinder.Shared.DTOs.Jobs.JobPostingDto>>("api/jobs");
+            var profileTask = Http.GetFromJsonAsync<JobFinder.Shared.DTOs.Candidates.CandidateProfileDto>("api/CandidateProfile");
 
-    private IEnumerable<Job> FilteredJobs => _jobs
-        .Where(j => (string.IsNullOrEmpty(_search) ||
+            await Task.WhenAll(jobsTask, profileTask);
+
+            _jobs = jobsTask.Result ?? new();
+            var profile = profileTask.Result;
+            if (profile?.Skills != null)
+            {
+                _candidateSkillIds = profile.Skills.Select(s => s.SkillId).ToHashSet();
+            }
+        }
+        catch { }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private int CalculateMatch(JobFinder.Shared.DTOs.Jobs.JobPostingDto job)
+    {
+        if (job.Skills == null || job.Skills.Count == 0 || _candidateSkillIds.Count == 0)
+            return 0;
+        var matched = job.Skills.Count(s => _candidateSkillIds.Contains(s.SkillId));
+        return (int)Math.Round((double)matched / job.Skills.Count * 100);
+    }
+
+    private IEnumerable<JobFinder.Shared.DTOs.Jobs.JobPostingDto> FilteredJobs => _jobs
+        .Where(j => j.Status == JobFinder.Shared.Enums.JobStatus.Published)
+        .Where(j => string.IsNullOrEmpty(_search) ||
                      j.Title.Contains(_search, StringComparison.OrdinalIgnoreCase) ||
-                     j.Company.Contains(_search, StringComparison.OrdinalIgnoreCase))
-                 && (string.IsNullOrEmpty(_filterType) || j.Type == _filterType));
+                     (j.CompanyName ?? "").Contains(_search, StringComparison.OrdinalIgnoreCase))
+        .Where(j => string.IsNullOrEmpty(_filterType) ||
+                     j.JobType.ToString() == _filterType)
+        .OrderByDescending(j => CalculateMatch(j));
+
+    private string FormatJobType(JobFinder.Shared.Enums.JobType type) => type switch
+    {
+        JobFinder.Shared.Enums.JobType.Remote => "Remote",
+        JobFinder.Shared.Enums.JobType.OnSite => "On-site",
+        JobFinder.Shared.Enums.JobType.Hybrid => "Hybrid",
+        _ => type.ToString()
+    };
 }

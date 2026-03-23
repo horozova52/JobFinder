@@ -1,5 +1,6 @@
-﻿@page "/employer/jobs/{Id:int}/applications"
+@page "/employer/jobs/{Id:int}/applications"
 @layout EmployerLayout
+@inject HttpClient Http
 
 <PageTitle>Aplicări job - JobFinder</PageTitle>
 
@@ -9,7 +10,7 @@
     ← Înapoi la anunțuri
 </a>
 
-<PageHeader Title="Aplicări — Frontend Developer"
+<PageHeader Title="@($"Aplicări — {_jobTitle}")"
             Description="Candidații care au aplicat la acest anunț." />
 
 <!-- Filtre -->
@@ -18,69 +19,162 @@
                   Placeholder="Caută candidat..."
                   Variant="Variant.Outlined"
                   Margin="Margin.Dense"
-                  Style="border-radius:0; flex:1;" />
+                  Style="border-radius:0; flex:1;"
+                  Immediate="true" />
     <MudSelect @bind-Value="_filterStatus"
                Variant="Variant.Outlined"
                Margin="Margin.Dense"
                Style="border-radius:0; min-width:180px;">
         <MudSelectItem Value="@("")">Toate statusurile</MudSelectItem>
-        <MudSelectItem Value="@("Nou")">Nou</MudSelectItem>
-        <MudSelectItem Value="@("În analiză")">În analiză</MudSelectItem>
-        <MudSelectItem Value="@("Interviu")">Interviu</MudSelectItem>
-        <MudSelectItem Value="@("Acceptat")">Acceptat</MudSelectItem>
-        <MudSelectItem Value="@("Respins")">Respins</MudSelectItem>
+        <MudSelectItem Value="@("Pending")">În așteptare</MudSelectItem>
+        <MudSelectItem Value="@("InReview")">În analiză</MudSelectItem>
+        <MudSelectItem Value="@("Interview")">Interviu</MudSelectItem>
+        <MudSelectItem Value="@("Accepted")">Acceptat</MudSelectItem>
+        <MudSelectItem Value="@("Rejected")">Respins</MudSelectItem>
     </MudSelect>
 </div>
 
-<!-- Lista candidați -->
-@foreach (var app in FilteredApplicants)
+@if (_loading)
 {
-    <a href="/employer/applications/@app.Id"
-       style="display:block; border-bottom:1px solid #e5e7eb; padding:20px 16px;
-              margin:0 -16px; text-decoration:none; color:inherit; transition:background 0.15s;"
-       onmouseover="this.style.background='#f9fafb'"
-       onmouseout="this.style.background='transparent'">
-        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-            <div>
-                <h3 style="font-size:14px; font-weight:700; color:#111827; margin:0 0 8px 0;">
-                    @app.Name
-                </h3>
-                <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                    @foreach (var tag in app.Tags)
+    <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
+}
+else if (!FilteredApplicants.Any())
+{
+    <p style="font-size:14px; color:#6b7280;">Nu există aplicări.</p>
+}
+else
+{
+    @foreach (var app in FilteredApplicants)
+    {
+        <a href="/employer/applications/@app.Id"
+           style="display:block; border-bottom:1px solid #e5e7eb; padding:20px 16px;
+                  margin:0 -16px; text-decoration:none; color:inherit; transition:background 0.15s;"
+           onmouseover="this.style.background='#f9fafb'"
+           onmouseout="this.style.background='transparent'">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                <div>
+                    <h3 style="font-size:14px; font-weight:700; color:#111827; margin:0 0 4px 0;">
+                        @app.CandidateFullName
+                    </h3>
+                    <p style="font-size:14px; color:#6b7280; margin:0 0 8px 0;">
+                        Aplicat pe @app.AppliedAt.ToString("dd.MM.yyyy")
+                    </p>
+                    @if (_candidateSkills.ContainsKey(app.CandidateProfileId))
                     {
-                        <span style="font-size:11px; font-weight:600; color:#6b7280;
-                                     border:1px solid #e5e7eb; padding:2px 8px;">
-                            @tag
-                        </span>
+                        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                            @foreach (var skill in _candidateSkills[app.CandidateProfileId])
+                            {
+                                var isMatch = _jobSkillIds.Contains(skill.SkillId);
+                                <span style="font-size:11px; font-weight:600;
+                                             color:@(isMatch ? "#16a34a" : "#6b7280");
+                                             border:1px solid @(isMatch ? "#bbf7d0" : "#e5e7eb");
+                                             background:@(isMatch ? "#f0fdf4" : "transparent");
+                                             padding:2px 8px;">@skill.SkillName</span>
+                            }
+                        </div>
                     }
                 </div>
+                <div style="display:flex; align-items:center; gap:12px; flex-shrink:0; margin-left:24px;">
+                    @if (_candidateSkills.ContainsKey(app.CandidateProfileId))
+                    {
+                        <StatusBadge Status="@($"{CalculateMatch(app.CandidateProfileId)}% match")" Variant="default" />
+                    }
+                    <StatusBadge Status="@GetStatusText(app.Status)" Variant="@GetStatusVariant(app.Status)" />
+                </div>
             </div>
-            <div style="display:flex; align-items:center; gap:12px; flex-shrink:0; margin-left:24px;">
-                <StatusBadge Status="@($"{app.Match} match")" Variant="default" />
-                <StatusBadge Status="@app.Status" Variant="@app.Variant" />
-            </div>
-        </div>
-    </a>
+        </a>
+    }
 }
 
 @code {
     [Parameter] public int Id { get; set; }
 
-    private string _search       = "";
+    private string _search = "";
     private string _filterStatus = "";
+    private bool _loading = true;
+    private string _jobTitle = "";
+    private List<JobFinder.Shared.DTOs.Applications.ApplicationDto> _applications = new();
+    private HashSet<int> _jobSkillIds = new();
+    private Dictionary<int, List<JobFinder.Shared.DTOs.Candidates.CandidateSkillDto>> _candidateSkills = new();
 
-    private record Applicant(int Id, string Name, string Match,
-                             string Status, string Variant, string[] Tags);
-
-    private readonly List<Applicant> _applicants = new()
+    protected override async Task OnInitializedAsync()
     {
-        new(1, "Ion Popescu",      "85%", "Nou",       "default", new[] {"React","TypeScript"}),
-        new(2, "Maria Ionescu",    "72%", "În analiză","warning",  new[] {"React","CSS"}),
-        new(3, "Alex Dumitrescu", "90%", "Interviu",  "default", new[] {"React","TypeScript","Node.js"}),
+        try
+        {
+            var appsTask = Http.GetFromJsonAsync<List<JobFinder.Shared.DTOs.Applications.ApplicationDto>>($"api/applications/job/{Id}");
+            var jobTask = Http.GetFromJsonAsync<JobFinder.Shared.DTOs.Jobs.JobPostingDto>($"api/jobs/{Id}");
+
+            await Task.WhenAll(appsTask, jobTask);
+
+            _applications = appsTask.Result ?? new();
+            var job = jobTask.Result;
+
+            if (job != null)
+            {
+                _jobTitle = job.Title;
+                _jobSkillIds = job.Skills.Select(s => s.SkillId).ToHashSet();
+            }
+
+            // Load candidate skills for each applicant
+            var candidateIds = _applications.Select(a => a.CandidateProfileId).Distinct();
+            var skillTasks = candidateIds.Select(async cid =>
+            {
+                try
+                {
+                    var skills = await Http.GetFromJsonAsync<List<JobFinder.Shared.DTOs.Candidates.CandidateSkillDto>>($"api/CandidateSkills/candidate/{cid}");
+                    return (cid, skills: skills ?? new());
+                }
+                catch
+                {
+                    return (cid, skills: new List<JobFinder.Shared.DTOs.Candidates.CandidateSkillDto>());
+                }
+            });
+
+            var results = await Task.WhenAll(skillTasks);
+            foreach (var (cid, skills) in results)
+                _candidateSkills[cid] = skills;
+        }
+        catch { }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private int CalculateMatch(int candidateProfileId)
+    {
+        if (!_candidateSkills.ContainsKey(candidateProfileId) || _jobSkillIds.Count == 0)
+            return 0;
+        var candidateIds = _candidateSkills[candidateProfileId].Select(s => s.SkillId).ToHashSet();
+        var matched = _jobSkillIds.Count(id => candidateIds.Contains(id));
+        return (int)Math.Round((double)matched / _jobSkillIds.Count * 100);
+    }
+
+    private IEnumerable<JobFinder.Shared.DTOs.Applications.ApplicationDto> FilteredApplicants => _applications
+        .Where(a => string.IsNullOrEmpty(_search) ||
+                     a.CandidateFullName.Contains(_search, StringComparison.OrdinalIgnoreCase))
+        .Where(a => string.IsNullOrEmpty(_filterStatus) ||
+                     a.Status.ToString() == _filterStatus);
+
+    private string GetStatusText(JobFinder.Shared.Enums.ApplicationState status) => status switch
+    {
+        JobFinder.Shared.Enums.ApplicationState.Pending => "În așteptare",
+        JobFinder.Shared.Enums.ApplicationState.InReview => "În analiză",
+        JobFinder.Shared.Enums.ApplicationState.Interview => "Interviu",
+        JobFinder.Shared.Enums.ApplicationState.Accepted => "Acceptat",
+        JobFinder.Shared.Enums.ApplicationState.Rejected => "Respins",
+        JobFinder.Shared.Enums.ApplicationState.Withdrawn => "Retras",
+        _ => status.ToString()
     };
 
-    private IEnumerable<Applicant> FilteredApplicants => _applicants
-        .Where(a => (string.IsNullOrEmpty(_search) ||
-                     a.Name.Contains(_search, StringComparison.OrdinalIgnoreCase))
-                 && (string.IsNullOrEmpty(_filterStatus) || a.Status == _filterStatus));
+    private string GetStatusVariant(JobFinder.Shared.Enums.ApplicationState status) => status switch
+    {
+        JobFinder.Shared.Enums.ApplicationState.Pending => "warning",
+        JobFinder.Shared.Enums.ApplicationState.InReview => "warning",
+        JobFinder.Shared.Enums.ApplicationState.Interview => "default",
+        JobFinder.Shared.Enums.ApplicationState.Accepted => "success",
+        JobFinder.Shared.Enums.ApplicationState.Rejected => "destructive",
+        JobFinder.Shared.Enums.ApplicationState.Withdrawn => "muted",
+        _ => "default"
+    };
 }

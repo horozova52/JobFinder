@@ -6,6 +6,7 @@ public class JobPostingDto
 {
     public int Id { get; set; }
     public int EmployerProfileId { get; set; }
+    public string? CompanyName { get; set; }
 
     public string Title { get; set; } = null!;
     public string Description { get; set; } = null!;

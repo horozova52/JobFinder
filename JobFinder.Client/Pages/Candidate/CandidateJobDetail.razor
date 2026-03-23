@@ -1,7 +1,9 @@
-﻿@page "/candidate/jobs/{Id:int}"
+@page "/candidate/jobs/{Id:int}"
 @layout CandidateLayout
+@inject HttpClient Http
+@inject ISnackbar Snackbar
 
-<PageTitle>React Developer - JobFinder</PageTitle>
+<PageTitle>@(_job?.Title ?? "Job") - JobFinder</PageTitle>
 
 <a href="/candidate/jobs"
    style="font-size:12px; font-weight:600; letter-spacing:1px; text-transform:uppercase;
@@ -9,75 +11,263 @@
     ← Înapoi la joburi
 </a>
 
-<div style="display:flex; justify-content:space-between; align-items:flex-start;
-            margin-top:16px; margin-bottom:8px;">
-    <h1 style="font-size:24px; font-weight:700; color:#111827; margin:0;">
-        React Developer
-    </h1>
-    <StatusBadge Status="85% match" Variant="default" />
-</div>
-<p style="font-size:14px; color:#6b7280; margin:0 0 32px 0;">
-    TechCorp · București · Full-time
-</p>
-
-<div style="border-bottom:1px solid #e5e7eb; margin-bottom:32px;"></div>
-
-<div style="display:flex; flex-direction:column; gap:32px;">
-    <section>
-        <h2 style="font-size:14px; font-weight:700; color:#111827; margin-bottom:12px;">
-            Descriere
-        </h2>
-        <p style="font-size:14px; color:#111827; line-height:1.7; margin:0;">
-            Dezvoltă interfețe moderne pentru platforma noastră SaaS. Vei colabora îndeaproape
-            cu echipa de design și backend pentru a livra funcționalități de calitate.
-        </p>
-    </section>
-
-    <section>
-        <h2 style="font-size:14px; font-weight:700; color:#111827; margin-bottom:12px;">
-            Cerințe
-        </h2>
-        <div style="display:flex; flex-direction:column; gap:8px;">
-            @foreach (var req in _requirements)
-            {
-                <p style="font-size:14px; color:#111827; margin:0;">— @req</p>
-            }
-        </div>
-    </section>
-
-    <section>
-        <h2 style="font-size:14px; font-weight:700; color:#111827; margin-bottom:12px;">
-            Competențe
-        </h2>
-        <div style="display:flex; gap:8px; flex-wrap:wrap;">
-            @foreach (var tag in _tags)
-            {
-                <span style="font-size:11px; font-weight:600; color:#6b7280;
-                             border:1px solid #e5e7eb; padding:4px 12px;">@tag</span>
-            }
-        </div>
-    </section>
-
-    <div style="border-bottom:1px solid #e5e7eb;"></div>
-
-    <div>
-        <MudButton Variant="Variant.Filled" OnClick="HandleApply"
-                   Style="background:#6366f1; color:#fff; border-radius:0;
-                          font-size:11px; font-weight:600; letter-spacing:2px;
-                          text-transform:uppercase; padding:12px 24px;">
-            Aplică la acest job
-        </MudButton>
+@if (_loading)
+{
+    <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
+}
+else if (_job == null)
+{
+    <p style="font-size:14px; color:#6b7280;">Jobul nu a fost găsit.</p>
+}
+else
+{
+    <div style="display:flex; justify-content:space-between; align-items:flex-start;
+                margin-top:16px; margin-bottom:8px;">
+        <h1 style="font-size:24px; font-weight:700; color:#111827; margin:0;">
+            @_job.Title
+        </h1>
+        <StatusBadge Status="@($"{_matchPercent}% match")" Variant="default" />
     </div>
-</div>
+    <p style="font-size:14px; color:#6b7280; margin:0 0 32px 0;">
+        @_job.CompanyName · @_job.Location · @FormatJobType(_job.JobType)
+    </p>
+
+    @if (_job.SalaryFrom.HasValue || _job.SalaryTo.HasValue)
+    {
+        <p style="font-size:14px; color:#111827; margin:0 0 16px 0;">
+            <strong>Salariu:</strong>
+            @if (_job.SalaryFrom.HasValue && _job.SalaryTo.HasValue)
+            {
+                @($"{_job.SalaryFrom:N0} - {_job.SalaryTo:N0} RON")
+            }
+            else if (_job.SalaryFrom.HasValue)
+            {
+                @($"de la {_job.SalaryFrom:N0} RON")
+            }
+            else
+            {
+                @($"până la {_job.SalaryTo:N0} RON")
+            }
+            @if (_job.IsSalaryNegotiable)
+            {
+                <span> (negociabil)</span>
+            }
+        </p>
+    }
+
+    <p style="font-size:14px; color:#6b7280; margin:0 0 32px 0;">
+        @FormatEmploymentType(_job.EmploymentType)
+    </p>
+
+    <div style="border-bottom:1px solid #e5e7eb; margin-bottom:32px;"></div>
+
+    <div style="display:flex; flex-direction:column; gap:32px;">
+        <section>
+            <h2 style="font-size:14px; font-weight:700; color:#111827; margin-bottom:12px;">
+                Descriere
+            </h2>
+            <p style="font-size:14px; color:#111827; line-height:1.7; margin:0; white-space:pre-line;">@_job.Description</p>
+        </section>
+
+        @if (!string.IsNullOrEmpty(_job.Requirements))
+        {
+            <section>
+                <h2 style="font-size:14px; font-weight:700; color:#111827; margin-bottom:12px;">
+                    Cerințe
+                </h2>
+                <p style="font-size:14px; color:#111827; line-height:1.7; margin:0; white-space:pre-line;">@_job.Requirements</p>
+            </section>
+        }
+
+        @if (!string.IsNullOrEmpty(_job.Responsibilities))
+        {
+            <section>
+                <h2 style="font-size:14px; font-weight:700; color:#111827; margin-bottom:12px;">
+                    Responsabilități
+                </h2>
+                <p style="font-size:14px; color:#111827; line-height:1.7; margin:0; white-space:pre-line;">@_job.Responsibilities</p>
+            </section>
+        }
+
+        @if (_job.Skills.Any())
+        {
+            <section>
+                <h2 style="font-size:14px; font-weight:700; color:#111827; margin-bottom:12px;">
+                    Competențe
+                </h2>
+                <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                    @foreach (var skill in _job.Skills)
+                    {
+                        var isMatch = _candidateSkillIds.Contains(skill.SkillId);
+                        <span style="font-size:11px; font-weight:600;
+                                     color:@(isMatch ? "#16a34a" : "#6b7280");
+                                     border:1px solid @(isMatch ? "#bbf7d0" : "#e5e7eb");
+                                     background:@(isMatch ? "#f0fdf4" : "transparent");
+                                     padding:4px 12px;">@skill.SkillName</span>
+                    }
+                </div>
+            </section>
+        }
+
+        <div style="border-bottom:1px solid #e5e7eb;"></div>
+
+        <div>
+            @if (_alreadyApplied)
+            {
+                <span style="font-size:14px; font-weight:600; color:#16a34a;">
+                    ✓ Ai aplicat deja la acest job
+                </span>
+            }
+            else if (_showCoverLetterForm)
+            {
+                <div style="display:flex; flex-direction:column; gap:12px; max-width:500px;">
+                    <MudTextField @bind-Value="_coverLetter"
+                                  Label="Scrisoare de intenție (opțional)"
+                                  Variant="Variant.Outlined"
+                                  Lines="4" />
+                    <div style="display:flex; gap:8px;">
+                        <MudButton Variant="Variant.Filled" OnClick="SubmitApplication"
+                                   Disabled="_applying"
+                                   Style="background:#6366f1; color:#fff; border-radius:0;
+                                          font-size:11px; font-weight:600; letter-spacing:2px;
+                                          text-transform:uppercase; padding:12px 24px;">
+                            @if (_applying)
+                            {
+                                <MudProgressCircular Size="Size.Small" Indeterminate="true" Style="color:#fff; margin-right:8px;" />
+                            }
+                            Trimite aplicarea
+                        </MudButton>
+                        <MudButton Variant="Variant.Outlined" OnClick="() => _showCoverLetterForm = false"
+                                   Style="border-radius:0; font-size:11px; font-weight:600;
+                                          letter-spacing:2px; text-transform:uppercase; padding:12px 24px;">
+                            Anulează
+                        </MudButton>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <MudButton Variant="Variant.Filled" OnClick="HandleApply"
+                           Style="background:#6366f1; color:#fff; border-radius:0;
+                                  font-size:11px; font-weight:600; letter-spacing:2px;
+                                  text-transform:uppercase; padding:12px 24px;">
+                    Aplică la acest job
+                </MudButton>
+            }
+        </div>
+    </div>
+}
 
 @code {
     [Parameter] public int Id { get; set; }
 
-    private readonly List<string> _requirements = new()
-        { "3+ ani experiență React", "TypeScript avansat", "Experiență cu REST API" };
+    private JobFinder.Shared.DTOs.Jobs.JobPostingDto? _job;
+    private HashSet<int> _candidateSkillIds = new();
+    private bool _loading = true;
+    private bool _alreadyApplied;
+    private bool _showCoverLetterForm;
+    private bool _applying;
+    private string? _coverLetter;
+    private int _matchPercent;
 
-    private readonly List<string> _tags = new()
-        { "React", "TypeScript", "CSS", "Tailwind", "Git" };
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var jobTask = Http.GetFromJsonAsync<JobFinder.Shared.DTOs.Jobs.JobPostingDto>($"api/jobs/{Id}");
+            var profileTask = Http.GetFromJsonAsync<JobFinder.Shared.DTOs.Candidates.CandidateProfileDto>("api/CandidateProfile");
+            var checkTask = Http.GetFromJsonAsync<CheckAppliedResult>($"api/applications/check/{Id}");
 
-    private void HandleApply() { /* logica vine mai târziu */ }
+            await Task.WhenAll(jobTask, profileTask, checkTask);
+
+            _job = jobTask.Result;
+            var profile = profileTask.Result;
+            if (profile?.Skills != null)
+                _candidateSkillIds = profile.Skills.Select(s => s.SkillId).ToHashSet();
+
+            _alreadyApplied = checkTask.Result?.AlreadyApplied ?? false;
+
+            if (_job != null)
+                _matchPercent = CalculateMatch();
+        }
+        catch { }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private int CalculateMatch()
+    {
+        if (_job?.Skills == null || _job.Skills.Count == 0 || _candidateSkillIds.Count == 0)
+            return 0;
+        var matched = _job.Skills.Count(s => _candidateSkillIds.Contains(s.SkillId));
+        return (int)Math.Round((double)matched / _job.Skills.Count * 100);
+    }
+
+    private void HandleApply()
+    {
+        _showCoverLetterForm = true;
+    }
+
+    private async Task SubmitApplication()
+    {
+        _applying = true;
+        try
+        {
+            var dto = new JobFinder.Shared.DTOs.Applications.CreateApplicationDto
+            {
+                JobPostingId = Id,
+                CoverLetter = _coverLetter
+            };
+            var response = await Http.PostAsJsonAsync("api/applications", dto);
+            if (response.IsSuccessStatusCode)
+            {
+                _alreadyApplied = true;
+                _showCoverLetterForm = false;
+                Snackbar.Add("Aplicare trimisă cu succes!", Severity.Success);
+            }
+            else if (response.StatusCode == System.Net.HttpStatusCode.Conflict)
+            {
+                _alreadyApplied = true;
+                _showCoverLetterForm = false;
+                Snackbar.Add("Ai aplicat deja la acest job.", Severity.Warning);
+            }
+            else
+            {
+                Snackbar.Add("Eroare la trimiterea aplicării.", Severity.Error);
+            }
+        }
+        catch
+        {
+            Snackbar.Add("Eroare la trimiterea aplicării.", Severity.Error);
+        }
+        finally
+        {
+            _applying = false;
+        }
+    }
+
+    private string FormatJobType(JobFinder.Shared.Enums.JobType type) => type switch
+    {
+        JobFinder.Shared.Enums.JobType.Remote => "Remote",
+        JobFinder.Shared.Enums.JobType.OnSite => "On-site",
+        JobFinder.Shared.Enums.JobType.Hybrid => "Hybrid",
+        _ => type.ToString()
+    };
+
+    private string FormatEmploymentType(JobFinder.Shared.Enums.EmploymentType type) => type switch
+    {
+        JobFinder.Shared.Enums.EmploymentType.FullTime => "Full-time",
+        JobFinder.Shared.Enums.EmploymentType.PartTime => "Part-time",
+        JobFinder.Shared.Enums.EmploymentType.Freelance => "Freelance",
+        JobFinder.Shared.Enums.EmploymentType.Internship => "Internship",
+        JobFinder.Shared.Enums.EmploymentType.Contract => "Contract",
+        _ => type.ToString()
+    };
+
+    private class CheckAppliedResult
+    {
+        public bool AlreadyApplied { get; set; }
+    }
 }

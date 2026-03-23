@@ -1,42 +1,80 @@
-﻿@page "/candidate/applications"
+@page "/candidate/applications"
 @layout CandidateLayout
+@inject HttpClient Http
 
 <PageTitle>Aplicările mele - JobFinder</PageTitle>
 
 <PageHeader Title="Aplicările mele"
             Description="Urmărește statusul fiecărei aplicări." />
 
-@foreach (var app in _applications)
+@if (_loading)
 {
-    <a href="/candidate/applications/@app.Id"
-       style="display:block; border-bottom:1px solid #e5e7eb; padding:20px 16px;
-              margin:0 -16px; text-decoration:none; color:inherit; transition:background 0.15s;"
-       onmouseover="this.style.background='#f9fafb'"
-       onmouseout="this.style.background='transparent'">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-            <div>
-                <h3 style="font-size:14px; font-weight:700; color:#111827; margin:0 0 4px 0;">
-                    @app.Title
-                </h3>
-                <p style="font-size:14px; color:#6b7280; margin:0;">
-                    @app.Company · Aplicat pe @app.Date
-                </p>
+    <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
+}
+else if (!_applications.Any())
+{
+    <p style="font-size:14px; color:#6b7280;">Nu ai aplicat încă la niciun job.</p>
+}
+else
+{
+    @foreach (var app in _applications)
+    {
+        <a href="/candidate/applications/@app.Id"
+           style="display:block; border-bottom:1px solid #e5e7eb; padding:20px 16px;
+                  margin:0 -16px; text-decoration:none; color:inherit; transition:background 0.15s;"
+           onmouseover="this.style.background='#f9fafb'"
+           onmouseout="this.style.background='transparent'">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                    <h3 style="font-size:14px; font-weight:700; color:#111827; margin:0 0 4px 0;">
+                        @app.JobTitle
+                    </h3>
+                    <p style="font-size:14px; color:#6b7280; margin:0;">
+                        Aplicat pe @app.AppliedAt.ToString("dd.MM.yyyy")
+                    </p>
+                </div>
+                <StatusBadge Status="@GetStatusText(app.Status)" Variant="@GetStatusVariant(app.Status)" />
             </div>
-            <StatusBadge Status="@app.Status" Variant="@app.Variant" />
-        </div>
-    </a>
+        </a>
+    }
 }
 
 @code {
-    private record Application(int Id, string Title, string Company,
-                               string Status, string Variant, string Date);
+    private bool _loading = true;
+    private List<JobFinder.Shared.DTOs.Applications.ApplicationDto> _applications = new();
 
-    private readonly List<Application> _applications = new()
+    protected override async Task OnInitializedAsync()
     {
-        new(1, "Frontend Developer", "DataFlow",  "În analiză", "warning",     "2025-01-10"),
-        new(2, "UI Engineer",        "DesignLab", "Interviu",   "default",     "2025-01-08"),
-        new(3, "React Developer",    "StartupX",  "Acceptat",   "success",     "2025-01-05"),
-        new(4, "Web Developer",      "AgencyPro", "Respins",    "destructive", "2025-01-03"),
+        try
+        {
+            _applications = await Http.GetFromJsonAsync<List<JobFinder.Shared.DTOs.Applications.ApplicationDto>>("api/applications/my") ?? new();
+        }
+        catch { }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private string GetStatusText(JobFinder.Shared.Enums.ApplicationState status) => status switch
+    {
+        JobFinder.Shared.Enums.ApplicationState.Pending => "În așteptare",
+        JobFinder.Shared.Enums.ApplicationState.InReview => "În analiză",
+        JobFinder.Shared.Enums.ApplicationState.Interview => "Interviu",
+        JobFinder.Shared.Enums.ApplicationState.Accepted => "Acceptat",
+        JobFinder.Shared.Enums.ApplicationState.Rejected => "Respins",
+        JobFinder.Shared.Enums.ApplicationState.Withdrawn => "Retras",
+        _ => status.ToString()
+    };
+
+    private string GetStatusVariant(JobFinder.Shared.Enums.ApplicationState status) => status switch
+    {
+        JobFinder.Shared.Enums.ApplicationState.Pending => "warning",
+        JobFinder.Shared.Enums.ApplicationState.InReview => "warning",
+        JobFinder.Shared.Enums.ApplicationState.Interview => "default",
+        JobFinder.Shared.Enums.ApplicationState.Accepted => "success",
+        JobFinder.Shared.Enums.ApplicationState.Rejected => "destructive",
+        JobFinder.Shared.Enums.ApplicationState.Withdrawn => "muted",
+        _ => "default"
     };
 }
- 
