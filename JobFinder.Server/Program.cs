@@ -64,6 +64,7 @@ public class Program
             options.Password.RequireNonAlphanumeric = false;
             options.Password.RequireUppercase = false;
         })
+            .AddRoles<IdentityRole>()
             .AddEntityFrameworkStores<ApplicationDbContext>()
             .AddSignInManager()
             .AddDefaultTokenProviders();
@@ -94,6 +95,16 @@ public class Program
                 context.Response.Redirect(context.RedirectUri);
                 return Task.CompletedTask;
             };
+            options.Events.OnRedirectToAccessDenied = context =>
+            {
+                if (context.Request.Path.StartsWithSegments("/api"))
+                {
+                    context.Response.StatusCode = 403;
+                    return Task.CompletedTask;
+                }
+                context.Response.Redirect(context.RedirectUri);
+                return Task.CompletedTask;
+            };
         });
         var app = builder.Build();
 
@@ -118,10 +129,11 @@ public class Program
 
         app.UseHttpsRedirection();
 
-        app.UseAntiforgery();
-
         app.UseAuthentication();
         app.UseAuthorization();
+
+        app.UseAntiforgery();
+
         app.UseStaticFiles();
         app.MapControllers();
         app.MapStaticAssets();
