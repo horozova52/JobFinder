@@ -13,6 +13,9 @@ public class EmployerProfile
     public string? Description { get; set; }
 
     public bool IsVerified { get; set; }
-
+    public string? ShortTitle { get; set; }
+    public string? CompanySize { get; set; }
+    public string? LinkedInUrl { get; set; }
+    public string? LogoUrl { get; set; }
     public ICollection<CompanyLocation> Locations { get; set; } = new List<CompanyLocation>();
 }

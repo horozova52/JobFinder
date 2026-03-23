@@ -15,6 +15,11 @@ namespace JobFinder.UseCases.MappingProfiles.Profiles
             {
             CreateMap<EmployerProfile, EmployerProfileDto>();
             CreateMap<CompanyLocation, CompanyLocationDto>().ReverseMap();
+            CreateMap<UpdateEmployerProfileDto, EmployerProfile>()
+               .ForMember(dest => dest.Id, opt => opt.Ignore())
+               .ForMember(dest => dest.UserId, opt => opt.Ignore())
+               .ForMember(dest => dest.IsVerified, opt => opt.Ignore())
+               .ForMember(dest => dest.Locations, opt => opt.Ignore());
         }
     }
 }

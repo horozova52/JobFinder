@@ -42,4 +42,11 @@ public class EmployerRepository : IEmployerRepository
         _context.EmployerProfiles.Update(profile);
         await _context.SaveChangesAsync(cancellationToken);
     }
+    public async Task<EmployerProfile?> GetTrackedByUserIdAsync(
+        string userId, CancellationToken cancellationToken = default)
+    {
+        return await _context.EmployerProfiles
+            .Include(e => e.Locations)
+            .FirstOrDefaultAsync(e => e.UserId == userId, cancellationToken);
+    }
 }

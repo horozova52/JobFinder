@@ -1,0 +1,17 @@
+﻿
+
+<div>
+    <div style="font-size:10px; font-weight:600; letter-spacing:2px;
+                text-transform:uppercase; color:#9ca3af; margin-bottom:4px;
+                font-family:'Roboto Mono',monospace;">
+        @Label
+    </div>
+    <div style="font-size:14px; color:#111827; font-weight:500;">
+        @(string.IsNullOrWhiteSpace(Value) ? "—" : Value)
+    </div>
+</div>
+
+@code {
+    [Parameter] public string Label { get; set; } = "";
+    [Parameter] public string? Value { get; set; }
+}

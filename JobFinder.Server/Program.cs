@@ -72,6 +72,7 @@ public class Program
         builder.Services.AddScoped<IExperienceRepository, ExperienceRepository>();
         builder.Services.AddScoped<ICandidateLanguageRepository, CandidateLanguageRepository>();
         builder.Services.AddScoped<ICandidateSkillRepository, CandidateSkillRepository>();
+        builder.Services.AddScoped<IEmployerRepository, EmployerRepository>();
         /// builder.Services.AddAutoMapper(typeof(Program));
         builder.Services.AddScoped(sp =>
         {
