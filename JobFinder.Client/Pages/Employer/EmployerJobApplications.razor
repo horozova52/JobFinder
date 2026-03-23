@@ -1,6 +1,7 @@
 @page "/employer/jobs/{Id:int}/applications"
 @layout EmployerLayout
 @inject HttpClient Http
+@inject NavigationManager Navigation
 
 <PageTitle>Aplicări job - JobFinder</PageTitle>
 
@@ -80,6 +81,14 @@ else
                         <StatusBadge Status="@($"{CalculateMatch(app.CandidateProfileId)}% match")" Variant="default" />
                     }
                     <StatusBadge Status="@GetStatusText(app.Status)" Variant="@GetStatusVariant(app.Status)" />
+                    <button @onclick="() => StartConversation(app.Id)" @onclick:preventDefault @onclick:stopPropagation
+                            style="font-size:12px; font-weight:600; color:#6366f1; background:transparent;
+                                   border:1px solid #6366f1; padding:4px 12px; cursor:pointer;
+                                   transition:all 0.15s; white-space:nowrap;"
+                            onmouseover="this.style.background='#6366f1';this.style.color='#fff'"
+                            onmouseout="this.style.background='transparent';this.style.color='#6366f1'">
+                        Trimite mesaj
+                    </button>
                 </div>
             </div>
         </a>
@@ -177,4 +186,21 @@ else
         JobFinder.Shared.Enums.ApplicationState.Withdrawn => "muted",
         _ => "default"
     };
+
+    private async Task StartConversation(int applicationId)
+    {
+        try
+        {
+            var response = await Http.PostAsJsonAsync("api/messages/conversations", new { applicationId });
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<ConversationResult>();
+                if (result != null)
+                    Navigation.NavigateTo($"/employer/messages/{result.Id}");
+            }
+        }
+        catch { }
+    }
+
+    private record ConversationResult(int Id);
 }

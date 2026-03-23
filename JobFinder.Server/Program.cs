@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
 using MudBlazor.Services;
+using JobFinder.Server.Hubs;
 using JobFinder.UseCases.Contracts;
 using JobFinder.Infrastructure.Repositories;
 
@@ -44,6 +45,7 @@ public class Program
         builder.Services.AddInfrastructure();
         builder.Services.AddUseCases();
         builder.Services.AddControllers();
+        builder.Services.AddSignalR();
 
         // Add Swagger/OpenAPI
         builder.Services.AddEndpointsApiExplorer();
@@ -346,6 +348,7 @@ public class Program
 
         app.UseStaticFiles();
         app.MapControllers();
+        app.MapHub<ChatHub>("/hubs/chat");
         app.MapStaticAssets();
         app.MapRazorComponents<App>()
             .AddInteractiveWebAssemblyRenderMode()

@@ -5,6 +5,7 @@ using JobFinder.Core.Entities.Documents;
 using JobFinder.Core.Entities.Employers;
 using JobFinder.Core.Entities.Identity;
 using JobFinder.Core.Entities.Jobs;
+using JobFinder.Core.Entities.Messaging;
 using JobFinder.Core.Entities.Validation;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -45,6 +46,10 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     // Documents
     public DbSet<Document> Documents => Set<Document>();
     public DbSet<DocumentTemplate> DocumentTemplates => Set<DocumentTemplate>();
+
+    // Messaging
+    public DbSet<Conversation> Conversations => Set<Conversation>();
+    public DbSet<Message> Messages => Set<Message>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -154,5 +159,26 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         modelBuilder.Entity<Language>().HasKey(e => e.Id);
         modelBuilder.Entity<JobCategory>().HasKey(e => e.Id);
         modelBuilder.Entity<ApplicationStatusHistory>().HasKey(e => e.Id);
+
+        // Conversation
+        modelBuilder.Entity<Conversation>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasOne(e => e.Application)
+                  .WithMany()
+                  .HasForeignKey(e => e.ApplicationId)
+                  .OnDelete(DeleteBehavior.Cascade);
+            entity.HasMany(e => e.Messages)
+                  .WithOne(m => m.Conversation)
+                  .HasForeignKey(m => m.ConversationId)
+                  .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<Message>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Content).IsRequired();
+            entity.Property(e => e.SenderUserId).HasMaxLength(450).IsRequired();
+        });
     }
 }
