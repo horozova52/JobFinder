@@ -55,6 +55,16 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, RegisterR
             return new RegisterResult(false, string.Join("\n", errors), null);
         }
 
+        // Atribuie rolul corespunzător tipului de utilizator
+        var roleName = request.UserType switch
+        {
+            UserType.Candidate => "Candidate",
+            UserType.Employer => "Employer",
+            UserType.Admin => "Admin",
+            _ => "Candidate"
+        };
+        await _userManager.AddToRoleAsync(user, roleName);
+
         var response = new Shared.DTOs.Identity.AuthResponseDto
         {
             UserId = user.Id,

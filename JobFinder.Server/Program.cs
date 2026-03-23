@@ -7,7 +7,6 @@ using JobFinder.UseCases;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
-using JobFinder.UseCases;
 using MudBlazor.Services;
 using JobFinder.UseCases.Contracts;
 using JobFinder.Infrastructure.Repositories;
@@ -16,7 +15,7 @@ namespace JobFinder;
 
 public class Program
 {
-    public static void Main(string[] args)
+    public static async Task Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
 
@@ -108,6 +107,18 @@ public class Program
         });
         var app = builder.Build();
 
+        // Seed-ul rolurilor (Candidate, Employer, Admin)
+        using (var scope = app.Services.CreateScope())
+        {
+            var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+            string[] roles = { "Candidate", "Employer", "Admin" };
+            foreach (var role in roles)
+            {
+                if (!await roleManager.RoleExistsAsync(role))
+                    await roleManager.CreateAsync(new IdentityRole(role));
+            }
+        }
+
         // Pipeline
         if (app.Environment.IsDevelopment())
         {
@@ -143,6 +154,6 @@ public class Program
 
         app.MapAdditionalIdentityEndpoints();
 
-        app.Run();
+        await app.RunAsync();
     }
 }

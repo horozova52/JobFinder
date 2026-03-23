@@ -59,11 +59,12 @@ public class AuthController : ControllerBase
             return BadRequest(new { message = result.Message });
         }
 
-        // Generate JWT token for the newly registered user
+        // Autentifică utilizatorul nou creat (setează cookie-ul de sesiune)
         var user = await _userManager.FindByEmailAsync(request.Email);
         if (user != null)
         {
-            var token = GenerateJwtToken(user);
+            await _signInManager.SignInAsync(user, isPersistent: true);
+            var token = await GenerateJwtToken(user);
             result.Data.Token = token;
         }
 
@@ -109,19 +110,24 @@ public class AuthController : ControllerBase
         return Ok(new { message = "Token received" });
     }
 
-    private string GenerateJwtToken(ApplicationUser user)
+    private async Task<string> GenerateJwtToken(ApplicationUser user)
     {
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(
             _configuration["Jwt:Key"] ?? throw new InvalidOperationException("JWT Key not configured")));
         
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-        var claims = new[]
+        var roles = await _userManager.GetRolesAsync(user);
+
+        var claims = new List<Claim>
         {
             new Claim(ClaimTypes.NameIdentifier, user.Id),
             new Claim(ClaimTypes.Email, user.Email ?? ""),
             new Claim("UserType", user.UserType.ToString())
         };
+
+        foreach (var role in roles)
+            claims.Add(new Claim(ClaimTypes.Role, role));
 
         var token = new JwtSecurityToken(
             issuer: _configuration["Jwt:Issuer"],
