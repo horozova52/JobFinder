@@ -4,6 +4,7 @@ using JobFinder.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace JobFinder.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260323113913_5")]
+    partial class _5
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -450,9 +453,6 @@ namespace JobFinder.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("BenefitsJson")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("CompanyName")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -461,28 +461,10 @@ namespace JobFinder.Infrastructure.Migrations
                     b.Property<string>("CompanySize")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("ContactEmail")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ContactPhone")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("FacebookUrl")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("FiscalCode")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int?>("FoundedYear")
-                        .HasColumnType("int");
-
                     b.Property<string>("Industry")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("InstagramUrl")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsVerified")
@@ -497,12 +479,6 @@ namespace JobFinder.Infrastructure.Migrations
                     b.Property<string>("LogoUrl")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Mission")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("RecruitmentProcessJson")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("ShortTitle")
                         .HasColumnType("nvarchar(max)");
 
@@ -510,16 +486,7 @@ namespace JobFinder.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Values")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Vision")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("Website")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("WorkEnvironment")
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
