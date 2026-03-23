@@ -1,5 +1,8 @@
-﻿@page "/employer/jobs"
+@page "/employer/jobs"
 @layout EmployerLayout
+@using JobFinder.Shared.DTOs.Jobs
+@using JobFinder.Shared.Enums
+@inject HttpClient Http
 
 <PageTitle>Anunțurile mele - JobFinder</PageTitle>
 
@@ -15,42 +18,83 @@
     </Actions>
 </PageHeader>
 
-@foreach (var job in _jobs)
+@if (_loading)
 {
-    <div style="border-bottom:1px solid #e5e7eb; padding:20px 0;
-                display:flex; justify-content:space-between; align-items:center;">
-        <div>
-            <a href="/employer/jobs/@job.Id/edit"
-               style="font-size:14px; font-weight:700; color:#111827;
-                      text-decoration:none; transition:color 0.15s;"
-               onmouseover="this.style.color='#6366f1'"
-               onmouseout="this.style.color='#111827'">
-                @job.Title
-            </a>
-            <p style="font-size:14px; color:#6b7280; margin:4px 0 0 0;">
-                @job.Applications aplicări · @job.Date
-            </p>
-        </div>
-        <div style="display:flex; align-items:center; gap:16px;">
-            <StatusBadge Status="@job.Status" Variant="@job.Variant" />
-            <a href="/employer/jobs/@job.Id/applications"
-               style="font-size:12px; font-weight:600; color:#6366f1;
-                      text-decoration:none; letter-spacing:0.5px;">
-                Vezi aplicări →
-            </a>
-        </div>
+    <div style="display:flex; justify-content:center; padding:48px 0;">
+        <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
     </div>
+}
+else if (_jobs == null || _jobs.Count == 0)
+{
+    <p style="font-size:14px; color:#6b7280; padding:24px 0;">
+        Nu ai anunțuri publicate. Creează primul tău anunț!
+    </p>
+}
+else
+{
+    @foreach (var job in _jobs)
+    {
+        <div style="border-bottom:1px solid #e5e7eb; padding:20px 0;
+                    display:flex; justify-content:space-between; align-items:center;">
+            <div>
+                <a href="/employer/jobs/@job.Id/edit"
+                   style="font-size:14px; font-weight:700; color:#111827;
+                          text-decoration:none; transition:color 0.15s;"
+                   onmouseover="this.style.color='#6366f1'"
+                   onmouseout="this.style.color='#111827'">
+                    @job.Title
+                </a>
+                <p style="font-size:14px; color:#6b7280; margin:4px 0 0 0;">
+                    @(job.Location ?? "—") · @(job.PublishedAt?.ToString("dd.MM.yyyy") ?? "—")
+                </p>
+            </div>
+            <div style="display:flex; align-items:center; gap:16px;">
+                <StatusBadge Status="@GetStatusText(job.Status)" Variant="@GetStatusVariant(job.Status)" />
+                <a href="/employer/jobs/@job.Id/applications"
+                   style="font-size:12px; font-weight:600; color:#6366f1;
+                          text-decoration:none; letter-spacing:0.5px;">
+                    Vezi aplicări →
+                </a>
+            </div>
+        </div>
+    }
 }
 
 @code {
-    private record Job(int Id, string Title, string Status,
-                       string Variant, int Applications, string Date);
+    private List<JobPostingDto>? _jobs;
+    private bool _loading = true;
 
-    private readonly List<Job> _jobs = new()
+    protected override async Task OnInitializedAsync()
     {
-        new(1, "Frontend Developer", "Activ",   "success", 12, "2025-01-15"),
-        new(2, "Backend Engineer",   "Activ",   "success", 8,  "2025-01-10"),
-        new(3, "UX Designer",        "Inactiv", "muted",   3,  "2024-12-20"),
-        new(4, "DevOps Engineer",    "Arhivat", "muted",   15, "2024-11-05"),
+        try
+        {
+            _jobs = await Http.GetFromJsonAsync<List<JobPostingDto>>("api/employer/profile/jobs");
+        }
+        catch
+        {
+            _jobs = new();
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private static string GetStatusText(JobStatus status) => status switch
+    {
+        JobStatus.Published => "Activ",
+        JobStatus.Draft => "Ciornă",
+        JobStatus.Closed => "Închis",
+        JobStatus.Expired => "Expirat",
+        _ => "Necunoscut"
+    };
+
+    private static string GetStatusVariant(JobStatus status) => status switch
+    {
+        JobStatus.Published => "success",
+        JobStatus.Draft => "warning",
+        JobStatus.Closed => "muted",
+        JobStatus.Expired => "muted",
+        _ => "default"
     };
 }

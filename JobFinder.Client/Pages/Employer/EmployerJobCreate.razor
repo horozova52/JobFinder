@@ -1,5 +1,10 @@
-﻿@page "/employer/jobs/create"
+@page "/employer/jobs/create"
 @layout EmployerLayout
+@using JobFinder.Shared.DTOs.Jobs
+@using JobFinder.Shared.Enums
+@inject HttpClient Http
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
 
 <PageTitle>Creare anunț - JobFinder</PageTitle>
 
@@ -20,34 +25,50 @@
                       text-transform:uppercase; color:#6b7280; margin-bottom:8px;">
             Titlu job
         </label>
-        <MudTextField @bind-Value="_form.Title" Placeholder="ex: Frontend Developer"
+        <MudTextField @bind-Value="_dto.Title" Placeholder="ex: Frontend Developer"
                       Variant="Variant.Outlined" FullWidth="true"
                       Margin="Margin.Dense" Style="border-radius:0;" />
     </div>
 
-    <!-- Locație + Tip -->
+    <!-- Locație -->
+    <div>
+        <label style="display:block; font-size:11px; font-weight:600; letter-spacing:2px;
+                      text-transform:uppercase; color:#6b7280; margin-bottom:8px;">
+            Locație
+        </label>
+        <MudTextField @bind-Value="_dto.Location"
+                      Variant="Variant.Outlined" FullWidth="true"
+                      Margin="Margin.Dense" Style="border-radius:0;" />
+    </div>
+
+    <!-- Mod de lucru + Tip angajare -->
     <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
         <div>
             <label style="display:block; font-size:11px; font-weight:600; letter-spacing:2px;
                           text-transform:uppercase; color:#6b7280; margin-bottom:8px;">
-                Locație
+                Mod de lucru
             </label>
-            <MudTextField @bind-Value="_form.Location"
-                          Variant="Variant.Outlined" FullWidth="true"
-                          Margin="Margin.Dense" Style="border-radius:0;" />
+            <MudSelect @bind-Value="_dto.JobType"
+                       Variant="Variant.Outlined" FullWidth="true"
+                       Margin="Margin.Dense" Style="border-radius:0;">
+                <MudSelectItem Value="JobType.Remote">Remote</MudSelectItem>
+                <MudSelectItem Value="JobType.OnSite">La birou</MudSelectItem>
+                <MudSelectItem Value="JobType.Hybrid">Hibrid</MudSelectItem>
+            </MudSelect>
         </div>
         <div>
             <label style="display:block; font-size:11px; font-weight:600; letter-spacing:2px;
                           text-transform:uppercase; color:#6b7280; margin-bottom:8px;">
-                Tip
+                Tip angajare
             </label>
-            <MudSelect @bind-Value="_form.Type"
+            <MudSelect @bind-Value="_dto.EmploymentType"
                        Variant="Variant.Outlined" FullWidth="true"
                        Margin="Margin.Dense" Style="border-radius:0;">
-                <MudSelectItem Value="@("Full-time")">Full-time</MudSelectItem>
-                <MudSelectItem Value="@("Part-time")">Part-time</MudSelectItem>
-                <MudSelectItem Value="@("Remote")">Remote</MudSelectItem>
-                <MudSelectItem Value="@("Hybrid")">Hybrid</MudSelectItem>
+                <MudSelectItem Value="EmploymentType.FullTime">Full-time</MudSelectItem>
+                <MudSelectItem Value="EmploymentType.PartTime">Part-time</MudSelectItem>
+                <MudSelectItem Value="EmploymentType.Freelance">Freelance</MudSelectItem>
+                <MudSelectItem Value="EmploymentType.Internship">Internship</MudSelectItem>
+                <MudSelectItem Value="EmploymentType.Contract">Contract</MudSelectItem>
             </MudSelect>
         </div>
     </div>
@@ -58,7 +79,7 @@
                       text-transform:uppercase; color:#6b7280; margin-bottom:8px;">
             Descriere
         </label>
-        <MudTextField @bind-Value="_form.Description"
+        <MudTextField @bind-Value="_dto.Description"
                       Lines="5" Variant="Variant.Outlined" FullWidth="true"
                       Margin="Margin.Dense" Style="border-radius:0;" />
     </div>
@@ -69,9 +90,47 @@
                       text-transform:uppercase; color:#6b7280; margin-bottom:8px;">
             Cerințe
         </label>
-        <MudTextField @bind-Value="_form.Requirements"
+        <MudTextField @bind-Value="_dto.Requirements"
                       Lines="3" Variant="Variant.Outlined" FullWidth="true"
                       Margin="Margin.Dense" Style="border-radius:0;" />
+    </div>
+
+    <!-- Responsabilități -->
+    <div>
+        <label style="display:block; font-size:11px; font-weight:600; letter-spacing:2px;
+                      text-transform:uppercase; color:#6b7280; margin-bottom:8px;">
+            Responsabilități
+        </label>
+        <MudTextField @bind-Value="_dto.Responsibilities"
+                      Lines="3" Variant="Variant.Outlined" FullWidth="true"
+                      Margin="Margin.Dense" Style="border-radius:0;" />
+    </div>
+
+    <!-- Salariu -->
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+        <div>
+            <label style="display:block; font-size:11px; font-weight:600; letter-spacing:2px;
+                          text-transform:uppercase; color:#6b7280; margin-bottom:8px;">
+                Salariu de la
+            </label>
+            <MudNumericField @bind-Value="_dto.SalaryFrom"
+                             Variant="Variant.Outlined" FullWidth="true"
+                             Margin="Margin.Dense" Style="border-radius:0;" />
+        </div>
+        <div>
+            <label style="display:block; font-size:11px; font-weight:600; letter-spacing:2px;
+                          text-transform:uppercase; color:#6b7280; margin-bottom:8px;">
+                Salariu până la
+            </label>
+            <MudNumericField @bind-Value="_dto.SalaryTo"
+                             Variant="Variant.Outlined" FullWidth="true"
+                             Margin="Margin.Dense" Style="border-radius:0;" />
+        </div>
+    </div>
+
+    <div>
+        <MudCheckBox @bind-Value="_dto.IsSalaryNegotiable" Label="Salariu negociabil"
+                     Color="Color.Primary" />
     </div>
 
     <!-- Tags -->
@@ -80,33 +139,58 @@
                       text-transform:uppercase; color:#6b7280; margin-bottom:8px;">
             Tags (separate prin virgulă)
         </label>
-        <MudTextField @bind-Value="_form.Tags" Placeholder="React, TypeScript, CSS"
+        <MudTextField @bind-Value="_dto.Tags" Placeholder="React, TypeScript, CSS"
                       Variant="Variant.Outlined" FullWidth="true"
                       Margin="Margin.Dense" Style="border-radius:0;" />
     </div>
 
     <div>
-        <MudButton Variant="Variant.Filled" OnClick="HandleSubmit"
+        <MudButton Variant="Variant.Filled" OnClick="HandleSubmit" Disabled="_submitting"
                    Style="background:#6366f1; color:#fff; border-radius:0;
                           font-size:11px; font-weight:600; letter-spacing:2px;
                           text-transform:uppercase; padding:12px 24px;">
+            @if (_submitting)
+            {
+                <MudProgressCircular Size="Size.Small" Indeterminate="true" Color="Color.Surface" Class="mr-2" />
+            }
             Publică anunțul
         </MudButton>
     </div>
 </div>
 
 @code {
-    private JobForm _form = new();
+    private CreateJobPostingDto _dto = new();
+    private bool _submitting;
 
-    private void HandleSubmit() { /* logica vine mai târziu */ }
-
-    private class JobForm
+    private async Task HandleSubmit()
     {
-        public string Title        { get; set; } = "";
-        public string Location     { get; set; } = "";
-        public string Type         { get; set; } = "Full-time";
-        public string Description  { get; set; } = "";
-        public string Requirements { get; set; } = "";
-        public string Tags         { get; set; } = "";
+        if (string.IsNullOrWhiteSpace(_dto.Title) || string.IsNullOrWhiteSpace(_dto.Description))
+        {
+            Snackbar.Add("Titlul și descrierea sunt obligatorii.", Severity.Warning);
+            return;
+        }
+
+        _submitting = true;
+        try
+        {
+            var response = await Http.PostAsJsonAsync("api/jobs", _dto);
+            if (response.IsSuccessStatusCode)
+            {
+                Snackbar.Add("Anunțul a fost publicat cu succes!", Severity.Success);
+                Navigation.NavigateTo("/employer/jobs");
+            }
+            else
+            {
+                Snackbar.Add("Eroare la publicarea anunțului. Încercați din nou.", Severity.Error);
+            }
+        }
+        catch
+        {
+            Snackbar.Add("Eroare de conexiune. Încercați din nou.", Severity.Error);
+        }
+        finally
+        {
+            _submitting = false;
+        }
     }
 }
