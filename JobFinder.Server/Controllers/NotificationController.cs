@@ -23,7 +23,21 @@ public class NotificationController : ControllerBase
         _mapper = mapper;
     }
 
+    [HttpPost("{id:int}/read")]
+    public async Task<IActionResult> MarkRead(int id, CancellationToken ct)
+    {
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userId)) return Unauthorized();
 
+        var notif = await _db.Notifications
+            .FirstOrDefaultAsync(n => n.Id == id && n.UserId == userId, ct);
+
+        if (notif == null) return NotFound();
+
+        notif.IsRead = true;
+        await _db.SaveChangesAsync(ct);
+        return Ok();
+    }
 
     [HttpGet("mine")]
     public async Task<IActionResult> GetMine(CancellationToken ct)

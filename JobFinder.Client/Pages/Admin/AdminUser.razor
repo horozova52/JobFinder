@@ -1,6 +1,12 @@
 ﻿@page "/admin/users"
 @layout AdminLayout
 
+@using JobFinder.Shared.DTOs.Admin
+@using System.Net.Http.Json
+
+@inject HttpClient Http
+@inject ISnackbar Snackbar
+
 <PageTitle>Gestionare utilizatori - JobFinder</PageTitle>
 
 <PageHeader Title="Gestionare utilizatori"
@@ -12,66 +18,131 @@
                   Placeholder="Caută utilizator..."
                   Variant="Variant.Outlined"
                   Margin="Margin.Dense"
-                  Style="border-radius:0; flex:1;" />
+                  Style="border-radius:0; flex:1;"
+                  Adornment="Adornment.Start"
+                  AdornmentIcon="@Icons.Material.Filled.Search" />
     <MudSelect @bind-Value="_filterRole"
                Variant="Variant.Outlined"
                Margin="Margin.Dense"
                Style="border-radius:0; min-width:160px;">
         <MudSelectItem Value="@("")">Toate rolurile</MudSelectItem>
-        <MudSelectItem Value="@("Candidat")">Candidat</MudSelectItem>
-        <MudSelectItem Value="@("Angajator")">Angajator</MudSelectItem>
+        <MudSelectItem Value="@("Candidate")">Candidat</MudSelectItem>
+        <MudSelectItem Value="@("Employer")">Angajator</MudSelectItem>
         <MudSelectItem Value="@("Admin")">Admin</MudSelectItem>
     </MudSelect>
 </div>
 
-@foreach (var user in FilteredUsers)
+@if (_loading)
 {
-    <div style="border-bottom:1px solid #e5e7eb; padding:20px 0;
-                display:flex; justify-content:space-between; align-items:center;">
-        <div>
-            <h3 style="font-size:14px; font-weight:700; color:#111827; margin:0 0 4px 0;">
-                @user.Name
-            </h3>
-            <p style="font-size:14px; color:#6b7280; margin:0;">@user.Email</p>
+    <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
+}
+else if (FilteredUsers.Count == 0)
+{
+    <p style="font-size:14px; color:#9ca3af;">Niciun utilizator găsit.</p>
+}
+else
+{
+    @foreach (var user in FilteredUsers)
+    {
+        <div style="border-bottom:1px solid #e5e7eb; padding:18px 0;
+                    display:flex; justify-content:space-between; align-items:center;">
+            <div>
+                <p style="font-size:14px; font-weight:700; color:#111827; margin:0 0 4px 0;">
+                    @user.Email
+                </p>
+                <p style="font-size:12px; color:#6b7280; margin:0;">@user.UserName</p>
+            </div>
+            <div style="display:flex; align-items:center; gap:12px;">
+                <!-- Rol badge -->
+                <span style="font-size:10px; font-weight:600; padding:3px 10px;
+                             letter-spacing:1px; text-transform:uppercase;
+                             font-family:'Roboto Mono',monospace;
+                             background:#ede9fe; color:#6366f1; border:1px solid #c4b5fd;">
+                    @GetRoleLabel(user.Role)
+                </span>
+                <!-- Status badge -->
+                <span style="font-size:10px; font-weight:600; padding:3px 10px;
+                             letter-spacing:1px; text-transform:uppercase;
+                             font-family:'Roboto Mono',monospace;
+                             background:@(user.IsActive ? "#d1fae5" : "#fee2e2");
+                             color:@(user.IsActive ? "#065f46" : "#b91c1c");
+                             border:1px solid @(user.IsActive ? "#6ee7b7" : "#fca5a5");">
+                    @(user.IsActive ? "Activ" : "Dezactivat")
+                </span>
+                <!-- Toggle buton -->
+                <button @onclick="() => ToggleLock(user)"
+                        disabled="@_processing"
+                        style="font-size:11px; font-weight:600; padding:6px 14px;
+                               border:1px solid @(user.IsActive ? "#fca5a5" : "#6ee7b7");
+                               color:@(user.IsActive ? "#dc2626" : "#059669");
+                               background:none; cursor:pointer; letter-spacing:1px;
+                               text-transform:uppercase;">
+                    @(user.IsActive ? "Dezactivează" : "Activează")
+                </button>
+            </div>
         </div>
-        <div style="display:flex; align-items:center; gap:16px;">
-            <StatusBadge Status="@user.Role"   Variant="muted" />
-            <StatusBadge Status="@user.Status"
-                         Variant="@(user.Status == "Activ" ? "success" : "destructive")" />
-            <button style="font-size:12px; font-weight:600; color:#6b7280;
-                           background:none; border:none; cursor:pointer;"
-                    onmouseover="this.style.color='#111827'"
-                    onmouseout="this.style.color='#6b7280'">
-                Editează
-            </button>
-            <button style="font-size:12px; font-weight:600; color:#dc2626;
-                           background:none; border:none; cursor:pointer;"
-                    onmouseover="this.style.textDecoration='underline'"
-                    onmouseout="this.style.textDecoration='none'">
-                Dezactivează
-            </button>
-        </div>
-    </div>
+    }
 }
 
 @code {
-    private string _search     = "";
-    private string _filterRole = "";
+    private List<AdminUserDto> _users      = new();
+    private bool               _loading    = true;
+    private bool               _processing = false;
+    private string             _search     = "";
+    private string             _filterRole = "";
 
-    private record User(int Id, string Name, string Email,
-                        string Role, string Status);
+    private List<AdminUserDto> FilteredUsers => _users
+        .Where(u =>
+            (string.IsNullOrEmpty(_search) ||
+             u.Email.Contains(_search, StringComparison.OrdinalIgnoreCase) ||
+             u.UserName.Contains(_search, StringComparison.OrdinalIgnoreCase)) &&
+            (string.IsNullOrEmpty(_filterRole) || u.Role == _filterRole))
+        .ToList();
 
-    private readonly List<User> _users = new()
+    protected override async Task OnInitializedAsync()
     {
-        new(1, "Ion Popescu",      "ion@email.com",      "Candidat",  "Activ"),
-        new(2, "TechCorp HR",      "hr@techcorp.ro",     "Angajator", "Activ"),
-        new(3, "Maria Ionescu",    "maria@email.com",    "Candidat",  "Dezactivat"),
-        new(4, "Admin Principal",  "admin@platform.ro",  "Admin",     "Activ"),
-    };
+        await LoadUsers();
+    }
 
-    private IEnumerable<User> FilteredUsers => _users
-        .Where(u => (string.IsNullOrEmpty(_search) ||
-                     u.Name.Contains(_search,  StringComparison.OrdinalIgnoreCase) ||
-                     u.Email.Contains(_search, StringComparison.OrdinalIgnoreCase))
-                 && (string.IsNullOrEmpty(_filterRole) || u.Role == _filterRole));
+    private async Task LoadUsers()
+    {
+        try
+        {
+            _loading = true;
+            var result = await Http.GetFromJsonAsync<List<AdminUserDto>>("api/admin/users");
+            if (result != null) _users = result;
+        }
+        finally { _loading = false; }
+    }
+
+    private async Task ToggleLock(AdminUserDto user)
+    {
+        _processing = true;
+        try
+        {
+            var resp = await Http.PutAsJsonAsync(
+                $"api/admin/users/{user.Id}/toggle-lock", new { });
+
+            if (resp.IsSuccessStatusCode)
+            {
+                user.IsActive = !user.IsActive;
+                var msg = user.IsActive ? "Cont activat." : "Cont dezactivat.";
+                Snackbar.Add(msg, user.IsActive ? Severity.Success : Severity.Warning);
+                StateHasChanged();
+            }
+            else
+            {
+                Snackbar.Add("Eroare la actualizare.", Severity.Error);
+            }
+        }
+        finally { _processing = false; }
+    }
+
+    private string GetRoleLabel(string role) => role switch
+    {
+        "Candidate" => "Candidat",
+        "Employer"  => "Angajator",
+        "Admin"     => "Admin",
+        _           => role
+    };
 }

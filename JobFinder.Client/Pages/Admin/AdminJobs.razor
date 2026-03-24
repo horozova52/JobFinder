@@ -1,50 +1,170 @@
 ﻿@page "/admin/jobs"
 @layout AdminLayout
 
+@using JobFinder.Shared.DTOs.Admin
+@using System.Net.Http.Json
+
+@inject HttpClient Http
+@inject ISnackbar Snackbar
+
 <PageTitle>Moderare anunțuri - JobFinder</PageTitle>
 
 <PageHeader Title="Moderare anunțuri"
             Description="Vizualizează, dezactivează sau șterge anunțuri." />
 
-@foreach (var job in _jobs)
+<!-- Filtre -->
+<div style="display:flex; gap:12px; margin-bottom:32px;">
+    <MudTextField @bind-Value="_search"
+                  Placeholder="Caută anunț sau companie..."
+                  Variant="Variant.Outlined"
+                  Margin="Margin.Dense"
+                  Style="border-radius:0; flex:1;"
+                  Adornment="Adornment.Start"
+                  AdornmentIcon="@Icons.Material.Filled.Search" />
+</div>
+
+@if (_loading)
 {
-    <div style="border-bottom:1px solid #e5e7eb; padding:20px 0;
-                display:flex; justify-content:space-between; align-items:center;">
-        <div>
-            <h3 style="font-size:14px; font-weight:700; color:#111827; margin:0 0 4px 0;">
-                @job.Title
-            </h3>
-            <p style="font-size:14px; color:#6b7280; margin:0;">
-                @job.Company · @job.Date
-            </p>
+    <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
+}
+else if (FilteredJobs.Count == 0)
+{
+    <p style="font-size:14px; color:#9ca3af;">Niciun anunț găsit.</p>
+}
+else
+{
+    @foreach (var job in FilteredJobs)
+    {
+        <div style="border-bottom:1px solid #e5e7eb; padding:18px 0;
+                    display:flex; justify-content:space-between; align-items:center;">
+            <div>
+                <p style="font-size:14px; font-weight:700; color:#111827; margin:0 0 4px 0;">
+                    @job.Title
+                </p>
+                <p style="font-size:12px; color:#6b7280; margin:0;">
+                    @job.CompanyName
+                    @if (!string.IsNullOrEmpty(job.Location))
+                    {
+                        <span> · @job.Location</span>
+                    }
+                    <span> · @job.CreatedAt.ToString("dd.MM.yyyy")</span>
+                </p>
+            </div>
+            <div style="display:flex; align-items:center; gap:12px;">
+                <!-- Status badge -->
+                <span style="font-size:10px; font-weight:600; padding:3px 10px;
+                             letter-spacing:1px; text-transform:uppercase;
+                             font-family:'Roboto Mono',monospace;
+                             background:@GetStatusBg(job.Status);
+                             color:@GetStatusFg(job.Status);
+                             border:1px solid @GetStatusBorder(job.Status);">
+                    @GetStatusLabel(job.Status)
+                </span>
+                <!-- Dezactivează -->
+                @if (job.Status == 1) // Published
+                {
+                    <button @onclick="() => DeactivateJob(job)"
+                            disabled="@_processing"
+                            style="font-size:11px; font-weight:600; padding:6px 14px;
+                                   border:1px solid #d1d5db; color:#6b7280;
+                                   background:none; cursor:pointer; letter-spacing:1px;
+                                   text-transform:uppercase;">
+                        Dezactivează
+                    </button>
+                }
+                <!-- Șterge -->
+                <button @onclick="() => DeleteJob(job)"
+                        disabled="@_processing"
+                        style="font-size:11px; font-weight:600; padding:6px 14px;
+                               border:1px solid #fca5a5; color:#dc2626;
+                               background:none; cursor:pointer; letter-spacing:1px;
+                               text-transform:uppercase;">
+                    Șterge
+                </button>
+            </div>
         </div>
-        <div style="display:flex; align-items:center; gap:16px;">
-            <StatusBadge Status="@job.Status"
-                         Variant="@(job.Status == "Raportat" ? "destructive" : "success")" />
-            <button style="font-size:12px; font-weight:600; color:#6b7280;
-                           background:none; border:none; cursor:pointer;"
-                    onmouseover="this.style.color='#111827'"
-                    onmouseout="this.style.color='#6b7280'">
-                Dezactivează
-            </button>
-            <button style="font-size:12px; font-weight:600; color:#dc2626;
-                           background:none; border:none; cursor:pointer; text-decoration:none;"
-                    onmouseover="this.style.textDecoration='underline'"
-                    onmouseout="this.style.textDecoration='none'">
-                Șterge
-            </button>
-        </div>
-    </div>
+    }
 }
 
 @code {
-    private record Job(int Id, string Title, string Company,
-                       string Status, string Date);
+    private List<AdminJobDto> _jobs       = new();
+    private bool              _loading    = true;
+    private bool              _processing = false;
+    private string            _search     = "";
 
-    private readonly List<Job> _jobs = new()
+    private List<AdminJobDto> FilteredJobs => _jobs
+        .Where(j => string.IsNullOrEmpty(_search) ||
+                    j.Title.Contains(_search, StringComparison.OrdinalIgnoreCase) ||
+                    j.CompanyName.Contains(_search, StringComparison.OrdinalIgnoreCase))
+        .ToList();
+
+    protected override async Task OnInitializedAsync()
     {
-        new(1, "Frontend Developer", "TechCorp", "Activ",    "2025-01-15"),
-        new(2, "Backend Engineer",   "DataFlow", "Activ",    "2025-01-14"),
-        new(3, "Spam Job",           "FakeCo",   "Raportat", "2025-01-13"),
+        await LoadJobs();
+    }
+
+    private async Task LoadJobs()
+    {
+        try
+        {
+            _loading = true;
+            var result = await Http.GetFromJsonAsync<List<AdminJobDto>>("api/admin/jobs");
+            if (result != null) _jobs = result;
+        }
+        finally { _loading = false; }
+    }
+
+    private async Task DeactivateJob(AdminJobDto job)
+    {
+        _processing = true;
+        try
+        {
+            var resp = await Http.PutAsJsonAsync(
+                $"api/admin/jobs/{job.Id}/deactivate", new { });
+
+            if (resp.IsSuccessStatusCode)
+            {
+                job.Status = 3; // Closed
+                Snackbar.Add("Anunțul a fost dezactivat.", Severity.Success);
+                StateHasChanged();
+            }
+            else Snackbar.Add("Eroare la dezactivare.", Severity.Error);
+        }
+        finally { _processing = false; }
+    }
+
+    private async Task DeleteJob(AdminJobDto job)
+    {
+        _processing = true;
+        try
+        {
+            var resp = await Http.DeleteAsync($"api/admin/jobs/{job.Id}");
+
+            if (resp.IsSuccessStatusCode)
+            {
+                _jobs.Remove(job);
+                Snackbar.Add("Anunțul a fost șters.", Severity.Success);
+                StateHasChanged();
+            }
+            else Snackbar.Add("Eroare la ștergere.", Severity.Error);
+        }
+        finally { _processing = false; }
+    }
+
+    private string GetStatusLabel(int s) => s switch
+    {
+        0 => "Ciornă", 1 => "Activ", 2 => "Expirat", 3 => "Închis", _ => "—"
+    };
+    private string GetStatusBg(int s) => s switch
+    {
+        1 => "#d1fae5", 3 => "#fee2e2", _ => "#f3f4f6"
+    };
+    private string GetStatusFg(int s) => s switch
+    {
+        1 => "#065f46", 3 => "#b91c1c", _ => "#6b7280"
+    };
+    private string GetStatusBorder(int s) => s switch
+    {
+        1 => "#6ee7b7", 3 => "#fca5a5", _ => "#e5e7eb"
     };
 }

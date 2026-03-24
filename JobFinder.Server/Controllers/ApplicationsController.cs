@@ -57,31 +57,31 @@ public class ApplicationsController : ControllerBase
         };
 
         var created = await _applicationRepo.CreateAsync(application, ct);
-        return Ok(new { id = created.Id, message = "Aplicare trimisă cu succes" });
-        var employerUserId = await _db.JobPostings
-        .Where(j => j.Id == created.JobPostingId)
-        .Select(j => j.EmployerProfile.UserId)
-        .FirstOrDefaultAsync(ct);
 
-        if (!string.IsNullOrEmpty(employerUserId))
+        // ── Notificare angajator — aplicare nouă ──────────────────────
+        var jobWithEmployer = await _db.JobPostings
+            .Include(j => j.EmployerProfile)
+            .AsNoTracking()
+            .FirstOrDefaultAsync(j => j.Id == dto.JobPostingId, ct);
+
+        if (jobWithEmployer?.EmployerProfile?.UserId is string employerUserId)
         {
-            var notif = new Notification
+            _db.Notifications.Add(new Notification
             {
                 UserId = employerUserId,
                 Target = NotificationTarget.Employer,
                 Type = NotificationType.NewApplicationReceived,
                 Title = "Aplicare nouă la job",
-                Message = $"Ai o nouă aplicare la \"{created.JobPosting.Title}\".",
+                Message = $"{candidate.FirstName} {candidate.LastName} a aplicat la \"{jobWithEmployer.Title}\".",
                 Link = $"/employer/applications/{created.Id}",
                 CreatedAt = DateTime.UtcNow,
                 IsRead = false
-            };
-
-            _db.Notifications.Add(notif);
+            });
             await _db.SaveChangesAsync(ct);
         }
-    }
 
+        return Ok(new { id = created.Id, message = "Aplicare trimisă cu succes" });
+    }
     [HttpGet("my")]
     public async Task<IActionResult> GetMyApplications(CancellationToken ct)
     {
@@ -128,7 +128,10 @@ public class ApplicationsController : ControllerBase
     }
 
     [HttpPut("{id:int}/status")]
-    public async Task<IActionResult> UpdateStatus(int id, [FromBody] UpdateApplicationStatusDto dto, CancellationToken ct)
+    public async Task<IActionResult> UpdateStatus(
+    int id,
+    [FromBody] UpdateApplicationStatusDto dto,
+    CancellationToken ct)
     {
         var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (string.IsNullOrEmpty(userId))
@@ -143,6 +146,7 @@ public class ApplicationsController : ControllerBase
 
         var application = await _db.Applications
             .Include(a => a.JobPosting)
+            .Include(a => a.CandidateProfile)
             .FirstOrDefaultAsync(a => a.Id == id, ct);
 
         if (application == null)
@@ -151,29 +155,34 @@ public class ApplicationsController : ControllerBase
         if (application.JobPosting.EmployerProfileId != employer.Id)
             return Forbid();
 
-        application.Status = (ApplicationState)dto.Status;
+        var newStatus = (ApplicationState)dto.Status;
+        application.Status = newStatus;
         await _db.SaveChangesAsync(ct);
 
-        var candidateUserId = await _db.CandidateProfiles
-            .Where(c => c.Id == application.CandidateProfileId)
-            .Select(c => c.UserId)
-            .FirstOrDefaultAsync(ct);
+        // ── Notificare candidat — status schimbat ─────────────────────
+        var statusLabel = newStatus switch
+        {
+            ApplicationState.InReview => "În analiză",
+            ApplicationState.Interview => "Interviu programat",
+            ApplicationState.Accepted => "Acceptat 🎉",
+            ApplicationState.Rejected => "Respins",
+            _ => newStatus.ToString()
+        };
 
+        var candidateUserId = application.CandidateProfile.UserId;
         if (!string.IsNullOrEmpty(candidateUserId))
         {
-            var notif = new Notification
+            _db.Notifications.Add(new Notification
             {
                 UserId = candidateUserId,
                 Target = NotificationTarget.Candidate,
                 Type = NotificationType.ApplicationStatusChanged,
                 Title = "Status aplicare actualizat",
-                Message = $"Aplicarea ta la \"{application.JobPosting.Title}\" este acum {application.Status}.",
-                Link = $"/candidate/applications/{application.Id}", // sau /candidate/applications/{application.Id}
+                Message = $"Aplicarea ta la \"{application.JobPosting.Title}\" este acum: {statusLabel}.",
+                Link = $"/candidate/applications/{application.Id}",
                 CreatedAt = DateTime.UtcNow,
                 IsRead = false
-            };
-
-            _db.Notifications.Add(notif);
+            });
             await _db.SaveChangesAsync(ct);
         }
 

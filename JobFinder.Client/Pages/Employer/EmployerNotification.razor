@@ -8,7 +8,20 @@
 @inject HttpClient Http
 @inject NavigationManager Navigation
 
-<h1>Notificările mele</h1>
+<PageTitle>Notificări - JobFinder</PageTitle>
+
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+    <h1 style="font-size:22px; font-weight:700; margin:0;">
+        Notificările mele
+    </h1>
+    @if (_unreadCount > 0)
+    {
+        <span style="font-size:12px; padding:4px 10px; border-radius:999px;
+                         background:#eef2ff; color:#4f46e5; font-weight:600;">
+            @_unreadCount necitite
+        </span>
+    }
+</div>
 
 @if (_loading)
 {
@@ -17,35 +30,118 @@
 else if (_notifications.Count == 0)
 {
     <p style="font-size:14px; color:#6b7280;">
-        Nu ai încă notificări.
+        Nu ai încă notificări. Când un candidat aplică la joburile tale,
+        le vei vedea aici.
     </p>
 }
 else
 {
-    <!-- poți copia exact UI-ul din CandidateNotifications -->
+    <div style="display:flex; flex-direction:column; gap:8px;">
+        @foreach (var n in _notifications)
+        {
+            var accent = GetAccentColor(n.Type);
+            var icon = GetIcon(n.Type);
+
+            <div style="display:flex; gap:12px; padding:10px 14px; border-radius:8px;
+                                border:1px solid #e5e7eb;
+                                background:@(n.IsRead ? "#ffffff" : "#f5f5ff");">
+
+                <div style="width:32px; height:32px; border-radius:999px;
+                                    display:flex; align-items:center; justify-content:center;
+                                    font-size:16px; background:@accent.bg; color:@accent.fg;">
+                    @icon
+                </div>
+
+                <div style="flex:1;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <p style="margin:0; font-size:14px; font-weight:600;">
+                            @n.Title
+                        </p>
+                        <span style="font-size:11px; color:#9ca3af;">
+                            @n.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
+                        </span>
+                    </div>
+
+                    <p style="margin:3px 0 6px 0; font-size:13px; color:#4b5563;">
+                        @n.Message
+                    </p>
+
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        @if (!string.IsNullOrWhiteSpace(n.Link))
+                        {
+                            <button type="button"
+                                    @onclick="() => NavigateTo(n)"
+                                    style="font-size:11px; padding:6px 10px; border-radius:999px;
+                                                       border:1px solid #4f46e5; background:#eef2ff;
+                                                       color:#4f46e5; font-weight:600; text-transform:uppercase;
+                                                       letter-spacing:1px; cursor:pointer;">
+                                Deschide
+                            </button>
+                        }
+                        @if (!n.IsRead)
+                        {
+                            <span style="font-size:10px; padding:3px 8px; border-radius:999px;
+                                                     background:#dcfce7; color:#166534; font-weight:600;">
+                                Nou
+                            </span>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
 }
 
 @code {
     private readonly List<NotificationDto> _notifications = new();
     private bool _loading = true;
+    private int _unreadCount = 0;
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
-            var result = await Http.GetFromJsonAsync<List<NotificationDto>>("api/notification/mine");
+            var result = await Http.GetFromJsonAsync<List<NotificationDto>>(
+                "api/notification/mine");
+
             if (result != null)
+            {
                 _notifications.AddRange(result.OrderByDescending(n => n.CreatedAt));
+                _unreadCount = _notifications.Count(n => !n.IsRead);
+            }
         }
-        finally
+        finally { _loading = false; }
+    }
+
+    private async Task NavigateTo(NotificationDto notif)
+    {
+        if (!string.IsNullOrWhiteSpace(notif.Link))
         {
-            _loading = false;
+            Navigation.NavigateTo(notif.Link);
+            if (!notif.IsRead)
+            {
+                notif.IsRead = true;
+                _unreadCount = Math.Max(0, _unreadCount - 1);
+                _ = Http.PostAsync($"api/notification/{notif.Id}/read", null);
+            }
         }
     }
 
-    private void NavigateTo(NotificationDto notif)
+    private (string bg, string fg) GetAccentColor(NotificationType type) => type switch
     {
-        if (!string.IsNullOrWhiteSpace(notif.Link))
-            Navigation.NavigateTo(notif.Link);
-    }
+        NotificationType.NewApplicationReceived => ("#dcfce7", "#166534"),
+        NotificationType.ApplicationStatusChanged => ("#eef2ff", "#4f46e5"),
+        NotificationType.EmploymentConfirmed => ("#fef9c3", "#854d0e"),
+        NotificationType.SystemSuggestion => ("#fee2e2", "#b91c1c"),
+        _ => ("#e5e7eb", "#374151")
+    };
+
+    private string GetIcon(NotificationType type) => type switch
+    {
+        NotificationType.NewApplicationReceived => "✉",
+        NotificationType.ApplicationStatusChanged => "●",
+        NotificationType.EmploymentConfirmed => "✓",
+        NotificationType.SystemSuggestion => "⚑",
+        _ => "•"
+    };
 }

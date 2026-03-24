@@ -81,21 +81,30 @@ public class AuthController : ControllerBase
         if (user == null)
             return Unauthorized(new { message = "Email sau parolă incorectă" });
 
-        var result = await _signInManager.PasswordSignInAsync(
+        var signInResult = await _signInManager.PasswordSignInAsync(
             request.Email,
             request.Password,
             isPersistent: true,
             lockoutOnFailure: false);
 
-        if (!result.Succeeded)
+        if (!signInResult.Succeeded)
             return Unauthorized(new { message = "Email sau parolă incorectă" });
+
+        var roles = await _userManager.GetRolesAsync(user);
+
+        var userType =
+            roles.Contains("Admin") ? UserType.Admin :
+            roles.Contains("Employer") ? UserType.Employer :
+                                         UserType.Candidate;
+
+        var token = await GenerateJwtToken(user);
 
         var response = new AuthResponseDto
         {
             UserId = user.Id,
             Email = user.Email,
-            UserType = user.UserType,
-            Token = "",
+            UserType = userType,        
+            Token = token,
             ExpiresAt = DateTime.UtcNow.AddHours(24)
         };
 
@@ -118,6 +127,7 @@ public class AuthController : ControllerBase
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
         var roles = await _userManager.GetRolesAsync(user);
+
 
         var claims = new List<Claim>
         {

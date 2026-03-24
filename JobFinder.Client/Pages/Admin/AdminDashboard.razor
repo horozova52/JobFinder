@@ -1,57 +1,165 @@
 ﻿@page "/admin/dashboard"
 @layout AdminLayout
 
+@using JobFinder.Shared.DTOs.Admin
+@using System.Net.Http.Json
+
+@inject HttpClient Http
+@inject NavigationManager Navigation
+
 <PageTitle>Admin Dashboard - JobFinder</PageTitle>
 
 <PageHeader Title="Admin Dashboard"
             Description="Statistici generale și activitate recentă pe platformă." />
 
+@if (_loading)
+{
+    <MudProgressLinear Indeterminate="true" Color="Color.Primary" Style="margin-bottom:32px;" />
+}
+
 <!-- Statistici -->
 <section style="margin-bottom:40px;">
-    <h2 style="font-size:14px; font-weight:700; color:#111827; margin-bottom:16px;">
-        Statistici
+    <h2 style="font-size:14px; font-weight:700; color:#111827;
+               letter-spacing:1px; text-transform:uppercase;
+               margin-bottom:16px;">
+        Statistici platformă
     </h2>
-    <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:24px;">
-        @foreach (var stat in _stats)
-        {
-            <div style="border:1px solid #e5e7eb; padding:16px;">
-                <p style="font-size:24px; font-weight:700; color:#6366f1; margin:0 0 4px 0;">
-                    @stat.Value
-                </p>
-                <p style="font-size:12px; color:#6b7280; margin:0;">@stat.Label</p>
-            </div>
-        }
+    <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:16px;">
+        <div style="border:1px solid #e5e7eb; padding:20px;">
+            <p style="font-size:28px; font-weight:700; color:#6366f1; margin:0 0 4px 0;">
+                @(_stats?.TotalUsers ?? 0)
+            </p>
+            <p style="font-size:11px; font-weight:600; color:#9ca3af;
+                      letter-spacing:1px; text-transform:uppercase; margin:0;">
+                Utilizatori total
+            </p>
+        </div>
+        <div style="border:1px solid #e5e7eb; padding:20px;">
+            <p style="font-size:28px; font-weight:700; color:#6366f1; margin:0 0 4px 0;">
+                @(_stats?.TotalCandidates ?? 0)
+            </p>
+            <p style="font-size:11px; font-weight:600; color:#9ca3af;
+                      letter-spacing:1px; text-transform:uppercase; margin:0;">
+                Candidați
+            </p>
+        </div>
+        <div style="border:1px solid #e5e7eb; padding:20px;">
+            <p style="font-size:28px; font-weight:700; color:#6366f1; margin:0 0 4px 0;">
+                @(_stats?.TotalEmployers ?? 0)
+            </p>
+            <p style="font-size:11px; font-weight:600; color:#9ca3af;
+                      letter-spacing:1px; text-transform:uppercase; margin:0;">
+                Angajatori
+            </p>
+        </div>
+        <div style="border:1px solid #e5e7eb; padding:20px;">
+            <p style="font-size:28px; font-weight:700; color:#059669; margin:0 0 4px 0;">
+                @(_stats?.ActiveJobs ?? 0)
+            </p>
+            <p style="font-size:11px; font-weight:600; color:#9ca3af;
+                      letter-spacing:1px; text-transform:uppercase; margin:0;">
+                Joburi active
+            </p>
+        </div>
+        <div style="border:1px solid #e5e7eb; padding:20px;">
+            <p style="font-size:28px; font-weight:700; color:#059669; margin:0 0 4px 0;">
+                @(_stats?.TotalApps ?? 0)
+            </p>
+            <p style="font-size:11px; font-weight:600; color:#9ca3af;
+                      letter-spacing:1px; text-transform:uppercase; margin:0;">
+                Aplicări total
+            </p>
+        </div>
+        <div style="border:1px solid #e5e7eb; padding:20px;
+                    @(_stats?.PendingVerif > 0 ? "border-color:#fbbf24; background:#fffbeb;" : "")">
+            <p style="font-size:28px; font-weight:700;
+                      color:@(_stats?.PendingVerif > 0 ? "#d97706" : "#6366f1");
+                      margin:0 0 4px 0;">
+                @(_stats?.PendingVerif ?? 0)
+            </p>
+            <p style="font-size:11px; font-weight:600; color:#9ca3af;
+                      letter-spacing:1px; text-transform:uppercase; margin:0;">
+                Angajatori în așteptare
+            </p>
+            @if (_stats?.PendingVerif > 0)
+            {
+                <button @onclick='() => Navigation.NavigateTo("/admin/employer-verification")'
+                        style="font-size:10px; margin-top:6px; color:#d97706; background:none;
+                               border:none; cursor:pointer; padding:0; font-weight:600;">
+                    Verifică acum →
+                </button>
+            }
+        </div>
     </div>
 </section>
 
 <!-- Activitate recentă -->
 <section>
-    <h2 style="font-size:14px; font-weight:700; color:#111827; margin-bottom:16px;">
+    <h2 style="font-size:14px; font-weight:700; color:#111827;
+               letter-spacing:1px; text-transform:uppercase;
+               margin-bottom:16px;">
         Activitate recentă
     </h2>
+
+    @if (_logs.Count == 0 && !_loading)
+    {
+        <p style="font-size:14px; color:#9ca3af;">
+            Nicio activitate înregistrată încă.
+        </p>
+    }
+
     @foreach (var log in _logs)
     {
-        <div style="border-bottom:1px solid #e5e7eb; padding:16px 0;">
-            <p style="font-size:14px; color:#111827; margin:0 0 4px 0;">@log.Action</p>
-            <p style="font-size:12px; color:#6b7280; margin:0;">@log.Time</p>
+        <div style="border-bottom:1px solid #e5e7eb; padding:14px 0;
+                    display:flex; justify-content:space-between; align-items:flex-start;">
+            <div style="flex:1;">
+                <div style="display:flex; align-items:center; gap:8px; margin-bottom:2px;">
+                    <span style="font-size:10px; font-weight:600; padding:2px 7px;
+                                 letter-spacing:1px; text-transform:uppercase;
+                                 border:1px solid #e5e7eb; color:#6b7280;
+                                 font-family:'Roboto Mono',monospace;">
+                        @GetTypeLabel(log.Type)
+                    </span>
+                    <p style="font-size:14px; color:#111827; margin:0; font-weight:600;">
+                        @log.Title
+                    </p>
+                </div>
+                <p style="font-size:12px; color:#6b7280; margin:0;">@log.Message</p>
+            </div>
+            <p style="font-size:11px; color:#9ca3af; margin:0; white-space:nowrap; margin-left:16px;">
+                @log.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
+            </p>
         </div>
     }
 </section>
 
 @code {
-    private readonly List<(string Label, string Value)> _stats = new()
-    {
-        ("Utilizatori",    "342"),
-        ("Candidați",      "256"),
-        ("Angajatori",     "86"),
-        ("Joburi active",  "47"),
-    };
+    private AdminStatsDto?      _stats;
+    private List<AdminLogDto>   _logs    = new();
+    private bool                _loading = true;
 
-    private readonly List<(string Action, string Time)> _logs = new()
+    protected override async Task OnInitializedAsync()
     {
-        ("Ion Popescu s-a înregistrat ca și candidat",             "Acum 2 ore"),
-        ("TechCorp a publicat un nou anunț: Frontend Developer",   "Acum 3 ore"),
-        ("Maria Ionescu a aplicat la Backend Engineer",            "Acum 5 ore"),
-        ("Admin a dezactivat contul user#45",                      "Ieri"),
+        try
+        {
+            var statsTask = Http.GetFromJsonAsync<AdminStatsDto>("api/admin/stats");
+            var logsTask  = Http.GetFromJsonAsync<List<AdminLogDto>>("api/admin/logs");
+
+            await Task.WhenAll(statsTask, logsTask);
+
+            _stats = statsTask.Result;
+            if (logsTask.Result != null)
+                _logs = logsTask.Result.Take(10).ToList();
+        }
+        finally { _loading = false; }
+    }
+
+    private string GetTypeLabel(int type) => type switch
+    {
+        0 => "APLICARE",
+        1 => "STATUS",
+        2 => "ANGAJARE",
+        3 => "SISTEM",
+        _ => "INFO"
     };
 }

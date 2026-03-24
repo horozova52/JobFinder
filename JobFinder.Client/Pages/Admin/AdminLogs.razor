@@ -1,6 +1,11 @@
 ﻿@page "/admin/logs"
 @layout AdminLayout
 
+@using JobFinder.Shared.DTOs.Admin
+@using System.Net.Http.Json
+
+@inject HttpClient Http
+
 <PageTitle>Jurnal acțiuni - JobFinder</PageTitle>
 
 <PageHeader Title="Jurnal acțiuni"
@@ -12,60 +17,142 @@
                   Placeholder="Caută în jurnal..."
                   Variant="Variant.Outlined"
                   Margin="Margin.Dense"
-                  Style="border-radius:0; flex:1;" />
+                  Style="border-radius:0; flex:1;"
+                  Adornment="Adornment.Start"
+                  AdornmentIcon="@Icons.Material.Filled.Search" />
     <MudSelect @bind-Value="_filterType"
                Variant="Variant.Outlined"
                Margin="Margin.Dense"
+               Style="border-radius:0; min-width:180px;">
+        <MudSelectItem Value="@(-1)">Toate tipurile</MudSelectItem>
+        <MudSelectItem Value="@(0)">Aplicare nouă</MudSelectItem>
+        <MudSelectItem Value="@(1)">Status schimbat</MudSelectItem>
+        <MudSelectItem Value="@(2)">Angajare confirmată</MudSelectItem>
+        <MudSelectItem Value="@(3)">Sistem</MudSelectItem>
+    </MudSelect>
+    <MudSelect @bind-Value="_filterTarget"
+               Variant="Variant.Outlined"
+               Margin="Margin.Dense"
                Style="border-radius:0; min-width:160px;">
-        <MudSelectItem Value="@("")">Toate tipurile</MudSelectItem>
-        <MudSelectItem Value="@("AUTH")">AUTH</MudSelectItem>
-        <MudSelectItem Value="@("JOB")">JOB</MudSelectItem>
-        <MudSelectItem Value="@("MSG")">MSG</MudSelectItem>
-        <MudSelectItem Value="@("APP")">APP</MudSelectItem>
-        <MudSelectItem Value="@("ADMIN")">ADMIN</MudSelectItem>
+        <MudSelectItem Value="@(-1)">Toți</MudSelectItem>
+        <MudSelectItem Value="@(0)">Candidați</MudSelectItem>
+        <MudSelectItem Value="@(1)">Angajatori</MudSelectItem>
     </MudSelect>
 </div>
 
-@foreach (var log in FilteredLogs)
+@if (_loading)
 {
-    <div style="border-bottom:1px solid #e5e7eb; padding:16px 0;
-                display:flex; justify-content:space-between; align-items:flex-start;">
-        <div>
-            <div style="display:flex; align-items:center; gap:12px; margin-bottom:4px;">
-                <span style="font-size:11px; font-weight:600; color:#6b7280;
-                             border:1px solid #e5e7eb; padding:2px 8px;">
-                    @log.Type
-                </span>
-                <p style="font-size:14px; color:#111827; margin:0;">@log.Action</p>
-            </div>
-            <p style="font-size:12px; color:#6b7280; margin:0;">@log.User</p>
-        </div>
-        <p style="font-size:12px; color:#6b7280; margin:0; white-space:nowrap; margin-left:24px;">
-            @log.Time
-        </p>
+    <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
+}
+else if (FilteredLogs.Count == 0)
+{
+    <p style="font-size:14px; color:#9ca3af;">Nicio înregistrare găsită.</p>
+}
+else
+{
+    <div style="margin-bottom:12px;">
+        <span style="font-size:12px; color:#9ca3af;">
+            @FilteredLogs.Count înregistrări
+        </span>
     </div>
+
+    @foreach (var log in FilteredLogs)
+    {
+        var typeInfo = GetTypeInfo(log.Type);
+        var targetInfo = GetTargetInfo(log.Target);
+
+        <div style="border-bottom:1px solid #e5e7eb; padding:14px 0;
+                    display:flex; justify-content:space-between; align-items:flex-start;
+                    @(!log.IsRead ? "background:#fafafa;" : "")">
+            <div style="flex:1;">
+                <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px; flex-wrap:wrap;">
+                    <!-- Tip notificare -->
+                    <span style="font-size:10px; font-weight:600; padding:2px 8px;
+                                 letter-spacing:1px; text-transform:uppercase;
+                                 font-family:'Roboto Mono',monospace;
+                                 background:@typeInfo.Bg; color:@typeInfo.Fg;
+                                 border:1px solid @typeInfo.Border;">
+                        @typeInfo.Label
+                    </span>
+                    <!-- Target -->
+                    <span style="font-size:10px; font-weight:600; padding:2px 8px;
+                                 letter-spacing:1px; text-transform:uppercase;
+                                 font-family:'Roboto Mono',monospace;
+                                 background:@targetInfo.Bg; color:@targetInfo.Fg;
+                                 border:1px solid @targetInfo.Border;">
+                        @targetInfo.Label
+                    </span>
+                    @if (!log.IsRead)
+                    {
+                        <span style="font-size:10px; font-weight:600; padding:2px 8px;
+                                     background:#ede9fe; color:#6366f1;
+                                     border:1px solid #c4b5fd; letter-spacing:1px;
+                                     text-transform:uppercase; font-family:'Roboto Mono',monospace;">
+                            NOU
+                        </span>
+                    }
+                    <p style="font-size:14px; font-weight:600; color:#111827; margin:0;">
+                        @log.Title
+                    </p>
+                </div>
+                <p style="font-size:13px; color:#6b7280; margin:0 0 4px 0;">
+                    @log.Message
+                </p>
+                <p style="font-size:11px; color:#9ca3af; margin:0;
+                          font-family:'Roboto Mono',monospace;">
+                    UserId: @log.UserId[..Math.Min(8, log.UserId.Length)]...
+                </p>
+            </div>
+            <p style="font-size:11px; color:#9ca3af; margin:0;
+                      white-space:nowrap; margin-left:24px;
+                      font-family:'Roboto Mono',monospace;">
+                @log.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy")
+                <br />
+                @log.CreatedAt.ToLocalTime().ToString("HH:mm:ss")
+            </p>
+        </div>
+    }
 }
 
 @code {
-    private string _search     = "";
-    private string _filterType = "";
+    private List<AdminLogDto> _logs        = new();
+    private bool              _loading     = true;
+    private string            _search      = "";
+    private int               _filterType  = -1;
+    private int               _filterTarget = -1;
 
-    private record LogEntry(int Id, string Action, string User,
-                            string Type, string Time);
+    private List<AdminLogDto> FilteredLogs => _logs
+        .Where(l =>
+            (string.IsNullOrEmpty(_search) ||
+             l.Title.Contains(_search, StringComparison.OrdinalIgnoreCase) ||
+             l.Message.Contains(_search, StringComparison.OrdinalIgnoreCase)) &&
+            (_filterType == -1   || l.Type   == _filterType) &&
+            (_filterTarget == -1 || l.Target == _filterTarget))
+        .ToList();
 
-    private readonly List<LogEntry> _logs = new()
+    protected override async Task OnInitializedAsync()
     {
-        new(1, "Autentificare reușită",                   "ion.popescu@email.com", "AUTH",  "2025-01-15 14:23:01"),
-        new(2, "Publicare anunț: Frontend Developer",     "hr@techcorp.ro",        "JOB",   "2025-01-15 13:10:45"),
-        new(3, "Mesaj trimis către Ion Popescu",          "hr@techcorp.ro",        "MSG",   "2025-01-15 12:55:30"),
-        new(4, "Aplicare la Backend Engineer",            "maria@email.com",       "APP",   "2025-01-15 11:20:15"),
-        new(5, "Cont dezactivat: user#45",                "admin@platform.ro",     "ADMIN", "2025-01-14 18:00:00"),
-        new(6, "Autentificare eșuată (3 încercări)",     "spam@test.com",         "AUTH",  "2025-01-14 16:45:22"),
+        try
+        {
+            var result = await Http.GetFromJsonAsync<List<AdminLogDto>>("api/admin/logs");
+            if (result != null) _logs = result;
+        }
+        finally { _loading = false; }
+    }
+
+    private (string Label, string Bg, string Fg, string Border) GetTypeInfo(int type) => type switch
+    {
+        0 => ("Aplicare",  "#d1fae5", "#065f46", "#6ee7b7"),
+        1 => ("Status",    "#eef2ff", "#4f46e5", "#c7d2fe"),
+        2 => ("Angajare",  "#fef9c3", "#854d0e", "#fde68a"),
+        3 => ("Sistem",    "#fee2e2", "#b91c1c", "#fca5a5"),
+        _ => ("Info",      "#f3f4f6", "#6b7280", "#e5e7eb"),
     };
 
-    private IEnumerable<LogEntry> FilteredLogs => _logs
-        .Where(l => (string.IsNullOrEmpty(_search) ||
-                     l.Action.Contains(_search, StringComparison.OrdinalIgnoreCase) ||
-                     l.User.Contains(_search, StringComparison.OrdinalIgnoreCase))
-                 && (string.IsNullOrEmpty(_filterType) || l.Type == _filterType));
+    private (string Label, string Bg, string Fg, string Border) GetTargetInfo(int target) => target switch
+    {
+        0 => ("Candidat",  "#f0fdf4", "#166534", "#bbf7d0"),
+        1 => ("Angajator", "#eff6ff", "#1e40af", "#bfdbfe"),
+        _ => ("—",         "#f3f4f6", "#6b7280", "#e5e7eb"),
+    };
 }
