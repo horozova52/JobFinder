@@ -1,7 +1,15 @@
 ﻿@page "/candidate/applications/{Id:int}"
 @layout CandidateLayout
 
-<PageTitle>Detalii aplicare - JobFinder</PageTitle>
+@using JobFinder.Shared.DTOs.Applications
+@using JobFinder.Shared.DTOs.Jobs
+@using JobFinder.Shared.Enums
+@using System.Net.Http.Json
+
+@inject HttpClient Http
+@inject ISnackbar Snackbar
+
+<PageTitle>@(_application?.JobTitle ?? "Aplicare") - JobFinder</PageTitle>
 
 <a href="/candidate/applications"
    style="font-size:12px; font-weight:600; letter-spacing:1px; text-transform:uppercase;
@@ -9,99 +17,420 @@
     ← Înapoi la aplicări
 </a>
 
-<!-- Header -->
-<div style="display:flex; justify-content:space-between; align-items:flex-start;
-            margin-top:16px; margin-bottom:8px;">
-    <h1 style="font-size:24px; font-weight:700; color:#111827; margin:0;">
-        Frontend Developer
-    </h1>
-    <StatusBadge Status="În analiză" Variant="warning" />
-</div>
-<p style="font-size:14px; color:#6b7280; margin:0 0 32px 0;">
-    DataFlow · Aplicat pe 10 ianuarie 2025
-</p>
+@if (_loading)
+{
+    <MudProgressLinear Indeterminate="true" Color="Color.Primary" Style="margin-top:16px;" />
+}
+else if (_application == null)
+{
+    <div style="padding:48px 0; text-align:center;">
+        <MudText Typo="Typo.body1" Style="color:#6b7280;">
+            Aplicarea nu a fost găsită.
+        </MudText>
+    </div>
+}
+else
+{
+    @* ── Header ── *@
+    <div style="display:flex; justify-content:space-between; align-items:flex-start;
+                margin-top:16px; margin-bottom:8px; gap:16px;">
+        <h1 style="font-size:24px; font-weight:700; color:#111827; margin:0;">
+            @_application.JobTitle
+        </h1>
+        <StatusBadge Status="@GetStatusText(_application.Status)"
+                     Variant="@GetStatusVariant(_application.Status)" />
+    </div>
 
-<div style="border-bottom:1px solid #e5e7eb; margin-bottom:32px;"></div>
+    <p style="font-size:14px; color:#6b7280; margin:0 0 4px 0;">
+        @if (!string.IsNullOrWhiteSpace(_job?.CompanyName))
+        {
+            <span>@_job.CompanyName · </span>
+        }
+        Aplicat pe @_application.AppliedAt.ToString("dd MMMM yyyy")
+    </p>
 
-<!-- Timeline -->
-<section style="margin-bottom:40px;">
-    <h2 style="font-size:14px; font-weight:700; color:#111827; margin-bottom:16px;">
-        Istoric status
-    </h2>
-    @foreach (var step in _timeline)
+    @if (!string.IsNullOrWhiteSpace(_application.CoverLetter))
     {
-        <div style="display:flex; align-items:center; gap:16px; margin-bottom:12px;">
-            <div style="width:8px; height:8px; border-radius:50%; flex-shrink:0;
-                        background:@(step.Active ? "#6366f1" : "#e5e7eb");"></div>
-            <p style="font-size:14px; margin:0;
-                      font-weight:@(step.Active ? "600" : "400");
-                      color:@(step.Active ? "#111827" : "#6b7280");">
-                @step.Status
+        <div style="margin-top:12px; padding:12px 16px;
+                    border-left:3px solid #6366f1; background:#f5f3ff;">
+            <p style="font-size:11px; font-weight:600; color:#6366f1;
+                      letter-spacing:1px; text-transform:uppercase; margin:0 0 6px 0;">
+                Scrisoare de intenție
             </p>
-            <p style="font-size:12px; color:#6b7280; margin:0 0 0 auto;">@step.Date</p>
+            <p style="font-size:14px; color:#374151; margin:0; line-height:1.6;
+                      white-space:pre-line;">
+                @_application.CoverLetter
+            </p>
         </div>
     }
-</section>
 
-<div style="border-bottom:1px solid #e5e7eb; margin-bottom:32px;"></div>
+    <div style="border-bottom:1px solid #e5e7eb; margin:24px 0 32px 0;"></div>
 
-<!-- Chat -->
-<section>
-    <h2 style="font-size:14px; font-weight:700; color:#111827; margin-bottom:16px;">
-        Mesagerie
-    </h2>
+    @* ── Timeline status ── *@
+    <section style="margin-bottom:40px;">
+        <h2 style="font-size:14px; font-weight:700; color:#111827; margin-bottom:20px;">
+            Parcurs aplicare
+        </h2>
 
-    <div style="display:flex; flex-direction:column; gap:16px; margin-bottom:24px;">
-        <!-- Mesaj angajator -->
-        <div style="border:1px solid #e5e7eb; padding:16px;">
-            <p style="font-size:11px; font-weight:600; color:#6b7280; margin:0 0 4px 0;">
-                DataFlow — 12 Ian
-            </p>
-            <p style="font-size:14px; color:#111827; margin:0;">
-                Bună ziua! Am primit aplicarea dumneavoastră și este în curs de analiză.
-            </p>
-        </div>
-        <!-- Mesaj propriu -->
-        <div style="border:1px solid #c7d2fe; background:#ede9fe; padding:16px;">
-            <p style="font-size:11px; font-weight:600; color:#6366f1; margin:0 0 4px 0;">
-                Tu — 12 Ian
-            </p>
-            <p style="font-size:14px; color:#111827; margin:0;">
-                Mulțumesc! Aștept cu interes un răspuns.
-            </p>
-        </div>
-    </div>
+        @foreach (var step in GetTimeline(_application.Status))
+        {
+            <div style="display:flex; align-items:center; gap:16px; margin-bottom:14px;">
+                <div style="width:10px; height:10px; border-radius:50%; flex-shrink:0;
+                            background:@(step.Done ? "#6366f1" : step.Current ? "#6366f1" : "#e5e7eb");
+                            border:@(step.Current ? "2px solid #a5b4fc" : "none");
+                            box-shadow:@(step.Current ? "0 0 0 3px #ede9fe" : "none");"></div>
+                <p style="font-size:14px; margin:0;
+                          font-weight:@(step.Current ? "700" : "400");
+                          color:@(step.Done || step.Current ? "#111827" : "#9ca3af");">
+                    @step.Label
+                </p>
+                @if (step.Current)
+                {
+                    <span style="font-size:11px; font-weight:600; color:#6366f1;
+                                 background:#ede9fe; padding:2px 8px; margin-left:4px;">
+                        ACUM
+                    </span>
+                }
+            </div>
+        }
+    </section>
 
-    <div style="display:flex; gap:12px;">
-        <MudTextField @bind-Value="_message"
-                      Placeholder="Scrie un mesaj..."
-                      Variant="Variant.Outlined"
-                      FullWidth="true"
-                      Margin="Margin.Dense"
-                      Style="border-radius:0; flex:1;" />
-        <MudButton Variant="Variant.Filled" OnClick="SendMessage"
-                   Style="background:#6366f1; color:#fff; border-radius:0;
-                          font-size:11px; font-weight:600; letter-spacing:2px;
-                          text-transform:uppercase; padding:0 24px; flex-shrink:0;">
-            Trimite
-        </MudButton>
-    </div>
-</section>
+    <div style="border-bottom:1px solid #e5e7eb; margin-bottom:32px;"></div>
+
+    @* ── Detalii job (link) ── *@
+    @if (_job != null)
+    {
+        <section style="margin-bottom:32px;">
+            <h2 style="font-size:14px; font-weight:700; color:#111827; margin-bottom:12px;">
+                Detalii job
+            </h2>
+            <div style="border:1px solid #e5e7eb; padding:16px 20px;">
+                <div style="display:flex; justify-content:space-between;
+                            align-items:flex-start; gap:12px;">
+                    <div>
+                        <p style="font-size:14px; font-weight:600; color:#111827; margin:0 0 4px 0;">
+                            @_job.Title
+                        </p>
+                        <p style="font-size:13px; color:#6b7280; margin:0 0 8px 0;">
+                            @_job.CompanyName
+                            @if (!string.IsNullOrWhiteSpace(_job.Location))
+                            { <span> · @_job.Location</span> }
+                        </p>
+                        @if (_job.Skills.Any())
+                        {
+                            <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                                @foreach (var skill in _job.Skills.Take(4))
+                                {
+                                    <span style="font-size:11px; font-weight:600; color:#6b7280;
+                                                 border:1px solid #e5e7eb; padding:2px 8px;">
+                                        @skill.SkillName
+                                    </span>
+                                }
+                            </div>
+                        }
+                    </div>
+                    <a href="/candidate/jobs/@_job.Id"
+                       style="font-size:11px; font-weight:600; color:#6366f1;
+                              text-decoration:none; letter-spacing:0.5px; white-space:nowrap;">
+                        Vezi jobul →
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <div style="border-bottom:1px solid #e5e7eb; margin-bottom:32px;"></div>
+    }
+
+    @* ── Retrage aplicarea ── *@
+    @if (_application.Status == ApplicationState.Pending ||
+         _application.Status == ApplicationState.InReview)
+    {
+        <section style="margin-bottom:32px;">
+            @if (!_confirmWithdraw)
+            {
+                <MudButton Variant="Variant.Outlined"
+                           OnClick="@(() => _confirmWithdraw = true)"
+                           Style="border-radius:0; border-color:#dc2626; color:#dc2626;
+                                  font-size:11px; font-weight:600; letter-spacing:2px;
+                                  text-transform:uppercase; padding:10px 20px;">
+                    Retrage aplicarea
+                </MudButton>
+            }
+            else
+            {
+                <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+                    <p style="font-size:14px; color:#374151; margin:0;">
+                        Ești sigur că vrei să retragi această aplicare?
+                    </p>
+                    <MudButton Variant="Variant.Filled"
+                               OnClick="WithdrawApplication"
+                               Disabled="_withdrawing"
+                               Style="background:#dc2626; color:#fff; border-radius:0;
+                                      font-size:11px; font-weight:600; letter-spacing:2px;
+                                      text-transform:uppercase; padding:10px 20px;">
+                        @(_withdrawing ? "Se procesează..." : "Da, retrage")
+                    </MudButton>
+                    <MudButton Variant="Variant.Text"
+                               OnClick="@(() => _confirmWithdraw = false)"
+                               Style="border-radius:0; font-size:11px; font-weight:600;
+                                      letter-spacing:2px; text-transform:uppercase; color:#6b7280;">
+                        Anulează
+                    </MudButton>
+                </div>
+            }
+        </section>
+    }
+    @* ── Confirmă angajarea ── *@
+    @if (_application.Status == ApplicationState.Accepted)
+    {
+        <section style="margin-bottom:32px;">
+            <h2 style="font-size:14px; font-weight:700; color:#111827; margin-bottom:12px;">
+                Confirmare angajare
+            </h2>
+
+            @if (_confirmationStatus == null)
+            {
+                @if (!_showConfirmForm)
+                {
+                    <div style="border:1px solid #bbf7d0; background:#f0fdf4;
+                                            padding:16px 20px; margin-bottom:16px;">
+                        <p style="font-size:14px; color:#15803d; margin:0 0 4px 0; font-weight:600;">
+                            🎉 Felicitări! Ai fost acceptat.
+                        </p>
+                        <p style="font-size:13px; color:#166534; margin:0;">
+                            Dacă te-ai angajat la această companie, confirmă pentru a
+                            adăuga experiența automat în profilul tău.
+                        </p>
+                    </div>
+                    <MudButton Variant="Variant.Filled"
+                               OnClick="@(() => _showConfirmForm = true)"
+                               Style="background:#16a34a; color:#fff; border-radius:0;
+                                                  font-size:11px; font-weight:600; letter-spacing:2px;
+                                                  text-transform:uppercase; padding:10px 24px;">
+                        Confirmă angajarea
+                    </MudButton>
+                }
+                else
+                {
+                    <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+                        <p style="font-size:14px; color:#374151; margin:0;">
+                            Confirmi că te-ai angajat la această companie?
+                            Experiența va fi adăugată automat în profilul tău.
+                        </p>
+                        <MudButton Variant="Variant.Filled"
+                                   OnClick="ConfirmEmployment"
+                                   Disabled="_confirming"
+                                   Style="background:#16a34a; color:#fff; border-radius:0;
+                                                      font-size:11px; font-weight:600; letter-spacing:2px;
+                                                      text-transform:uppercase; padding:10px 20px;">
+                            @(_confirming ? "Se procesează..." : "Da, confirmă")
+                        </MudButton>
+                        <MudButton Variant="Variant.Text"
+                                   OnClick="@(() => _showConfirmForm = false)"
+                                   Style="border-radius:0; font-size:11px; font-weight:600;
+                                                      letter-spacing:2px; text-transform:uppercase; color:#6b7280;">
+                            Anulează
+                        </MudButton>
+                    </div>
+                }
+            }
+            else if (_confirmationStatus == 0)
+            {
+                <div style="border:1px solid #fde68a; background:#fefce8; padding:16px 20px;">
+                    <p style="font-size:14px; color:#92400e; margin:0; font-weight:600;">
+                        ⏳ Angajarea ta este în așteptarea validării de către angajator.
+                    </p>
+                </div>
+            }
+            else if (_confirmationStatus == 1)
+            {
+                <div style="border:1px solid #bbf7d0; background:#f0fdf4; padding:16px 20px;">
+                    <p style="font-size:14px; color:#15803d; margin:0; font-weight:600;">
+                        ✓ Angajarea a fost validată. Experiența a fost adăugată în profilul tău.
+                    </p>
+                </div>
+            }
+            else if (_confirmationStatus == 2)
+            {
+                <div style="border:1px solid #fecaca; background:#fef2f2; padding:16px 20px;">
+                    <p style="font-size:14px; color:#dc2626; margin:0; font-weight:600;">
+                        Confirmarea a fost respinsă de angajator.
+                    </p>
+                </div>
+            }
+        </section>
+    }
+}
 
 @code {
     [Parameter] public int Id { get; set; }
 
-    private string _message = "";
+    private ApplicationDto?  _application;
+    private JobPostingDto?   _job;
+    private bool _loading        = true;
+    private bool _confirmWithdraw = false;
+    private bool _withdrawing    = false;
+    private int? _confirmationStatus;
+    private bool _showConfirmForm = false;
+    private bool _confirming = false;
 
-    private record TimelineStep(string Status, string Date, bool Active);
-
-    private readonly List<TimelineStep> _timeline = new()
+    protected override async Task OnInitializedAsync()
     {
-        new("Aplicare trimisă", "10 Ian 2025", false),
-        new("În analiză",       "12 Ian 2025", true),
-        new("Interviu",         "—",           false),
-        new("Decizie",          "—",           false),
+        try
+        {
+            var applications = await Http.GetFromJsonAsync<List<ApplicationDto>>(
+                "api/applications/my");
+
+            _application = applications?.FirstOrDefault(a => a.Id == Id);
+
+            if (_application != null)
+            {
+                // Paralel: job + status confirmare
+                var jobTask = Http.GetFromJsonAsync<JobPostingDto>(
+                    $"api/jobs/{_application.JobPostingId}");
+
+                var confirmTask = _application.Status == ApplicationState.Accepted
+                    ? Http.GetFromJsonAsync<ConfirmationStatusResult>(
+                        $"api/employment-confirmations/status/{Id}")
+                    : Task.FromResult<ConfirmationStatusResult?>(null);
+
+                await Task.WhenAll(jobTask, confirmTask);
+
+                _job = jobTask.Result;
+
+                var confirmResult = confirmTask.Result;
+                if (confirmResult?.Exists == true)
+                    _confirmationStatus = confirmResult.Status;
+            }
+        }
+        catch { }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private async Task WithdrawApplication()
+    {
+        _withdrawing = true;
+        try
+        {
+            // Endpoint pentru retragere — dacă nu există, afișăm mesaj
+            var response = await Http.PutAsJsonAsync(
+                $"api/applications/{Id}/status",
+                new { Status = (int)ApplicationState.Withdrawn });
+
+            if (response.IsSuccessStatusCode)
+            {
+               
+                _application!.Status = ApplicationState.Withdrawn;
+               _confirmWithdraw = false;
+                Snackbar.Add("Aplicarea a fost retrasă.", Severity.Info);
+            }
+            else
+            {
+                Snackbar.Add("Eroare la retragerea aplicării.", Severity.Error);
+            }
+        }
+        catch
+        {
+            Snackbar.Add("Eroare la retragerea aplicării.", Severity.Error);
+        }
+        finally
+        {
+            _withdrawing = false;
+            _confirmWithdraw = false;
+        }
+    }
+    private async Task ConfirmEmployment()
+    {
+        _confirming = true;
+        try
+        {
+            var response = await Http.PostAsync(
+                $"api/employment-confirmations/{Id}/confirm", null);
+
+            if (response.IsSuccessStatusCode)
+            {
+                _confirmationStatus = 0;
+                _showConfirmForm = false;
+                Snackbar.Add("Angajarea confirmată! Angajatorul va valida în curând.",
+                    Severity.Success);
+            }
+            else
+            {
+                Snackbar.Add("Eroare la confirmare.", Severity.Error);
+            }
+        }
+        catch
+        {
+            Snackbar.Add("Eroare la confirmare.", Severity.Error);
+        }
+        finally
+        {
+            _confirming = false;
+        }
+    }
+
+    private sealed class ConfirmationStatusResult
+    {
+        public bool Exists { get; set; }
+        public int? Status { get; set; }
+        public DateTime? ValidatedAt { get; set; }
+    }
+    // ── Timeline dinamic bazat pe status curent ──────────────────────
+    private static List<TimelineStep> GetTimeline(ApplicationState current)
+    {
+        var order = new[]
+        {
+            ApplicationState.Pending,
+            ApplicationState.InReview,
+            ApplicationState.Interview,
+            ApplicationState.Accepted,
+        };
+
+        // Caz special: respins sau retras
+        if (current == ApplicationState.Rejected || current == ApplicationState.Withdrawn)
+        {
+            return new List<TimelineStep>
+            {
+                new("Aplicare trimisă",  true,  false),
+                new("În analiză",        true,  false),
+                new(current == ApplicationState.Rejected ? "Respins" : "Retras",
+                    false, true),
+            };
+        }
+
+        var currentIdx = Array.IndexOf(order, current);
+        return order.Select((state, idx) => new TimelineStep(
+            Label:   GetStatusText(state),
+            Done:    idx < currentIdx,
+            Current: idx == currentIdx
+        )).ToList();
+    }
+
+    private record TimelineStep(string Label, bool Done, bool Current);
+
+    // ── Helpers status ───────────────────────────────────────────────
+    private static string GetStatusText(ApplicationState s) => s switch
+    {
+        ApplicationState.Pending    => "Aplicare trimisă",
+        ApplicationState.InReview   => "În analiză",
+        ApplicationState.Interview  => "Interviu programat",
+        ApplicationState.Accepted   => "Acceptat",
+        ApplicationState.Rejected   => "Respins",
+        ApplicationState.Withdrawn  => "Retras",
+        _ => s.ToString()
     };
 
-    private void SendMessage() { _message = ""; }
+    private static string GetStatusVariant(ApplicationState s) => s switch
+    {
+        ApplicationState.Pending    => "warning",
+        ApplicationState.InReview   => "warning",
+        ApplicationState.Interview  => "default",
+        ApplicationState.Accepted   => "success",
+        ApplicationState.Rejected   => "destructive",
+        ApplicationState.Withdrawn  => "muted",
+        _ => "default"
+    };
 }

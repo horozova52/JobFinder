@@ -1,4 +1,4 @@
-﻿@page "/jobs/{Id:int}"
+﻿@* @page "/jobs/{Id:int}"
 @layout MainLayout
 
 <PageTitle>Frontend Developer - JobFinder</PageTitle>
@@ -89,4 +89,235 @@
 
     private readonly List<string> _tags = new()
         { "React", "TypeScript", "CSS", "Tailwind", "Git" };
+} *@
+@page "/jobs/{Id:int}"
+@layout MainLayout
+
+@using JobFinder.Shared.DTOs.Jobs
+@using JobFinder.Shared.Enums
+@using System.Net.Http.Json
+
+@inject HttpClient Http
+@inject NavigationManager Navigation
+
+<PageTitle>@(_job?.Title ?? "Job") - JobFinder</PageTitle>
+
+<div style="max-width:1152px; margin:0 auto; padding:48px 32px;">
+
+    <a href="/jobs"
+       style="font-size:12px; font-weight:600; letter-spacing:1px; text-transform:uppercase;
+              color:#6b7280; text-decoration:none; display:inline-block; margin-bottom:24px;">
+        ← Înapoi la joburi
+    </a>
+
+    @if (_loading)
+    {
+        <MudProgressLinear Indeterminate="true" Color="Color.Primary" Style="margin-top:24px;" />
+    }
+    else if (_job == null)
+    {
+        <div style="text-align:center; padding:64px 0;">
+            <MudText Typo="Typo.h6" Style="color:#6b7280; margin-bottom:8px;">
+                Jobul nu a fost găsit
+            </MudText>
+            <MudText Typo="Typo.body2" Style="color:#9ca3af; margin-bottom:24px;">
+                Anunțul poate fi expirat sau a fost eliminat.
+            </MudText>
+            <a href="/jobs"
+               style="font-size:11px; font-weight:600; letter-spacing:2px; text-transform:uppercase;
+                      color:#6366f1; text-decoration:none;">
+                ← Vezi toate joburile
+            </a>
+        </div>
+    }
+    else
+    {
+        @* ── Header ── *@
+        <div style="display:flex; justify-content:space-between; align-items:flex-start;
+                    margin-top:16px; margin-bottom:8px; gap:16px;">
+            <h1 style="font-size:24px; font-weight:700; letter-spacing:-0.5px;
+                       color:#111827; margin:0;">
+                @_job.Title
+            </h1>
+            <div style="display:flex; gap:8px; flex-shrink:0;">
+                <StatusBadge Status="@GetJobTypeLabel(_job.JobType)" />
+                <StatusBadge Status="@GetEmploymentTypeLabel(_job.EmploymentType)" Variant="muted" />
+            </div>
+        </div>
+
+        @* ── Meta ── *@
+        <div style="display:flex; gap:16px; flex-wrap:wrap; margin-bottom:8px;">
+            @if (!string.IsNullOrWhiteSpace(_job.CompanyName))
+            {
+                <span style="font-size:14px; color:#6b7280;">
+                    🏢 @_job.CompanyName
+                </span>
+            }
+            @if (!string.IsNullOrWhiteSpace(_job.Location))
+            {
+                <span style="font-size:14px; color:#6b7280;">
+                    📍 @_job.Location
+                </span>
+            }
+            @if (_job.PublishedAt.HasValue)
+            {
+                <span style="font-size:14px; color:#9ca3af;">
+                    Publicat pe @_job.PublishedAt.Value.ToString("dd MMMM yyyy")
+                </span>
+            }
+        </div>
+
+        @* ── Salariu ── *@
+        @if (_job.SalaryFrom.HasValue || _job.SalaryTo.HasValue || _job.IsSalaryNegotiable)
+        {
+            <div style="margin-bottom:24px;">
+                <span style="font-size:14px; font-weight:600; color:#6366f1;
+                             background:#ede9fe; padding:6px 14px; display:inline-block;">
+                    @if (_job.SalaryFrom.HasValue && _job.SalaryTo.HasValue)
+                    {
+                        @($"{_job.SalaryFrom:N0} – {_job.SalaryTo:N0} MDL")
+                    }
+                    else if (_job.SalaryFrom.HasValue)
+                    {
+                        @($"de la {_job.SalaryFrom:N0} MDL")
+                    }
+                    else if (_job.SalaryTo.HasValue)
+                    {
+                        @($"până la {_job.SalaryTo:N0} MDL")
+                    }
+                    @if (_job.IsSalaryNegotiable)
+                    {
+                        <span style="font-weight:400; opacity:0.8;"> · negociabil</span>
+                    }
+                </span>
+            </div>
+        }
+
+        <div style="border-bottom:1px solid #e5e7eb; margin-bottom:32px;"></div>
+
+        @* ── Conținut ── *@
+        <div style="display:flex; flex-direction:column; gap:32px; max-width:720px;">
+
+            <section>
+                <h2 style="font-size:14px; font-weight:700; color:#111827; margin-bottom:12px;">
+                    Descriere
+                </h2>
+                <p style="font-size:14px; color:#111827; line-height:1.7;
+                           margin:0; white-space:pre-line;">
+                    @_job.Description
+                </p>
+            </section>
+
+            @if (!string.IsNullOrWhiteSpace(_job.Requirements))
+            {
+                <section>
+                    <h2 style="font-size:14px; font-weight:700; color:#111827; margin-bottom:12px;">
+                        Cerințe
+                    </h2>
+                    <p style="font-size:14px; color:#111827; line-height:1.7;
+                               margin:0; white-space:pre-line;">
+                        @_job.Requirements
+                    </p>
+                </section>
+            }
+
+            @if (!string.IsNullOrWhiteSpace(_job.Responsibilities))
+            {
+                <section>
+                    <h2 style="font-size:14px; font-weight:700; color:#111827; margin-bottom:12px;">
+                        Responsabilități
+                    </h2>
+                    <p style="font-size:14px; color:#111827; line-height:1.7;
+                               margin:0; white-space:pre-line;">
+                        @_job.Responsibilities
+                    </p>
+                </section>
+            }
+
+            @if (_job.Skills.Any())
+            {
+                <section>
+                    <h2 style="font-size:14px; font-weight:700; color:#111827; margin-bottom:12px;">
+                        Competențe
+                    </h2>
+                    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                        @foreach (var skill in _job.Skills)
+                        {
+                            <span style="font-size:11px; font-weight:600; letter-spacing:1px;
+                                         color:#6b7280; border:1px solid #e5e7eb;
+                                         padding:4px 12px;">
+                                @skill.SkillName
+                            </span>
+                        }
+                    </div>
+                </section>
+            }
+
+            <div style="border-bottom:1px solid #e5e7eb;"></div>
+
+            @* ── CTA ── *@
+            <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
+                <a href="/login"
+                   style="display:inline-block; background:#111827; color:#fff;
+                          padding:12px 24px; font-size:11px; font-weight:600;
+                          letter-spacing:2px; text-transform:uppercase; text-decoration:none;">
+                    Autentifică-te pentru a aplica
+                </a>
+                <a href="/register/candidate"
+                   style="display:inline-block; color:#6366f1;
+                          padding:12px 24px; font-size:11px; font-weight:600;
+                          letter-spacing:2px; text-transform:uppercase; text-decoration:none;
+                          border:1px solid #e5e7eb;">
+                    Creează cont gratuit
+                </a>
+            </div>
+
+            @* ── Link profil companie ── *@
+            @if (_job.EmployerProfileId > 0 && !string.IsNullOrWhiteSpace(_job.CompanyName))
+            {
+                <a href="/company/@_job.EmployerProfileId"
+                   style="font-size:13px; color:#6366f1; text-decoration:none;">
+                    Vezi profilul companiei @_job.CompanyName →
+                </a>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    private JobPostingDto? _job;
+    private bool _loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _job = await Http.GetFromJsonAsync<JobPostingDto>($"api/jobs/{Id}");
+        }
+        catch { }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private static string GetJobTypeLabel(JobType t) => t switch
+    {
+        JobType.Remote => "Remote",
+        JobType.OnSite => "La birou",
+        JobType.Hybrid => "Hibrid",
+        _ => t.ToString()
+    };
+
+    private static string GetEmploymentTypeLabel(EmploymentType t) => t switch
+    {
+        EmploymentType.FullTime  => "Full-time",
+        EmploymentType.PartTime  => "Part-time",
+        EmploymentType.Freelance => "Freelance",
+        EmploymentType.Internship => "Internship",
+        EmploymentType.Contract  => "Contract",
+        _ => t.ToString()
+    };
 }

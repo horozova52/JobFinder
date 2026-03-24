@@ -151,6 +151,33 @@ public class ApplicationsController : ControllerBase
         var applied = await _applicationRepo.AlreadyAppliedAsync(jobId, candidate.Id, ct);
         return Ok(new { alreadyApplied = applied });
     }
+
+    [HttpGet("{id:int}/detail")]
+    [Authorize(Roles = "Employer")]
+    public async Task<IActionResult> GetById(int id, CancellationToken ct)
+    {
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
+        var employer = await _db.EmployerProfiles
+            .AsNoTracking()
+            .FirstOrDefaultAsync(e => e.UserId == userId, ct);
+
+        if (employer == null) return BadRequest();
+
+        var application = await _db.Applications
+            .Include(a => a.JobPosting)
+            .Include(a => a.CandidateProfile)
+            .AsNoTracking()
+            .FirstOrDefaultAsync(a =>
+                a.Id == id &&
+                a.JobPosting.EmployerProfileId == employer.Id, ct);
+
+        if (application == null) return NotFound();
+
+        var dto = _mapper.Map<ApplicationDto>(application);
+        return Ok(dto);
+    }
 }
 
 public class UpdateApplicationStatusDto

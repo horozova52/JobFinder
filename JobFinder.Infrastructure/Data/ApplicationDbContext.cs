@@ -37,6 +37,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<JobSkill> JobSkills => Set<JobSkill>();
 
     // Applications
+    public DbSet<EmploymentConfirmation> EmploymentConfirmations => Set<EmploymentConfirmation>();
     public DbSet<Application> Applications => Set<Application>();
     public DbSet<ApplicationStatusHistory> ApplicationStatusHistories => Set<ApplicationStatusHistory>();
 
@@ -151,6 +152,16 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             entity.HasOne(e => e.EmployerProfile)
                   .WithMany()
                   .HasForeignKey(e => e.EmployerProfileId)
+                  .OnDelete(DeleteBehavior.Cascade);
+        });
+        ///employmentconfirmations
+        modelBuilder.Entity<EmploymentConfirmation>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+
+            entity.HasOne(e => e.Application)
+                  .WithMany()
+                  .HasForeignKey(e => e.ApplicationId)
                   .OnDelete(DeleteBehavior.Cascade);
         });
 

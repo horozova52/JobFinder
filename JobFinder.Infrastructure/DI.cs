@@ -20,7 +20,7 @@ public static class DI
         services.AddScoped<ICandidateSkillRepository, CandidateSkillRepository>();
         services.AddScoped<IJobFeedRepository, JobFeedRepository>();
         services.AddScoped<DataSeeder>();
-
+        services.AddScoped<IEmploymentConfirmationRepository, EmploymentConfirmationRepository>();
         return services;
     }
 }
