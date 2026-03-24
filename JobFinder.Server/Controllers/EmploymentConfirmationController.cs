@@ -166,7 +166,7 @@ public class EmploymentConfirmationController : ControllerBase
                         Position = job.Title,
                         StartDate = confirmation.Application.AppliedAt,
                         IsCurrent = true,
-                        Description = $"Angajat prin platforma RecruitBoard. " +
+                        Description = $"Angajat prin platforma JobFinder. " +
                                              $"Validat de angajator pe {DateTime.UtcNow:dd.MM.yyyy}.",
                         EmploymentType = job.EmploymentType,
                         Location = job.Location,

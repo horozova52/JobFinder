@@ -1,5 +1,6 @@
 using AutoMapper;
 using JobFinder.Core.Entities.Applications;
+using JobFinder.Core.Entities.Common;
 using JobFinder.Infrastructure.Data;
 using JobFinder.Shared.DTOs.Applications;
 using JobFinder.Shared.Enums;
@@ -57,6 +58,28 @@ public class ApplicationsController : ControllerBase
 
         var created = await _applicationRepo.CreateAsync(application, ct);
         return Ok(new { id = created.Id, message = "Aplicare trimisă cu succes" });
+        var employerUserId = await _db.JobPostings
+        .Where(j => j.Id == created.JobPostingId)
+        .Select(j => j.EmployerProfile.UserId)
+        .FirstOrDefaultAsync(ct);
+
+        if (!string.IsNullOrEmpty(employerUserId))
+        {
+            var notif = new Notification
+            {
+                UserId = employerUserId,
+                Target = NotificationTarget.Employer,
+                Type = NotificationType.NewApplicationReceived,
+                Title = "Aplicare nouă la job",
+                Message = $"Ai o nouă aplicare la \"{created.JobPosting.Title}\".",
+                Link = $"/employer/applications/{created.Id}",
+                CreatedAt = DateTime.UtcNow,
+                IsRead = false
+            };
+
+            _db.Notifications.Add(notif);
+            await _db.SaveChangesAsync(ct);
+        }
     }
 
     [HttpGet("my")]
@@ -130,6 +153,29 @@ public class ApplicationsController : ControllerBase
 
         application.Status = (ApplicationState)dto.Status;
         await _db.SaveChangesAsync(ct);
+
+        var candidateUserId = await _db.CandidateProfiles
+            .Where(c => c.Id == application.CandidateProfileId)
+            .Select(c => c.UserId)
+            .FirstOrDefaultAsync(ct);
+
+        if (!string.IsNullOrEmpty(candidateUserId))
+        {
+            var notif = new Notification
+            {
+                UserId = candidateUserId,
+                Target = NotificationTarget.Candidate,
+                Type = NotificationType.ApplicationStatusChanged,
+                Title = "Status aplicare actualizat",
+                Message = $"Aplicarea ta la \"{application.JobPosting.Title}\" este acum {application.Status}.",
+                Link = $"/candidate/applications/{application.Id}", // sau /candidate/applications/{application.Id}
+                CreatedAt = DateTime.UtcNow,
+                IsRead = false
+            };
+
+            _db.Notifications.Add(notif);
+            await _db.SaveChangesAsync(ct);
+        }
 
         return Ok(new { message = "Status actualizat cu succes" });
     }

@@ -148,6 +148,22 @@ public class JobsController : ControllerBase
         return NoContent();
     }
 
+    [HttpGet("{id:int}/skills")]
+    public async Task<IActionResult> GetSkills(int id, CancellationToken ct)
+    {
+        var job = await _db.JobPostings
+            .Include(j => j.Skills)
+                .ThenInclude(js => js.Skill)
+            .AsNoTracking()
+            .FirstOrDefaultAsync(j => j.Id == id, ct);
+
+        if (job == null) return NotFound();
+
+        var dtos = _mapper.Map<List<JobSkillDto>>(job.Skills);
+        return Ok(dtos);
+    }
+
+
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> Delete(int id, CancellationToken ct)
     {

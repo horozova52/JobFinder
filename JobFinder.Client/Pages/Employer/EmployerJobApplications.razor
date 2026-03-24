@@ -2,6 +2,7 @@
 @layout EmployerLayout
 @inject HttpClient Http
 @inject NavigationManager Navigation
+@using JobFinder.Shared.DTOs.Messaging
 
 <PageTitle>Aplicări job - JobFinder</PageTitle>
 
@@ -201,6 +202,5 @@ else
         }
         catch { }
     }
-
     private record ConversationResult(int Id);
 }

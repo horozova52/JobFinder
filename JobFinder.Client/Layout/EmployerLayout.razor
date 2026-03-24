@@ -7,7 +7,7 @@
 
 <div style="min-height:100vh; background:#f9fafb; display:flex;">
 
-    <AppSidebar Title="RecruitBoard"
+    <AppSidebar Title="JobFinder"
                 Subtitle="Panou angajator"
                 Links="_links" />
 
@@ -23,6 +23,7 @@
     private readonly List<AppSidebar.SidebarLink> _links = new()
     {
         new() { Label = "Dashboard",  Href = "/employer/dashboard", Icon = "⊞" },
+       new() { Label = "Notificări", Href = "/employer/notifications", Icon = "✦" },
         new() { Label = "Anunțuri",   Href = "/employer/jobs",      Icon = "◈" },
         new() { Label = "Mesagerie",  Href = "/employer/messages",  Icon = "✉" },
         new() { Label = "Profil",     Href = "/employer/profile",   Icon = "◉" },

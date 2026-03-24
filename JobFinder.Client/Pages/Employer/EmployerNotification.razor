@@ -1,0 +1,51 @@
+﻿@page "/employer/notifications"
+@layout EmployerLayout
+
+@using JobFinder.Shared.DTOs.Common
+@using JobFinder.Core.Entities.Common
+@using System.Net.Http.Json
+
+@inject HttpClient Http
+@inject NavigationManager Navigation
+
+<h1>Notificările mele</h1>
+
+@if (_loading)
+{
+    <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
+}
+else if (_notifications.Count == 0)
+{
+    <p style="font-size:14px; color:#6b7280;">
+        Nu ai încă notificări.
+    </p>
+}
+else
+{
+    <!-- poți copia exact UI-ul din CandidateNotifications -->
+}
+
+@code {
+    private readonly List<NotificationDto> _notifications = new();
+    private bool _loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var result = await Http.GetFromJsonAsync<List<NotificationDto>>("api/notification/mine");
+            if (result != null)
+                _notifications.AddRange(result.OrderByDescending(n => n.CreatedAt));
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private void NavigateTo(NotificationDto notif)
+    {
+        if (!string.IsNullOrWhiteSpace(notif.Link))
+            Navigation.NavigateTo(notif.Link);
+    }
+}

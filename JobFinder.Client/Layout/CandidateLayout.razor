@@ -7,7 +7,7 @@
 <MudSnackbarProvider />
 
 <div style="min-height:100vh; background:#f9fafb; display:flex;">
-    <AppSidebar Title="RecruitBoard"
+    <AppSidebar Title="JobFinder"
                 Subtitle="Panou candidat"
                 Links="_links" />
     <main style="margin-left:256px; min-height:100vh; flex:1;">
@@ -20,11 +20,12 @@
 @code {
     private readonly List<AppSidebar.SidebarLink> _links = new()
     {
-        new() { Label = "Dashboard",       Href = "/candidate/dashboard",   Icon = "⊞" },
-        new() { Label = "Joburi",           Href = "/candidate/jobs",         Icon = "◈" },
-        new() { Label = "Aplicările mele",  Href = "/candidate/applications", Icon = "◷" },
-        new() { Label = "Mesagerie",        Href = "/candidate/messages",     Icon = "✉" },
-        new() { Label = "Profil",           Href = "/candidate/profile",      Icon = "◉" },
-        new() { Label = "CV",               Href = "/candidate/cv",           Icon = "▤" },
+        new() { Label = "Dashboard",       Href = "/candidate/dashboard",    Icon = "⊞" },
+        new() { Label = "Joburi",          Href = "/candidate/jobs",         Icon = "◈" },
+        new() { Label = "Aplicările mele", Href = "/candidate/applications", Icon = "◷" },
+        new() { Label = "Notificări",      Href = "/candidate/notifications",Icon = "✦" },
+        new() { Label = "Mesagerie",       Href = "/candidate/messages",     Icon = "✉" },
+        new() { Label = "Profil",          Href = "/candidate/profile",      Icon = "◉" },
+        new() { Label = "CV",              Href = "/candidate/cv",           Icon = "▤" },
     };
 }

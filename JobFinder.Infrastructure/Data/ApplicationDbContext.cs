@@ -9,6 +9,7 @@ using JobFinder.Core.Entities.Messaging;
 using JobFinder.Core.Entities.Validation;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using JobFinder.Core.Entities.Common;
 
 namespace JobFinder.Infrastructure.Data;
 
@@ -29,6 +30,8 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
     // Common
     public DbSet<Skill> Skills => Set<Skill>();
+    public DbSet<Notification> Notifications { get; set; } = null!;
+
     public DbSet<Language> Languages => Set<Language>();
 
     // Jobs
