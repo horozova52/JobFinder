@@ -1,65 +1,238 @@
 ﻿@page "/"
 @layout MainLayout
 
+@using JobFinder.Shared.DTOs.Jobs
+@using System.Net.Http.Json
+@using Microsoft.AspNetCore.Components.Authorization
+
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@inject AuthenticationStateProvider AuthStateProvider
+
 <PageTitle>JobFinder - Platformă de recrutare transparentă</PageTitle>
 
-<!-- HERO -->
-<section style="max-width:1152px; margin:0 auto; padding:96px 32px;">
+<!-- ═══════════════════════════════════════════
+     HERO
+═══════════════════════════════════════════ -->
+<section style="max-width:1152px; margin:0 auto; padding:96px 32px 64px 32px;">
     <div style="max-width:672px;">
         <p style="font-size:11px; font-weight:600; letter-spacing:3px; text-transform:uppercase;
-                  color:#6b7280; margin-bottom:16px;">
+                  color:#6366f1; margin-bottom:16px; font-family:'Roboto Mono',monospace;">
             Platforma de recrutare transparentă
         </p>
-        <h1 style="font-size:48px; font-weight:700; line-height:1.15;
-                   letter-spacing:-1px; margin-bottom:24px; color:#111827;">
-            Talent întâlnește<br />
-            oportunitate.<br />
-            <span style="color:#6366f1;">Fără zgomot.</span>
+        <h1 style="font-size:52px; font-weight:700; line-height:1.1;
+                   letter-spacing:-2px; margin-bottom:24px; color:#111827;">
+            Recrutare simplă.<br />
+            Transparentă.<br />
+            <span style="color:#6366f1;">Fără compromisuri.</span>
         </h1>
         <p style="font-size:18px; color:#6b7280; line-height:1.7;
-                  margin-bottom:40px; max-width:560px;">
+                  margin-bottom:40px; max-width:520px;">
             Matching automat pe competențe. Statusuri clare. Comunicare directă.
             O platformă care respectă timpul tău.
         </p>
-        <div style="display:flex; gap:16px;">
+        <div style="display:flex; gap:12px; flex-wrap:wrap;">
             <MudButton Href="/register/candidate"
                        Variant="Variant.Filled"
                        Style="background:#111827; color:#fff; border-radius:0;
                               font-size:11px; font-weight:600; letter-spacing:2px;
-                              text-transform:uppercase; padding:12px 24px;">
+                              text-transform:uppercase; padding:14px 28px;">
                 Sunt candidat
             </MudButton>
             <MudButton Href="/register/employer"
                        Variant="Variant.Outlined"
                        Style="border:1px solid #e5e7eb; color:#111827; border-radius:0;
                               font-size:11px; font-weight:600; letter-spacing:2px;
-                              text-transform:uppercase; padding:12px 24px;">
+                              text-transform:uppercase; padding:14px 28px;">
                 Sunt angajator
+            </MudButton>
+            <MudButton Href="/jobs"
+                       Variant="Variant.Text"
+                       Style="color:#6366f1; border-radius:0;
+                              font-size:11px; font-weight:600; letter-spacing:2px;
+                              text-transform:uppercase; padding:14px 16px;">
+                Explorează joburi →
             </MudButton>
         </div>
     </div>
 </section>
 
-<!-- STATS -->
-<section style="border-top:1px solid #e5e7eb;">
-    <div style="max-width:1152px; margin:0 auto; padding:64px 32px;
+<!-- ═══════════════════════════════════════════
+     STATS REALE
+═══════════════════════════════════════════ -->
+<section style="border-top:1px solid #e5e7eb; border-bottom:1px solid #e5e7eb;">
+    <div style="max-width:1152px; margin:0 auto; padding:48px 32px;
                 display:grid; grid-template-columns:repeat(3,1fr); gap:32px;">
-        @foreach (var stat in _stats)
-        {
+        <div>
+            <p style="font-size:36px; font-weight:700; color:#6366f1; margin:0 0 6px 0;
+                      font-family:'Roboto Mono',monospace;">
+                @(_statsLoading ? "..." : _activeJobs.ToString())
+            </p>
+            <p style="font-size:12px; font-weight:600; color:#6b7280; margin:0;
+                      text-transform:uppercase; letter-spacing:1px;">
+                Joburi active acum
+            </p>
+        </div>
+        <div>
+            <p style="font-size:36px; font-weight:700; color:#6366f1; margin:0 0 6px 0;
+                      font-family:'Roboto Mono',monospace;">
+                100%
+            </p>
+            <p style="font-size:12px; font-weight:600; color:#6b7280; margin:0;
+                      text-transform:uppercase; letter-spacing:1px;">
+                Transparență în proces
+            </p>
+        </div>
+        <div>
+            <p style="font-size:36px; font-weight:700; color:#6366f1; margin:0 0 6px 0;
+                      font-family:'Roboto Mono',monospace;">
+                Real-time
+            </p>
+            <p style="font-size:12px; font-weight:600; color:#6b7280; margin:0;
+                      text-transform:uppercase; letter-spacing:1px;">
+                Statusuri și notificări live
+            </p>
+        </div>
+    </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     JOBURI RECENTE (date reale)
+═══════════════════════════════════════════ -->
+<section style="border-bottom:1px solid #e5e7eb;">
+    <div style="max-width:1152px; margin:0 auto; padding:64px 32px;">
+
+        <div style="display:flex; justify-content:space-between; align-items:center;
+                    margin-bottom:32px;">
             <div>
-                <p style="font-size:30px; font-weight:700; color:#6366f1; margin-bottom:8px;">
-                    @stat.Value
+                <h2 style="font-size:20px; font-weight:700; color:#111827; margin:0 0 4px 0;">
+                    Joburi recente
+                </h2>
+                <p style="font-size:14px; color:#6b7280; margin:0;">
+                    Ultimele oportunități publicate pe platformă.
                 </p>
-                <p style="font-size:14px; color:#6b7280;">@stat.Label</p>
+            </div>
+            <MudButton Href="/jobs"
+                       Variant="Variant.Outlined"
+                       Style="border:1px solid #e5e7eb; color:#6366f1; border-radius:0;
+                              font-size:11px; font-weight:600; letter-spacing:2px;
+                              text-transform:uppercase; padding:10px 20px;">
+                Vezi toate →
+            </MudButton>
+        </div>
+
+        @if (_jobsLoading)
+        {
+            <div style="display:flex; flex-direction:column; gap:12px;">
+                @for (int i = 0; i < 4; i++)
+                {
+                    <div style="height:80px; background:#f3f4f6; border:1px solid #e5e7eb;
+                                animation:pulse 1.5s infinite;"></div>
+                }
+            </div>
+        }
+        else if (_recentJobs.Count == 0)
+        {
+            <p style="font-size:14px; color:#9ca3af;">
+                Niciun job disponibil momentan. Revino curând.
+            </p>
+        }
+        else
+        {
+            <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:16px;">
+                @foreach (var job in _recentJobs)
+                {
+                    <a href="/jobs/@job.Id"
+                       style="display:block; border:1px solid #e5e7eb; padding:20px;
+                              text-decoration:none; color:inherit; background:#fff;
+                              transition:border-color 0.15s, box-shadow 0.15s;"
+                       onmouseover="this.style.borderColor='#6366f1'; this.style.boxShadow='0 2px 8px rgba(99,102,241,0.08)'"
+                       onmouseout="this.style.borderColor='#e5e7eb'; this.style.boxShadow='none'">
+
+                        <!-- Company + Logo -->
+                        <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
+                            @if (!string.IsNullOrEmpty(job.CompanyLogoUrl))
+                            {
+                                <img src="@job.CompanyLogoUrl" alt="Logo"
+                                     style="width:32px; height:32px; object-fit:cover;
+                                            border:1px solid #e5e7eb;" />
+                            }
+                            else
+                            {
+                                <div style="width:32px; height:32px; background:#ede9fe;
+                                            display:flex; align-items:center; justify-content:center;
+                                            font-size:11px; font-weight:700; color:#6366f1;
+                                            border:1px solid #e5e7eb; flex-shrink:0;">
+                                    @(job.CompanyName?.Length >= 2
+                                        ? job.CompanyName[..2].ToUpper() : "?")
+                                </div>
+                            }
+                            <div>
+                                <p style="font-size:11px; color:#6b7280; margin:0;">
+                                    @job.CompanyName
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Titlu -->
+                        <h3 style="font-size:15px; font-weight:700; color:#111827;
+                                   margin:0 0 6px 0; line-height:1.3;">
+                            @job.Title
+                        </h3>
+
+                        <!-- Location + Type -->
+                        <p style="font-size:12px; color:#6b7280; margin:0 0 12px 0;">
+                            @job.Location
+                            @if (!string.IsNullOrEmpty(job.JobType))
+                            {
+                                <span> · @job.JobType</span>
+                            }
+                        </p>
+
+                        <!-- Skills -->
+                        @if (job.SkillNames?.Any() == true)
+                        {
+                            <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                                @foreach (var skill in job.SkillNames.Take(3))
+                                {
+                                    <span style="font-size:10px; font-weight:600; letter-spacing:1px;
+                                                 color:#6b7280; border:1px solid #e5e7eb;
+                                                 padding:2px 8px; text-transform:uppercase;
+                                                 font-family:'Roboto Mono',monospace;">
+                                        @skill
+                                    </span>
+                                }
+                                @if (job.SkillNames.Count() > 3)
+                                {
+                                    <span style="font-size:10px; color:#9ca3af; padding:2px 4px;">
+                                        +@(job.SkillNames.Count() - 3)
+                                    </span>
+                                }
+                            </div>
+                        }
+                    </a>
+                }
+            </div>
+
+            <div style="text-align:center; margin-top:32px;">
+                <MudButton Href="/jobs"
+                           Variant="Variant.Outlined"
+                           Style="border:1px solid #e5e7eb; color:#111827; border-radius:0;
+                                  font-size:11px; font-weight:600; letter-spacing:2px;
+                                  text-transform:uppercase; padding:12px 32px;">
+                    Vezi toate joburile (@_activeJobs disponibile)
+                </MudButton>
             </div>
         }
     </div>
 </section>
 
-<!-- HOW IT WORKS -->
-<section style="border-top:1px solid #e5e7eb;">
+<!-- ═══════════════════════════════════════════
+     CUM FUNCȚIONEAZĂ
+═══════════════════════════════════════════ -->
+<section style="border-bottom:1px solid #e5e7eb;">
     <div style="max-width:1152px; margin:0 auto; padding:64px 32px;">
-        <h2 style="font-size:20px; font-weight:700; margin-bottom:32px; color:#111827;">
+        <h2 style="font-size:20px; font-weight:700; margin-bottom:40px; color:#111827;">
             Cum funcționează
         </h2>
         <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:48px;">
@@ -67,13 +240,14 @@
             {
                 <div>
                     <p style="font-size:11px; font-weight:600; letter-spacing:3px;
-                                  color:#6b7280; text-transform:uppercase; margin-bottom:12px;">
+                              color:#6366f1; text-transform:uppercase; margin-bottom:12px;
+                              font-family:'Roboto Mono',monospace;">
                         @item.Step
                     </p>
-                    <h3 style="font-size:14px; font-weight:700; margin-bottom:8px; color:#111827;">
+                    <h3 style="font-size:15px; font-weight:700; margin-bottom:8px; color:#111827;">
                         @item.Title
                     </h3>
-                    <p style="font-size:14px; color:#6b7280; line-height:1.6;">
+                    <p style="font-size:14px; color:#6b7280; line-height:1.7;">
                         @item.Desc
                     </p>
                 </div>
@@ -82,37 +256,122 @@
     </div>
 </section>
 
-<!-- FOOTER -->
-<footer style="border-top:1px solid #e5e7eb;">
-    <div style="max-width:1152px; margin:0 auto; padding:32px;
+<!-- ═══════════════════════════════════════════
+     CTA FINAL
+═══════════════════════════════════════════ -->
+<section style="background:#111827;">
+    <div style="max-width:1152px; margin:0 auto; padding:64px 32px;
+                display:flex; justify-content:space-between; align-items:center;
+                flex-wrap:wrap; gap:24px;">
+        <div>
+            <h2 style="font-size:24px; font-weight:700; color:#fff; margin:0 0 8px 0;">
+                Gata să începi?
+            </h2>
+            <p style="font-size:14px; color:#9ca3af; margin:0;">
+                Înregistrează-te gratuit și accesează toate funcționalitățile.
+            </p>
+        </div>
+        <div style="display:flex; gap:12px;">
+            <MudButton Href="/register/candidate"
+                       Variant="Variant.Filled"
+                       Style="background:#6366f1; color:#fff; border-radius:0;
+                              font-size:11px; font-weight:600; letter-spacing:2px;
+                              text-transform:uppercase; padding:14px 28px;">
+                Creează cont candidat
+            </MudButton>
+            <MudButton Href="/register/employer"
+                       Variant="Variant.Outlined"
+                       Style="border:1px solid #4b5563; color:#fff; border-radius:0;
+                              font-size:11px; font-weight:600; letter-spacing:2px;
+                              text-transform:uppercase; padding:14px 28px;">
+                Înregistrează compania
+            </MudButton>
+        </div>
+    </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     FOOTER
+═══════════════════════════════════════════ -->
+<footer style="border-top:1px solid #1f2937; background:#111827;">
+    <div style="max-width:1152px; margin:0 auto; padding:24px 32px;
                 display:flex; justify-content:space-between; align-items:center;">
-    <p style="font-size:12px; color:#6b7280;">© 2025 JobFinder. Teză de licență.</p>
+        <p style="font-size:12px; color:#6b7280; margin:0;">
+            © 2025 JobFinder. Teză de licență — Horozova Olga, TI-225.
+        </p>
         <div style="display:flex; gap:24px;">
-            <MudLink Href="/jobs" Style="font-size:12px; color:#6b7280; text-decoration:none;">
+            <a href="/jobs"
+               style="font-size:12px; color:#6b7280; text-decoration:none;">
                 Joburi
-            </MudLink>
-            <MudLink Href="/login" Style="font-size:12px; color:#6b7280; text-decoration:none;">
+            </a>
+            <a href="/login"
+               style="font-size:12px; color:#6b7280; text-decoration:none;">
                 Autentificare
-            </MudLink>
+            </a>
+            <a href="/register/candidate"
+               style="font-size:12px; color:#6b7280; text-decoration:none;">
+                Înregistrare
+            </a>
         </div>
     </div>
 </footer>
 
+<style>
+    @@keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50%       { opacity: 0.5; }
+    }
+</style>
+
 @code {
-    private readonly List<(string Value, string Label)> _stats = new()
-    {
-        ("100%",      "Transparență în proces"),
-        ("Tags",      "Matching automat pe competențe"),
-        ("Real-time", "Statusuri și notificări live"),
-    };
+    private List<JobFeedItemDto> _recentJobs  = new();
+    private bool                 _jobsLoading  = true;
+    private bool                 _statsLoading = true;
+    private int                  _activeJobs   = 0;
 
     private readonly List<(string Step, string Title, string Desc)> _steps = new()
     {
         ("01", "Creează-ți profilul",
          "Adaugă competențe, experiență și educație. Platforma generează automat un CV profesional."),
-        ("02", "Matching pe tags",
+        ("02", "Matching pe competențe",
          "Algoritmul conectează profilul tău cu joburile relevante pe baza competențelor comune."),
         ("03", "Aplică și comunică",
          "Urmărește statusul aplicării în timp real și comunică direct cu angajatorul."),
     };
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            // Încarcă stats și joburi în paralel
+            var feedTask  = Http.GetFromJsonAsync<List<JobFeedItemDto>>(
+                "api/jobfeed?pageSize=6");
+            var statsTask = Http.GetFromJsonAsync<AdminStatsResponse>(
+                "api/jobfeed/count");
+
+            await Task.WhenAll(
+                feedTask  ?? Task.FromResult<List<JobFeedItemDto>?>(null),
+                statsTask ?? Task.FromResult<AdminStatsResponse?>(null));
+
+            if (feedTask?.Result != null)
+                _recentJobs = feedTask.Result;
+
+            if (statsTask?.Result != null)
+                _activeJobs = statsTask.Result.Count;
+        }
+        catch
+        {
+            // fallback silentios
+        }
+        finally
+        {
+            _jobsLoading  = false;
+            _statsLoading = false;
+        }
+    }
+
+    private class AdminStatsResponse
+    {
+        public int Count { get; set; }
+    }
 }

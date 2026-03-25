@@ -72,9 +72,9 @@ public class GetJobFeedHandler : IRequestHandler<GetJobFeedQuery, GetJobFeedResu
                 TotalSkillsRequired = jobSkillNames.Count,
             };
         })
-        // Sortare: dacă candidatul are skills → după match DESC; altfel → după dată DESC
         .OrderByDescending(x => candidateSkills.Count > 0 ? x.MatchScore : 0)
         .ThenByDescending(x => x.PublishedAt)
+        .Take(request.PageSize)
         .ToList();
 
         return new GetJobFeedResult(items, items.Count);

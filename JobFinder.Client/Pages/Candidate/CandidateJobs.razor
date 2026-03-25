@@ -280,23 +280,17 @@ else
 
             var url = "api/jobfeed" +
                       (query.Count > 0 ? "?" + string.Join("&", query) : "");
-
             var response = await Http.GetAsync(url);
             if (response.IsSuccessStatusCode)
             {
                 var json = await response.Content.ReadAsStringAsync();
-                var result = JsonSerializer.Deserialize<FeedResult>(json,
-                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
-                _jobs = result?.Items ?? new();
+                _jobs = JsonSerializer.Deserialize<List<JobFeedItemDto>>(json,
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new();
 
-                // FIX: Skills-urile candidatului vin direct din răspuns
-                // (matchedSkillsCount > 0 înseamnă că serverul a calculat matching)
-                // Colectăm toate skill-urile candidate din joburile cu match
                 _candidateSkills.Clear();
                 if (_jobs.Any(j => j.MatchScore > 0))
                 {
-                    // Serverul returnează skillNames ordonate — cele matched sunt primele
                     foreach (var job in _jobs.Where(j => j.MatchedSkillsCount > 0))
                     {
                         foreach (var skill in job.SkillNames.Take(job.MatchedSkillsCount))

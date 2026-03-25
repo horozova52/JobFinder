@@ -1,4 +1,5 @@
 ﻿using JobFinder.UseCases.Features.Jobs.Queries.GetJobFeed;
+using JobFinder.UseCases.Contracts;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -12,13 +13,22 @@ namespace JobFinder.Server.Controllers;
 public class JobFeedController : ControllerBase
 {
     private readonly IMediator _mediator;
+    private readonly IJobFeedRepository _jobFeedRepo;
 
-    public JobFeedController(IMediator mediator)
+    public JobFeedController(IMediator mediator, IJobFeedRepository jobFeedRepo)
     {
         _mediator = mediator;
+        _jobFeedRepo = jobFeedRepo;
     }
 
-   
+    [HttpGet("count")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetCount(CancellationToken ct)
+    {
+        var count = await _jobFeedRepo.GetPublishedJobsCountAsync(ct);
+        return Ok(new { count });
+    }
+
     [HttpGet]
     [AllowAnonymous]
     public async Task<IActionResult> GetFeed(
@@ -27,9 +37,9 @@ public class JobFeedController : ControllerBase
         [FromQuery] string? jobType,
         [FromQuery] string? employmentType,
         [FromQuery] string? location,
-        CancellationToken ct)
+        [FromQuery] int pageSize = 20,
+        CancellationToken ct = default)
     {
-       
         var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
         var result = await _mediator.Send(new GetJobFeedQuery(
@@ -38,8 +48,9 @@ public class JobFeedController : ControllerBase
             Category: category,
             JobType: jobType,
             EmploymentType: employmentType,
-            Location: location), ct);
+            Location: location,
+            PageSize: pageSize), ct);
 
-        return Ok(result);
+        return Ok(result.Items);
     }
 }

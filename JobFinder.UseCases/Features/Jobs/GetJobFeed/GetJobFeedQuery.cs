@@ -9,7 +9,8 @@ public record GetJobFeedQuery(
     string? Category,
     string? JobType,
     string? EmploymentType,
-    string? Location
+    string? Location,
+    int PageSize = 20
 ) : IRequest<GetJobFeedResult>;
 
 public record GetJobFeedResult(

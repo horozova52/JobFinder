@@ -274,46 +274,31 @@ else
     {
         try
         {
-            // Toate call-urile în paralel
-            var applicationsTask = Http.GetFromJsonAsync<List<ApplicationDto>>(
-                "api/applications/my");
-            var feedTask = Http.GetAsync("api/jobfeed");
-            var profileTask = Http.GetFromJsonAsync<CandidateProfileDto>(
-                "api/candidateprofile");
+            var applicationsTask = Http.GetFromJsonAsync<List<ApplicationDto>>("api/applications/my");
+            var feedTask = Http.GetFromJsonAsync<List<JobFeedItemDto>>("api/jobfeed?pageSize=6");
+            var profileTask = Http.GetFromJsonAsync<CandidateProfileDto>("api/candidateprofile");
 
             await Task.WhenAll(applicationsTask, feedTask, profileTask);
 
             // ── Aplicări ──────────────────────────────────────────────
             var applications = applicationsTask.Result ?? new();
-
             _stats = new DashboardStats
             {
-                Total     = applications.Count,
-                InReview  = applications.Count(a =>
-                    a.Status == ApplicationState.InReview),
-                Interview = applications.Count(a =>
-                    a.Status == ApplicationState.Interview),
-                Accepted  = applications.Count(a =>
-                    a.Status == ApplicationState.Accepted),
+                Total = applications.Count,
+                InReview = applications.Count(a => a.Status == ApplicationState.InReview),
+                Interview = applications.Count(a => a.Status == ApplicationState.Interview),
+                Accepted = applications.Count(a => a.Status == ApplicationState.Accepted),
             };
-
             _recentApplications = applications
                 .OrderByDescending(a => a.AppliedAt)
                 .Take(3)
                 .ToList();
 
-            // ── Feed joburi ───────────────────────────────────────────
-            if (feedTask.Result.IsSuccessStatusCode)
-            {
-                var json = await feedTask.Result.Content.ReadAsStringAsync();
-                var feedResult = JsonSerializer.Deserialize<FeedResult>(json,
-                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-
-                _recommendedJobs = (feedResult?.Items ?? new())
-                    .OrderByDescending(j => j.MatchScore)
-                    .Take(3)
-                    .ToList();
-            }
+            // ── Feed joburi — direct lista ────────────────────────────
+            _recommendedJobs = (feedTask.Result ?? new())
+                .OrderByDescending(j => j.MatchScore)
+                .Take(3)
+                .ToList();
 
             // ── Completitudine profil ─────────────────────────────────
             var profile = profileTask.Result;
@@ -321,10 +306,7 @@ else
                 _completionPct = ComputeCompletion(profile);
         }
         catch { }
-        finally
-        {
-            _loading = false;
-        }
+        finally { _loading = false; }
     }
 
     private static int ComputeCompletion(CandidateProfileDto p)
@@ -395,9 +377,5 @@ else
         public int Accepted  { get; set; }
     }
 
-    private sealed class FeedResult
-    {
-        public List<JobFeedItemDto> Items { get; set; } = new();
-        public int TotalCount { get; set; }
-    }
+    
 }
