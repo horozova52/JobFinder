@@ -308,6 +308,21 @@
 
     protected override async Task OnInitializedAsync()
     {
+        var uri = new Uri(Navigation.Uri);
+        var query = uri.Query.TrimStart('?');
+
+        foreach (var part in query.Split('&', StringSplitOptions.RemoveEmptyEntries))
+        {
+            var kv = part.Split('=', 2);
+            if (kv.Length != 2) continue;
+            var key = Uri.UnescapeDataString(kv[0]);
+            var val = Uri.UnescapeDataString(kv[1]);
+
+            if (key == "search") _search = val;
+            if (key == "jobType") _jobType = val;
+            if (key == "employmentType") _employmentType = val;
+        }
+
         await LoadJobs();
     }
 

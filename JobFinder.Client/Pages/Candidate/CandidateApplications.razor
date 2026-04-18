@@ -1,80 +1,284 @@
 @page "/candidate/applications"
 @layout CandidateLayout
+
+@using JobFinder.Shared.DTOs.Applications
+@using JobFinder.Shared.Enums
+@using System.Net.Http.Json
+
 @inject HttpClient Http
 
 <PageTitle>Aplicările mele - JobFinder</PageTitle>
 
 <PageHeader Title="Aplicările mele"
-            Description="Urmărește statusul fiecărei aplicări." />
+            Description="Urmărește statusul fiecărei aplicări în pipeline-ul de selecție." />
 
 @if (_loading)
 {
-    <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
+    <div style="display:flex; flex-direction:column; gap:12px;">
+        @for (int i = 0; i < 4; i++)
+        {
+            <div style="height:100px; background:#f3f4f6; border:1px solid #e5e7eb;
+                        animation:shimmer 1.4s infinite;"></div>
+        }
+    </div>
 }
 else if (!_applications.Any())
 {
-    <p style="font-size:14px; color:#6b7280;">Nu ai aplicat încă la niciun job.</p>
+    <div style="text-align:center; padding:64px 0; border:1px dashed #e5e7eb;">
+        <p style="font-size:32px; margin-bottom:12px;">📋</p>
+        <p style="font-size:16px; font-weight:600; color:#111827; margin-bottom:8px;">
+            Nu ai aplicat încă la niciun job.
+        </p>
+        <p style="font-size:14px; color:#6b7280; margin-bottom:20px;">
+            Explorează ofertele disponibile și aplică la joburile care ți se potrivesc.
+        </p>
+        <a href="/candidate/jobs"
+           style="font-size:11px; font-weight:600; color:#6366f1;
+                  text-decoration:none; letter-spacing:2px; text-transform:uppercase;">
+            Explorează joburi →
+        </a>
+    </div>
 }
 else
 {
+    <!-- Sumar statistici rapide -->
+    <div style="display:grid; grid-template-columns:repeat(5,1fr);
+                gap:8px; margin-bottom:32px;">
+        @foreach (var s in _pipeline)
+        {
+            <div style="border:1px solid #e5e7eb; padding:12px 16px; text-align:center;
+                        background:@(s.Count > 0 ? s.BgColor : "#fafafa");">
+                <p style="font-size:20px; font-weight:700; color:@(s.Count > 0 ? s.Color : "#d1d5db");
+                          margin:0 0 2px 0;">
+                    @s.Count
+                </p>
+                <p style="font-size:10px; font-weight:600; color:#9ca3af; margin:0;
+                          text-transform:uppercase; letter-spacing:1px;">
+                    @s.Label
+                </p>
+            </div>
+        }
+    </div>
+
+    <!-- Lista aplicări -->
     @foreach (var app in _applications)
     {
+        var progress = GetProgress(app.Status);
+
         <a href="/candidate/applications/@app.Id"
-           style="display:block; border-bottom:1px solid #e5e7eb; padding:20px 16px;
-                  margin:0 -16px; text-decoration:none; color:inherit; transition:background 0.15s;"
-           onmouseover="this.style.background='#f9fafb'"
-           onmouseout="this.style.background='transparent'">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-                <div>
-                    <h3 style="font-size:14px; font-weight:700; color:#111827; margin:0 0 4px 0;">
-                        @app.JobTitle
-                    </h3>
-                    <p style="font-size:14px; color:#6b7280; margin:0;">
-                        Aplicat pe @app.AppliedAt.ToString("dd.MM.yyyy")
-                    </p>
+           style="display:block; border:1px solid #e5e7eb; margin-bottom:8px;
+                  text-decoration:none; color:inherit; background:#fff;
+                  transition:border-color 0.15s, box-shadow 0.15s;"
+           onmouseover="this.style.borderColor='#6366f1'; this.style.boxShadow='0 2px 8px rgba(99,102,241,0.08)'"
+           onmouseout="this.style.borderColor='#e5e7eb'; this.style.boxShadow='none'">
+
+            <div style="padding:16px 20px;">
+                <div style="display:flex; justify-content:space-between;
+                            align-items:flex-start; gap:16px; margin-bottom:14px;">
+                    <!-- Info job -->
+                    <div style="flex:1; min-width:0;">
+                        <h3 style="font-size:15px; font-weight:700; color:#111827;
+                                   margin:0 0 4px 0; white-space:nowrap;
+                                   overflow:hidden; text-overflow:ellipsis;">
+                            @app.JobTitle
+                        </h3>
+                        <p style="font-size:12px; color:#6b7280; margin:0;">
+                            Aplicat pe @app.AppliedAt.ToString("dd MMMM yyyy")
+                        </p>
+                    </div>
+                    <!-- Status badge -->
+                    <span style="font-size:10px; font-weight:600; padding:4px 10px;
+                                 letter-spacing:1px; text-transform:uppercase;
+                                 font-family:'Roboto Mono',monospace; white-space:nowrap;
+                                 background:@GetBadgeBg(app.Status);
+                                 color:@GetBadgeFg(app.Status);
+                                 border:1px solid @GetBadgeBorder(app.Status);">
+                        @GetStatusText(app.Status)
+                    </span>
                 </div>
-                <StatusBadge Status="@GetStatusText(app.Status)" Variant="@GetStatusVariant(app.Status)" />
+
+                <!-- Pipeline vizual -->
+                @if (app.Status != ApplicationState.Withdrawn)
+                {
+                    <div>
+                        <!-- Etichete etape -->
+                        <div style="display:grid; grid-template-columns:repeat(5,1fr);
+                                    gap:2px; margin-bottom:6px;">
+                            @foreach (var step in _steps)
+                            {
+                                var isActive  = GetStepIndex(app.Status) >= step.Index;
+                                var isCurrent = GetStepIndex(app.Status) == step.Index &&
+                                               app.Status != ApplicationState.Rejected;
+                                <div style="text-align:center;">
+                                    <p style="font-size:9px; font-weight:600; margin:0;
+                                              text-transform:uppercase; letter-spacing:0.5px;
+                                              color:@(isCurrent ? "#6366f1" : isActive ? "#111827" : "#d1d5db");">
+                                        @step.Label
+                                    </p>
+                                </div>
+                            }
+                        </div>
+
+                        <!-- Bara de progres -->
+                        <div style="display:grid; grid-template-columns:repeat(5,1fr); gap:2px;">
+                            @foreach (var step in _steps)
+                            {
+                                var stepStatus = GetStepStatus(app.Status, step.Index);
+                                <div style="height:4px; border-radius:2px;
+                                            background:@GetStepColor(stepStatus, app.Status);
+                                            transition:background 0.3s;"></div>
+                            }
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <!-- Retras -->
+                    <div style="height:4px; border-radius:2px; background:#e5e7eb;"></div>
+                    <p style="font-size:11px; color:#9ca3af; margin:4px 0 0 0;">
+                        Aplicare retrasă
+                    </p>
+                }
             </div>
         </a>
     }
 }
 
+<style>
+    @@keyframes shimmer {
+        0%   { background-position: -800px 0; }
+        100% { background-position:  800px 0; }
+    }
+</style>
+
 @code {
     private bool _loading = true;
-    private List<JobFinder.Shared.DTOs.Applications.ApplicationDto> _applications = new();
+    private List<ApplicationDto> _applications = new();
+
+    // Etapele pipeline-ului
+    private record PipelineStep(int Index, string Label);
+    private readonly List<PipelineStep> _steps = new()
+    {
+        new(0, "Trimis"),
+        new(1, "Analiză"),
+        new(2, "Interviu"),
+        new(3, "Acceptat"),
+        new(4, "Final"),
+    };
+
+    // Statistici pipeline
+    private List<(string Label, int Count, string Color, string BgColor)> _pipeline = new();
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
-            _applications = await Http.GetFromJsonAsync<List<JobFinder.Shared.DTOs.Applications.ApplicationDto>>("api/applications/my") ?? new();
+            _applications = await Http.GetFromJsonAsync<List<ApplicationDto>>(
+                "api/applications/my") ?? new();
+
+            _applications = _applications
+                .OrderByDescending(a => a.AppliedAt)
+                .ToList();
+
+            _pipeline = new()
+            {
+                ("Trimise",   _applications.Count(a => a.Status == ApplicationState.Pending),
+                 "#6366f1", "#ede9fe"),
+                ("Analiză",   _applications.Count(a => a.Status == ApplicationState.InReview),
+                 "#f59e0b", "#fef3c7"),
+                ("Interviu",  _applications.Count(a => a.Status == ApplicationState.Interview),
+                 "#3b82f6", "#eff6ff"),
+                ("Acceptate", _applications.Count(a => a.Status == ApplicationState.Accepted),
+                 "#16a34a", "#f0fdf4"),
+                ("Respinse",  _applications.Count(a => a.Status == ApplicationState.Rejected),
+                 "#dc2626", "#fef2f2"),
+            };
         }
         catch { }
-        finally
-        {
-            _loading = false;
-        }
+        finally { _loading = false; }
     }
 
-    private string GetStatusText(JobFinder.Shared.Enums.ApplicationState status) => status switch
+    // ── Helpers pipeline ─────────────────────────────────────────────
+
+    private static int GetStepIndex(ApplicationState s) => s switch
     {
-        JobFinder.Shared.Enums.ApplicationState.Pending => "În așteptare",
-        JobFinder.Shared.Enums.ApplicationState.InReview => "În analiză",
-        JobFinder.Shared.Enums.ApplicationState.Interview => "Interviu",
-        JobFinder.Shared.Enums.ApplicationState.Accepted => "Acceptat",
-        JobFinder.Shared.Enums.ApplicationState.Rejected => "Respins",
-        JobFinder.Shared.Enums.ApplicationState.Withdrawn => "Retras",
-        _ => status.ToString()
+        ApplicationState.Pending   => 0,
+        ApplicationState.InReview  => 1,
+        ApplicationState.Interview => 2,
+        ApplicationState.Accepted  => 3,
+        ApplicationState.Rejected  => 1, // oprită la analiză
+        _                          => 0
     };
 
-    private string GetStatusVariant(JobFinder.Shared.Enums.ApplicationState status) => status switch
+    private static int GetProgress(ApplicationState s) => s switch
     {
-        JobFinder.Shared.Enums.ApplicationState.Pending => "warning",
-        JobFinder.Shared.Enums.ApplicationState.InReview => "warning",
-        JobFinder.Shared.Enums.ApplicationState.Interview => "default",
-        JobFinder.Shared.Enums.ApplicationState.Accepted => "success",
-        JobFinder.Shared.Enums.ApplicationState.Rejected => "destructive",
-        JobFinder.Shared.Enums.ApplicationState.Withdrawn => "muted",
-        _ => "default"
+        ApplicationState.Pending   => 20,
+        ApplicationState.InReview  => 40,
+        ApplicationState.Interview => 60,
+        ApplicationState.Accepted  => 100,
+        ApplicationState.Rejected  => 40,
+        _                          => 0
+    };
+
+    // "done" / "current" / "rejected" / "pending"
+    private static string GetStepStatus(ApplicationState appStatus, int stepIndex)
+    {
+        if (appStatus == ApplicationState.Rejected && stepIndex <= 1) return "rejected";
+        var current = GetStepIndex(appStatus);
+        if (stepIndex < current)  return "done";
+        if (stepIndex == current) return "current";
+        return "pending";
+    }
+
+    private static string GetStepColor(string stepStatus, ApplicationState appStatus) =>
+        stepStatus switch
+        {
+            "done"    => "#6366f1",
+            "current" => appStatus == ApplicationState.Accepted ? "#16a34a" : "#6366f1",
+            "rejected"=> "#dc2626",
+            _         => "#e5e7eb"
+        };
+
+    // ── Badge helpers ─────────────────────────────────────────────────
+
+    private static string GetStatusText(ApplicationState s) => s switch
+    {
+        ApplicationState.Pending   => "În așteptare",
+        ApplicationState.InReview  => "În analiză",
+        ApplicationState.Interview => "Interviu",
+        ApplicationState.Accepted  => "Acceptat",
+        ApplicationState.Rejected  => "Respins",
+        ApplicationState.Withdrawn => "Retras",
+        _                          => s.ToString()
+    };
+
+    private static string GetBadgeBg(ApplicationState s) => s switch
+    {
+        ApplicationState.Accepted  => "#d1fae5",
+        ApplicationState.Rejected  => "#fee2e2",
+        ApplicationState.Interview => "#eff6ff",
+        ApplicationState.InReview  => "#fef3c7",
+        ApplicationState.Withdrawn => "#f3f4f6",
+        _                          => "#ede9fe"
+    };
+
+    private static string GetBadgeFg(ApplicationState s) => s switch
+    {
+        ApplicationState.Accepted  => "#065f46",
+        ApplicationState.Rejected  => "#b91c1c",
+        ApplicationState.Interview => "#1e40af",
+        ApplicationState.InReview  => "#92400e",
+        ApplicationState.Withdrawn => "#6b7280",
+        _                          => "#4f46e5"
+    };
+
+    private static string GetBadgeBorder(ApplicationState s) => s switch
+    {
+        ApplicationState.Accepted  => "#6ee7b7",
+        ApplicationState.Rejected  => "#fca5a5",
+        ApplicationState.Interview => "#bfdbfe",
+        ApplicationState.InReview  => "#fde68a",
+        ApplicationState.Withdrawn => "#e5e7eb",
+        _                          => "#c4b5fd"
     };
 }
