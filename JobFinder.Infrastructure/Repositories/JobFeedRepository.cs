@@ -17,7 +17,7 @@ public class JobFeedRepository : IJobFeedRepository
 
     public async Task<IEnumerable<JobPosting>> GetFeedAsync(
         string? search,
-        string? category,
+        int? categoryId,
         string? jobType,
         string? employmentType,
         string? location,
@@ -52,13 +52,9 @@ public class JobFeedRepository : IJobFeedRepository
             query = query.Where(j =>
                 j.Location != null && j.Location.Contains(location));
 
-        // Filtru categorie — căutăm după skill-uri care au categoria respectivă
-        if (!string.IsNullOrWhiteSpace(category))
-            query = query.Where(j =>
-                j.Skills.Any(s =>
-                    s.Skill != null &&
-                    s.Skill.Category != null &&
-                    s.Skill.Category.Contains(category)));
+        // Filtru categorie — după CategoryId al jobului
+        if (categoryId.HasValue)
+            query = query.Where(j => j.CategoryId == categoryId.Value);
 
         return await query
             .OrderByDescending(j => j.PublishedAt)

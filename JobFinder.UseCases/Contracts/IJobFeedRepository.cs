@@ -6,7 +6,7 @@ public interface IJobFeedRepository
 {
     Task<IEnumerable<JobPosting>> GetFeedAsync(
         string? search,
-        string? category,
+        int? categoryId,
         string? jobType,
         string? employmentType,
         string? location,

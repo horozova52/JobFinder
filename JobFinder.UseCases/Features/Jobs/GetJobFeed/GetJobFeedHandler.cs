@@ -21,7 +21,7 @@ public class GetJobFeedHandler : IRequestHandler<GetJobFeedQuery, GetJobFeedResu
         // 1. Preluăm joburile filtrate
         var jobs = await _feedRepo.GetFeedAsync(
             request.Search,
-            request.Category,
+            request.CategoryId,
             request.JobType,
             request.EmploymentType,
             request.Location,

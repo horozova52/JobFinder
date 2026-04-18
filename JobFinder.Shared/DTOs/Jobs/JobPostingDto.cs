@@ -27,6 +27,6 @@ public class JobPostingDto
     public DateTime CreatedAt { get; set; }
     public DateTime? PublishedAt { get; set; }
     public DateTime? ExpiresAt { get; set; }
-
+    public int? CategoryId { get; set; }
     public List<JobSkillDto> Skills { get; set; } = [];
 }

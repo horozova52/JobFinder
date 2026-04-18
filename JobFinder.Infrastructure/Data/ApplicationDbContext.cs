@@ -112,13 +112,20 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         {
             entity.HasKey(e => e.Id);
 
-            entity.Property(e => e.Title).HasMaxLength(200).IsRequired();
+            // entity.Property(e => e.Title).HasMaxLength(200).IsRequired();
+            entity.Property(e => e.SalaryFrom).HasPrecision(18, 2);
+            entity.Property(e => e.SalaryTo).HasPrecision(18, 2);
             entity.Property(e => e.Description).IsRequired();
 
             entity.HasOne(e => e.EmployerProfile)
                   .WithMany()
                   .HasForeignKey(e => e.EmployerProfileId)
                   .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(e => e.Category)
+                  .WithMany(c => c.JobPostings)
+                  .HasForeignKey(e => e.CategoryId)
+                  .OnDelete(DeleteBehavior.SetNull);
 
             entity.HasMany(e => e.Skills)
                   .WithOne(x => x.JobPosting)

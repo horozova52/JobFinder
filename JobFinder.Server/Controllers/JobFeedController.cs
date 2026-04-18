@@ -33,7 +33,7 @@ public class JobFeedController : ControllerBase
     [AllowAnonymous]
     public async Task<IActionResult> GetFeed(
         [FromQuery] string? search,
-        [FromQuery] string? category,
+        [FromQuery] int? categoryId,
         [FromQuery] string? jobType,
         [FromQuery] string? employmentType,
         [FromQuery] string? location,
@@ -45,7 +45,7 @@ public class JobFeedController : ControllerBase
         var result = await _mediator.Send(new GetJobFeedQuery(
             UserId: userId,
             Search: search,
-            Category: category,
+            CategoryId: categoryId,
             JobType: jobType,
             EmploymentType: employmentType,
             Location: location,

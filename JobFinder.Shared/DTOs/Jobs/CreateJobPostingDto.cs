@@ -15,4 +15,5 @@ public class CreateJobPostingDto
     public decimal? SalaryTo { get; set; }
     public bool IsSalaryNegotiable { get; set; }
     public string? Tags { get; set; }
+    public int? CategoryId { get; set; }
 }

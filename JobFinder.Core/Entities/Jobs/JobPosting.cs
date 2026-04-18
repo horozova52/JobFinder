@@ -15,7 +15,8 @@ public class JobPosting
     public string? Responsibilities { get; set; }
 
     public string? Location { get; set; }
-
+    public int? CategoryId { get; set; }
+    public JobCategory? Category { get; set; }
     public JobType JobType { get; set; }
     public EmploymentType EmploymentType { get; set; }
 

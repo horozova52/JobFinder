@@ -146,6 +146,23 @@ else
             <MudCheckBox @bind-Value="_dto.IsSalaryNegotiable" Label="Salariu negociabil"
                          Color="Color.Primary" />
         </div>
+        <!-- Categorie -->
+        <div>
+            <label style="display:block; font-size:11px; font-weight:600; letter-spacing:2px;
+                      text-transform:uppercase; color:#6b7280; margin-bottom:8px;">
+                Categorie
+            </label>
+            <MudSelect @bind-Value="_dto.CategoryId"
+                       Variant="Variant.Outlined" FullWidth="true"
+                       Margin="Margin.Dense" Style="border-radius:0;"
+                       T="int?">
+                <MudSelectItem T="int?" Value="@((int?)null)">Selectează categoria</MudSelectItem>
+                @foreach (var cat in _categories)
+                {
+                    <MudSelectItem T="int?" Value="@((int?)cat.Id)">@cat.Name</MudSelectItem>
+                }
+            </MudSelect>
+        </div>
 
         <!-- Tags -->
         <div>
@@ -186,12 +203,22 @@ else
     private CreateJobPostingDto? _dto;
     private bool _loading = true;
     private bool _saving;
+   
+
+    private List<JobCategoryDto> _categories = new();
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
-            var job = await Http.GetFromJsonAsync<JobPostingDto>($"api/jobs/{Id}");
+            var jobTask = Http.GetFromJsonAsync<JobPostingDto>($"api/jobs/{Id}");
+            var catsTask = Http.GetFromJsonAsync<List<JobCategoryDto>>("api/jobcategories");
+
+            await Task.WhenAll(jobTask, catsTask);
+
+            if (catsTask.Result != null) _categories = catsTask.Result;
+
+            var job = jobTask.Result;
             if (job != null)
             {
                 _dto = new CreateJobPostingDto
@@ -205,18 +232,13 @@ else
                     EmploymentType = job.EmploymentType,
                     SalaryFrom = job.SalaryFrom,
                     SalaryTo = job.SalaryTo,
-                    IsSalaryNegotiable = job.IsSalaryNegotiable
+                    IsSalaryNegotiable = job.IsSalaryNegotiable,
+                    CategoryId = job.CategoryId,
                 };
             }
         }
-        catch
-        {
-            _dto = null;
-        }
-        finally
-        {
-            _loading = false;
-        }
+        catch { _dto = null; }
+        finally { _loading = false; }
     }
 
     private async Task HandleSave()

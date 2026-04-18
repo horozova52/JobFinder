@@ -6,7 +6,7 @@ namespace JobFinder.UseCases.Features.Jobs.Queries.GetJobFeed;
 public record GetJobFeedQuery(
     string? UserId,     
     string? Search,
-    string? Category,
+    int? CategoryId,
     string? JobType,
     string? EmploymentType,
     string? Location,

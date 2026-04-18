@@ -73,6 +73,7 @@ public class JobsController : ControllerBase
             SalaryFrom = dto.SalaryFrom,
             SalaryTo = dto.SalaryTo,
             IsSalaryNegotiable = dto.IsSalaryNegotiable,
+            CategoryId = dto.CategoryId,
             Status = JobStatus.Published,
             CreatedAt = DateTime.UtcNow,
             PublishedAt = DateTime.UtcNow
@@ -113,7 +114,7 @@ public class JobsController : ControllerBase
         job.JobType = dto.JobType;
         job.EmploymentType = dto.EmploymentType;
         job.SalaryFrom = dto.SalaryFrom;
-        job.SalaryTo = dto.SalaryTo;
+                job.SalaryTo = dto.SalaryTo;
         job.IsSalaryNegotiable = dto.IsSalaryNegotiable;
 
         await _db.SaveChangesAsync(ct);
