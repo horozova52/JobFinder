@@ -6,132 +6,185 @@
 @using JobFinder.Shared.DTOs.Candidates
 @using JobFinder.Shared.Enums
 @using System.Net.Http.Json
-@using System.Text.Json
 
 @inject HttpClient Http
 @inject NavigationManager Navigation
 
 <PageTitle>Dashboard - JobFinder</PageTitle>
 
-<PageHeader Title="Dashboard"
-            Description="Bine ai revenit. Iată activitatea ta pe platformă." />
-
 @if (_loading)
 {
+    <!-- Skeleton loading -->
     <div style="display:flex; flex-direction:column; gap:24px;">
-        @for (int i = 0; i < 3; i++)
-        {
-            <div style="border:1px solid #e5e7eb; padding:24px; height:80px;
-                        background:linear-gradient(90deg,#f3f4f6 25%,#e9eaec 50%,#f3f4f6 75%);
-                        background-size:800px 100%;
-                        animation:shimmer 1.4s infinite;"></div>
-        }
+        <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:16px;">
+            @for (int i = 0; i < 4; i++)
+            {
+                <div style="height:90px; border-radius:12px;
+                            background:linear-gradient(90deg,#f3f4f6 25%,#e9eaec 50%,#f3f4f6 75%);
+                            background-size:800px 100%; animation:shimmer 1.4s infinite;"></div>
+            }
+        </div>
+        <div style="height:80px; border-radius:12px;
+                    background:linear-gradient(90deg,#f3f4f6 25%,#e9eaec 50%,#f3f4f6 75%);
+                    background-size:800px 100%; animation:shimmer 1.4s infinite;"></div>
+        <div style="height:200px; border-radius:12px;
+                    background:linear-gradient(90deg,#f3f4f6 25%,#e9eaec 50%,#f3f4f6 75%);
+                    background-size:800px 100%; animation:shimmer 1.4s infinite;"></div>
     </div>
 }
 else
 {
-    @* ══════════════════════════════════════
-       STATISTICI
-    ══════════════════════════════════════ *@
-    <section style="margin-bottom:40px;">
-        <h2 style="font-size:14px; font-weight:700; color:#111827; margin-bottom:16px;">
-            Statistici
-        </h2>
-        <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:16px;">
+    <!-- ══════════════════════════════════════
+         TITLU
+    ══════════════════════════════════════ -->
+    <div style="margin-bottom:28px;">
+        <h1 style="font-size:22px; font-weight:700; color:#111827; margin:0 0 4px 0;">
+            Prezentare generală
+        </h1>
+    </div>
 
-            <div style="border:1px solid #e5e7eb; padding:20px;">
-                <p style="font-size:28px; font-weight:700; color:#6366f1; margin:0 0 4px 0;">
+    <!-- ══════════════════════════════════════
+         STATISTICI — 4 carduri cu iconițe
+    ══════════════════════════════════════ -->
+    <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:24px;">
+
+        <!-- Total aplicări -->
+        <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px;
+                    padding:20px 24px; display:flex; justify-content:space-between; align-items:center;">
+            <div>
+                <p style="font-size:11px; font-weight:600; color:#9ca3af; text-transform:uppercase;
+                          letter-spacing:1px; margin:0 0 6px 0;">Total aplicări</p>
+                <p style="font-size:32px; font-weight:700; color:#111827; margin:0; line-height:1;">
                     @_stats.Total
                 </p>
-                <p style="font-size:12px; color:#6b7280; margin:0;">Total aplicări</p>
             </div>
+            <div style="width:44px; height:44px; background:#f0eeff; border-radius:10px;
+                        display:flex; align-items:center; justify-content:center;">
+                <MudIcon Icon="@Icons.Material.Filled.Work" Style="color:#6366f1; font-size:22px;" />
+            </div>
+        </div>
 
-            <div style="border:1px solid #e5e7eb; padding:20px;">
-                <p style="font-size:28px; font-weight:700; color:#f59e0b; margin:0 0 4px 0;">
+        <!-- În analiză -->
+        <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px;
+                    padding:20px 24px; display:flex; justify-content:space-between; align-items:center;">
+            <div>
+                <p style="font-size:11px; font-weight:600; color:#9ca3af; text-transform:uppercase;
+                          letter-spacing:1px; margin:0 0 6px 0;">În analiză</p>
+                <p style="font-size:32px; font-weight:700; color:#111827; margin:0; line-height:1;">
                     @_stats.InReview
                 </p>
-                <p style="font-size:12px; color:#6b7280; margin:0;">În analiză</p>
             </div>
+            <div style="width:44px; height:44px; background:#fff7ed; border-radius:10px;
+                        display:flex; align-items:center; justify-content:center;">
+                <MudIcon Icon="@Icons.Material.Filled.HourglassEmpty" Style="color:#f97316; font-size:22px;" />
+            </div>
+        </div>
 
-            <div style="border:1px solid #e5e7eb; padding:20px;">
-                <p style="font-size:28px; font-weight:700; color:#3b82f6; margin:0 0 4px 0;">
+        <!-- Interviuri -->
+        <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px;
+                    padding:20px 24px; display:flex; justify-content:space-between; align-items:center;">
+            <div>
+                <p style="font-size:11px; font-weight:600; color:#9ca3af; text-transform:uppercase;
+                          letter-spacing:1px; margin:0 0 6px 0;">Interviuri</p>
+                <p style="font-size:32px; font-weight:700; color:#111827; margin:0; line-height:1;">
                     @_stats.Interview
                 </p>
-                <p style="font-size:12px; color:#6b7280; margin:0;">Interviuri</p>
             </div>
+            <div style="width:44px; height:44px; background:#eff6ff; border-radius:10px;
+                        display:flex; align-items:center; justify-content:center;">
+                <MudIcon Icon="@Icons.Material.Filled.CalendarMonth" Style="color:#3b82f6; font-size:22px;" />
+            </div>
+        </div>
 
-            <div style="border:1px solid #e5e7eb; padding:20px;">
-                <p style="font-size:28px; font-weight:700; color:#16a34a; margin:0 0 4px 0;">
+        <!-- Acceptate -->
+        <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px;
+                    padding:20px 24px; display:flex; justify-content:space-between; align-items:center;">
+            <div>
+                <p style="font-size:11px; font-weight:600; color:#9ca3af; text-transform:uppercase;
+                          letter-spacing:1px; margin:0 0 6px 0;">Acceptate</p>
+                <p style="font-size:32px; font-weight:700; color:#111827; margin:0; line-height:1;">
                     @_stats.Accepted
                 </p>
-                <p style="font-size:12px; color:#6b7280; margin:0;">Acceptate</p>
             </div>
-
+            <div style="width:44px; height:44px; background:#f0fdf4; border-radius:10px;
+                        display:flex; align-items:center; justify-content:center;">
+                <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Style="color:#22c55e; font-size:22px;" />
+            </div>
         </div>
-    </section>
+    </div>
 
-    @* ══════════════════════════════════════
-       COMPLETITUDINE PROFIL
-    ══════════════════════════════════════ *@
+    <!-- ══════════════════════════════════════
+         BANNER COMPLETARE PROFIL
+    ══════════════════════════════════════ -->
     @if (_completionPct < 100)
     {
-        <section style="margin-bottom:40px;">
-            <div style="border:1px solid #e5e7eb; padding:20px 24px;
-                        background:#fafafa;">
-                <div style="display:flex; justify-content:space-between;
-                            align-items:center; margin-bottom:10px;">
-                    <h2 style="font-size:14px; font-weight:700; color:#111827; margin:0;">
-                        Completitudine profil
-                    </h2>
-                    <span style="font-size:13px; font-weight:600;
-                                 color:@(_completionPct >= 80 ? "#16a34a" : "#6366f1");">
+        <div style="background:linear-gradient(135deg,#6366f1 0%,#818cf8 100%);
+                    border-radius:16px; padding:24px 32px; margin-bottom:24px;
+                    display:flex; align-items:center; justify-content:space-between; gap:24px;">
+            <div style="display:flex; align-items:center; gap:20px;">
+                <!-- Cerc procentaj -->
+                <div style="position:relative; width:56px; height:56px; flex-shrink:0;">
+                    <svg width="56" height="56" viewBox="0 0 56 56">
+                        <circle cx="28" cy="28" r="24" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="4"/>
+                        <circle cx="28" cy="28" r="24" fill="none" stroke="white" stroke-width="4"
+                                stroke-dasharray="@(Math.Round(2 * Math.PI * 24 * _completionPct / 100, 1)) 999"
+                                stroke-linecap="round" transform="rotate(-90 28 28)"/>
+                    </svg>
+                    <span style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+                                 font-size:11px; font-weight:700; color:#fff;">
                         @_completionPct%
                     </span>
                 </div>
-                <div style="height:6px; background:#e5e7eb; border-radius:99px; overflow:hidden;">
-                    <div style="height:100%; width:@(_completionPct)%;
-                                background:#6366f1; border-radius:99px;
-                                transition:width 0.5s ease;"></div>
+                <div>
+                    <p style="font-size:15px; font-weight:700; color:#fff; margin:0 0 4px 0;">
+                        Completează-ți profilul
+                    </p>
+                    <p style="font-size:13px; color:rgba(255,255,255,0.8); margin:0;">
+                        Un profil complet crește șansele de a fi remarcat de angajatori
+                    </p>
                 </div>
-                <p style="font-size:12px; color:#6b7280; margin:10px 0 0 0;">
-                    @GetCompletionHint()
-                    <a href="/candidate/profile"
-                       style="color:#6366f1; text-decoration:none; font-weight:600; margin-left:6px;">
-                        Completează profilul →
-                    </a>
-                </p>
             </div>
-        </section>
+            <a href="/candidate/profile"
+               style="display:inline-block; background:#fff; color:#6366f1;
+                      font-size:12px; font-weight:700; letter-spacing:1px; text-transform:uppercase;
+                      padding:12px 24px; border-radius:8px; text-decoration:none; white-space:nowrap;
+                      flex-shrink:0;">
+                Completează profilul
+            </a>
+        </div>
     }
 
-    @* ══════════════════════════════════════
-       APLICĂRI RECENTE
-    ══════════════════════════════════════ *@
-    <section style="margin-bottom:40px;">
-        <div style="display:flex; justify-content:space-between;
-                    align-items:center; margin-bottom:16px;">
-            <h2 style="font-size:14px; font-weight:700; color:#111827; margin:0;">
-                Aplicări recente
+    <!-- ══════════════════════════════════════
+         ACTIVITATEA MEA (aplicări recente)
+    ══════════════════════════════════════ -->
+    <div style="background:#fff; border:1px solid #e5e7eb; border-radius:16px;
+                padding:24px; margin-bottom:24px;">
+
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+            <h2 style="font-size:16px; font-weight:700; color:#111827; margin:0;
+                       padding-left:12px; border-left:3px solid #6366f1;">
+                Activitatea mea
             </h2>
             @if (_recentApplications.Count > 0)
             {
                 <a href="/candidate/applications"
                    style="font-size:12px; font-weight:600; color:#6366f1;
-                          text-decoration:none; letter-spacing:0.5px;">
-                    Vezi toate →
+                          text-decoration:none;">
+                    Vezi tot istoricul →
                 </a>
             }
         </div>
 
         @if (_recentApplications.Count == 0)
         {
-            <div style="border:1px dashed #e5e7eb; padding:32px; text-align:center;">
-                <p style="font-size:14px; color:#6b7280; margin:0 0 12px 0;">
+            <div style="text-align:center; padding:32px 0;">
+                <MudIcon Icon="@Icons.Material.Filled.Inbox"
+                         Style="font-size:40px; color:#d1d5db; display:block; margin:0 auto 12px;" />
+                <p style="font-size:14px; color:#9ca3af; margin:0 0 12px 0;">
                     Nu ai aplicat încă la niciun job.
                 </p>
                 <a href="/candidate/jobs"
-                   style="font-size:11px; font-weight:600; color:#6366f1;
-                          text-decoration:none; letter-spacing:2px; text-transform:uppercase;">
+                   style="font-size:12px; font-weight:600; color:#6366f1; text-decoration:none;">
                     Explorează joburi →
                 </a>
             </div>
@@ -141,118 +194,145 @@ else
             @foreach (var app in _recentApplications)
             {
                 <a href="/candidate/applications/@app.Id"
-                   style="display:block; border-bottom:1px solid #e5e7eb;
-                          padding:16px; margin:0 -16px; text-decoration:none;
-                          color:inherit; transition:background 0.15s;"
+                   style="display:flex; align-items:center; justify-content:space-between;
+                          gap:16px; padding:14px 16px; border-radius:10px; text-decoration:none;
+                          color:inherit; margin-bottom:4px; transition:background 0.15s;"
                    onmouseover="this.style.background='#f9fafb'"
                    onmouseout="this.style.background='transparent'">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <div>
-                            <h3 style="font-size:14px; font-weight:700;
-                                       color:#111827; margin:0 0 4px 0;">
+
+                    <div style="display:flex; align-items:center; gap:14px; flex:1; min-width:0;">
+                        <!-- Icoană job -->
+                        <div style="width:40px; height:40px; min-width:40px; background:#f0eeff;
+                                    border-radius:10px; display:flex; align-items:center; justify-content:center;">
+                            <MudIcon Icon="@Icons.Material.Filled.Work" Style="color:#6366f1; font-size:20px;" />
+                        </div>
+                        <div style="flex:1; min-width:0;">
+                            <p style="font-size:14px; font-weight:600; color:#111827;
+                                      margin:0 0 2px 0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
                                 @app.JobTitle
-                            </h3>
-                            <p style="font-size:13px; color:#6b7280; margin:0;">
+                            </p>
+                            <p style="font-size:12px; color:#9ca3af; margin:0;">
+                                @* @if (!string.IsNullOrWhiteSpace(app.CompanyName))
+                                {
+                                    <span>@app.CompanyName · </span>
+                                } *@
                                 Aplicat pe @app.AppliedAt.ToString("dd.MM.yyyy")
                             </p>
                         </div>
-                        <StatusBadge Status="@GetStatusText(app.Status)"
-                                     Variant="@GetStatusVariant(app.Status)" />
+                    </div>
+
+                    <!-- Badge status + dată -->
+                    <div style="display:flex; align-items:center; gap:16px; flex-shrink:0;">
+                        <span style="font-size:11px; font-weight:600; padding:4px 12px;
+                                     border-radius:20px; background:@GetBadgeBg(app.Status);
+                                     color:@GetBadgeFg(app.Status);">
+                            @GetStatusText(app.Status)
+                        </span>
+                        <span style="font-size:11px; color:#9ca3af; white-space:nowrap;
+                                     font-family:'Roboto Mono',monospace;">
+                            Aplicat pe @app.AppliedAt.ToString("dd.MM.yyyy")
+                        </span>
                     </div>
                 </a>
             }
         }
-    </section>
+    </div>
 
-    @* ══════════════════════════════════════
-       JOBURI RECOMANDATE
-    ══════════════════════════════════════ *@
-    <section style="margin-bottom:40px;">
-        <div style="display:flex; justify-content:space-between;
-                    align-items:center; margin-bottom:16px;">
-            <h2 style="font-size:14px; font-weight:700; color:#111827; margin:0;">
-                Joburi recomandate pentru tine
+    <!-- ══════════════════════════════════════
+         RECOMANDĂRI PERSONALIZATE — grid 3 col
+    ══════════════════════════════════════ -->
+    <div style="background:#fff; border:1px solid #e5e7eb; border-radius:16px; padding:24px;">
+
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+            <h2 style="font-size:16px; font-weight:700; color:#111827; margin:0;
+                       padding-left:12px; border-left:3px solid #6366f1;">
+                Recomandări personalizate
             </h2>
             <a href="/candidate/jobs"
-               style="font-size:12px; font-weight:600; color:#6366f1;
-                      text-decoration:none; letter-spacing:0.5px;">
-                Vezi toate →
+               style="font-size:12px; font-weight:600; color:#6366f1; text-decoration:none;">
+                Explorează toate joburile →
             </a>
         </div>
 
         @if (_recommendedJobs.Count == 0)
         {
-            <div style="border:1px dashed #e5e7eb; padding:32px; text-align:center;">
-                <p style="font-size:14px; color:#6b7280; margin:0 0 12px 0;">
-                    Adaugă competențe în profil pentru a primi recomandări personalizate.
+            <div style="text-align:center; padding:32px 0;">
+                <MudIcon Icon="@Icons.Material.Filled.AutoAwesome"
+                         Style="font-size:40px; color:#d1d5db; display:block; margin:0 auto 12px;" />
+                <p style="font-size:14px; color:#9ca3af; margin:0 0 12px 0;">
+                    Adaugă competențe în profil pentru recomandări personalizate.
                 </p>
                 <a href="/candidate/profile"
-                   style="font-size:11px; font-weight:600; color:#6366f1;
-                          text-decoration:none; letter-spacing:2px; text-transform:uppercase;">
+                   style="font-size:12px; font-weight:600; color:#6366f1; text-decoration:none;">
                     Completează profilul →
                 </a>
             </div>
         }
         else
         {
-            @foreach (var job in _recommendedJobs)
-            {
-                <div @onclick="() => GoToJob(job.Id)"
-                     style="border-bottom:1px solid #e5e7eb; padding:20px 16px;
-                            margin:0 -16px; cursor:pointer; transition:background 0.15s;"
-                     onmouseover="this.style.background='#f9fafb'"
-                     onmouseout="this.style.background='transparent'">
+            <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:16px;">
+                @foreach (var job in _recommendedJobs)
+                {
+                    <div @onclick="@(() => Navigation.NavigateTo($"/candidate/jobs/{job.Id}"))"
+                         style="border:1px solid #e5e7eb; border-radius:12px; padding:20px;
+                                cursor:pointer; transition:border-color 0.15s, box-shadow 0.15s;
+                                position:relative;"
+                         onmouseover="this.style.borderColor='#c7d2fe'; this.style.boxShadow='0 4px 16px rgba(99,102,241,0.08)'"
+                         onmouseout="this.style.borderColor='#e5e7eb'; this.style.boxShadow='none'">
 
-                    <div style="display:flex; justify-content:space-between;
-                                align-items:flex-start; gap:16px;">
-                        <div style="flex:1; min-width:0;">
-                            <h3 style="font-size:14px; font-weight:700;
-                                       color:#111827; margin:0 0 4px 0;">
-                                @job.Title
-                            </h3>
-                            <p style="font-size:13px; color:#6b7280; margin:0 0 8px 0;">
-                                @job.CompanyName
-                                @if (!string.IsNullOrWhiteSpace(job.Location))
-                                {
-                                    <span> · @job.Location</span>
-                                }
-                            </p>
-                            @if (job.SkillNames.Any())
-                            {
-                                <div style="display:flex; gap:6px; flex-wrap:wrap;">
-                                    @foreach (var skill in job.SkillNames.Take(4))
-                                    {
-                                        <span style="font-size:11px; font-weight:600;
-                                                     color:#6b7280; border:1px solid #e5e7eb;
-                                                     padding:2px 8px;">
-                                            @skill
-                                        </span>
-                                    }
-                                </div>
-                            }
-                        </div>
-
+                        <!-- Badge match (colț dreapta sus) -->
                         @if (job.TotalSkillsRequired > 0)
                         {
-                            <div style="text-align:center; flex-shrink:0;">
-                                <div style="@GetMatchStyle(job.MatchScore)
-                                            font-size:14px; font-weight:700;
-                                            width:48px; height:48px;
-                                            display:flex; align-items:center;
-                                            justify-content:center; border-radius:4px;">
-                                    @job.MatchScore%
-                                </div>
-                                <p style="font-size:10px; color:#9ca3af;
-                                          margin:3px 0 0 0; text-align:center;">
-                                    match
-                                </p>
+                            <div style="position:absolute; top:12px; right:12px;
+                                        font-size:11px; font-weight:700;
+                                        background:@GetMatchBg(job.MatchScore);
+                                        color:@GetMatchColor(job.MatchScore);
+                                        padding:3px 8px; border-radius:20px;">
+                                @job.MatchScore% match
+                            </div>
+                        }
+
+                        <!-- Icoană companie -->
+                        <div style="width:44px; height:44px; background:#f0eeff; border-radius:10px;
+                                    display:flex; align-items:center; justify-content:center; margin-bottom:14px;">
+                            <MudIcon Icon="@Icons.Material.Filled.Work" Style="color:#6366f1; font-size:22px;" />
+                        </div>
+
+                        <!-- Titlu + companie -->
+                        <p style="font-size:14px; font-weight:700; color:#111827;
+                                  margin:0 0 4px 0; padding-right:60px;
+                                  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                            @job.Title
+                        </p>
+                        <p style="font-size:12px; color:#6b7280; margin:0 0 4px 0;">
+                            @job.CompanyName
+                        </p>
+                        @if (!string.IsNullOrWhiteSpace(job.Location))
+                        {
+                            <p style="font-size:12px; color:#9ca3af; margin:0 0 14px 0; display:flex; align-items:center; gap:4px;">
+                                <MudIcon Icon="@Icons.Material.Filled.LocationOn" Style="font-size:13px; color:#9ca3af;" />
+                                @job.Location
+                            </p>
+                        }
+
+                        <!-- Skills -->
+                        @if (job.SkillNames.Any())
+                        {
+                            <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                                @foreach (var skill in job.SkillNames.Take(3))
+                                {
+                                    <span style="font-size:11px; font-weight:500; padding:3px 8px;
+                                                 background:#f3f4f6; color:#6b7280; border-radius:6px;">
+                                        @skill
+                                    </span>
+                                }
                             </div>
                         }
                     </div>
-                </div>
-            }
+                }
+            </div>
         }
-    </section>
+    </div>
 }
 
 <style>
@@ -264,10 +344,9 @@ else
 
 @code {
     private bool _loading = true;
-
     private DashboardStats _stats = new();
-    private List<ApplicationDto>  _recentApplications = new();
-    private List<JobFeedItemDto>  _recommendedJobs    = new();
+    private List<ApplicationDto> _recentApplications = new();
+    private List<JobFeedItemDto> _recommendedJobs = new();
     private int _completionPct = 0;
 
     protected override async Task OnInitializedAsync()
@@ -275,8 +354,8 @@ else
         try
         {
             var applicationsTask = Http.GetFromJsonAsync<List<ApplicationDto>>("api/applications/my");
-            var feedTask = Http.GetFromJsonAsync<List<JobFeedItemDto>>("api/jobfeed?pageSize=6");
-            var profileTask = Http.GetFromJsonAsync<CandidateProfileDto>("api/candidateprofile");
+            var feedTask         = Http.GetFromJsonAsync<List<JobFeedItemDto>>("api/jobfeed?pageSize=6");
+            var profileTask      = Http.GetFromJsonAsync<CandidateProfileDto>("api/candidateprofile");
 
             await Task.WhenAll(applicationsTask, feedTask, profileTask);
 
@@ -284,17 +363,17 @@ else
             var applications = applicationsTask.Result ?? new();
             _stats = new DashboardStats
             {
-                Total = applications.Count,
+                Total    = applications.Count,
                 InReview = applications.Count(a => a.Status == ApplicationState.InReview),
-                Interview = applications.Count(a => a.Status == ApplicationState.Interview),
+                Interview= applications.Count(a => a.Status == ApplicationState.Interview),
                 Accepted = applications.Count(a => a.Status == ApplicationState.Accepted),
             };
             _recentApplications = applications
                 .OrderByDescending(a => a.AppliedAt)
-                .Take(3)
+                .Take(5)
                 .ToList();
 
-            // ── Feed joburi — direct lista ────────────────────────────
+            // ── Joburi recomandate ────────────────────────────────────
             _recommendedJobs = (feedTask.Result ?? new())
                 .OrderByDescending(j => j.MatchScore)
                 .Take(3)
@@ -308,6 +387,8 @@ else
         catch { }
         finally { _loading = false; }
     }
+
+    // ── Helpers ───────────────────────────────────────────────────────
 
     private static int ComputeCompletion(CandidateProfileDto p)
     {
@@ -326,25 +407,25 @@ else
         return Math.Min(score, 100);
     }
 
-    private string GetCompletionHint() => _completionPct switch
+    private static string GetMatchBg(int score) => score switch
     {
-        >= 80 => "Profilul tău este aproape complet.",
-        >= 50 => "Adaugă experiența și educația pentru un profil mai vizibil.",
-        >= 30 => "Completează rezumatul și competențele.",
-        _     => "Începe prin a-ți completa datele personale.",
+        >= 80 => "#dcfce7",
+        >= 50 => "#fef9c3",
+        >= 20 => "#ede9fe",
+        _     => "#f3f4f6"
     };
 
-    private static string GetMatchStyle(int score) => score switch
+    private static string GetMatchColor(int score) => score switch
     {
-        >= 80 => "background:#dcfce7; color:#16a34a;",
-        >= 50 => "background:#fef9c3; color:#ca8a04;",
-        >= 20 => "background:#ede9fe; color:#6366f1;",
-        _     => "background:#f3f4f6; color:#6b7280;"
+        >= 80 => "#16a34a",
+        >= 50 => "#ca8a04",
+        >= 20 => "#6366f1",
+        _     => "#6b7280"
     };
 
     private static string GetStatusText(ApplicationState s) => s switch
     {
-        ApplicationState.Pending   => "În așteptare",
+        ApplicationState.Pending   => "În procesare",
         ApplicationState.InReview  => "În analiză",
         ApplicationState.Interview => "Interviu",
         ApplicationState.Accepted  => "Acceptat",
@@ -353,21 +434,25 @@ else
         _ => s.ToString()
     };
 
-    private static string GetStatusVariant(ApplicationState s) => s switch
+    private static string GetBadgeBg(ApplicationState s) => s switch
     {
-        ApplicationState.Pending   => "warning",
-        ApplicationState.InReview  => "warning",
-        ApplicationState.Interview => "default",
-        ApplicationState.Accepted  => "success",
-        ApplicationState.Rejected  => "destructive",
-        ApplicationState.Withdrawn => "muted",
-        _ => "default"
+        ApplicationState.Accepted  => "#dcfce7",
+        ApplicationState.Rejected  => "#fee2e2",
+        ApplicationState.Interview => "#dbeafe",
+        ApplicationState.InReview  => "#fef9c3",
+        ApplicationState.Withdrawn => "#f3f4f6",
+        _                          => "#fef3c7"
     };
 
-    private void GoToJob(int id)
-        => Navigation.NavigateTo($"/candidate/jobs/{id}");
-
-    // ── Modele locale ─────────────────────────────────────────────────
+    private static string GetBadgeFg(ApplicationState s) => s switch
+    {
+        ApplicationState.Accepted  => "#16a34a",
+        ApplicationState.Rejected  => "#dc2626",
+        ApplicationState.Interview => "#1d4ed8",
+        ApplicationState.InReview  => "#92400e",
+        ApplicationState.Withdrawn => "#6b7280",
+        _                          => "#92400e"
+    };
 
     private class DashboardStats
     {
@@ -376,6 +461,4 @@ else
         public int Interview { get; set; }
         public int Accepted  { get; set; }
     }
-
-    
 }

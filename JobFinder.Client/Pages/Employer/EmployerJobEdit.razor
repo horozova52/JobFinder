@@ -9,202 +9,295 @@
 <PageTitle>Editare anunț - JobFinder</PageTitle>
 
 <a href="/employer/jobs"
-   style="font-size:12px; font-weight:600; letter-spacing:1px; text-transform:uppercase;
-          color:#6b7280; text-decoration:none; display:inline-block; margin-bottom:24px;">
+   style="display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:600;
+          letter-spacing:1px; text-transform:uppercase; color:#6b7280; text-decoration:none;
+          margin-bottom:24px;">
     ← Înapoi la anunțuri
 </a>
 
 @if (_loading)
 {
-    <div style="display:flex; justify-content:center; padding:48px 0;">
-        <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+    <div style="display:flex; flex-direction:column; gap:16px;">
+        @for (int i = 0; i < 3; i++)
+        {
+            <div style="height:120px; border-radius:16px;
+                                background:linear-gradient(90deg,#f3f4f6 25%,#e9eaec 50%,#f3f4f6 75%);
+                                background-size:800px 100%; animation:shimmer 1.4s infinite;"></div>
+        }
     </div>
 }
 else if (_dto == null)
 {
-    <p style="font-size:14px; color:#dc2626; padding:24px 0;">
-        Anunțul nu a fost găsit.
-    </p>
+    <div style="background:#fff; border:1px solid #e5e7eb; border-radius:16px;
+                    text-align:center; padding:64px 32px;">
+        <p style="font-size:14px; color:#dc2626; margin:0;">Anunțul nu a fost găsit.</p>
+    </div>
 }
 else
 {
-    <PageHeader Title="@($"Editare: {_dto.Title}")"
-                Description="Modifică detaliile anunțului." />
+    <div style="margin-bottom:28px;">
+        <h1 style="font-size:22px; font-weight:700; color:#111827; margin:0 0 4px 0;">
+            Editare: @_dto.Title
+        </h1>
+        <p style="font-size:14px; color:#9ca3af; margin:0;">
+            Modifică detaliile anunțului și salvează.
+        </p>
+    </div>
 
-    <div style="max-width:560px; display:flex; flex-direction:column; gap:24px;">
+    <div style="display:grid; grid-template-columns:1fr 300px; gap:24px; align-items:start;">
 
-        <!-- Titlu -->
-        <div>
-            <label style="display:block; font-size:11px; font-weight:600; letter-spacing:2px;
-                          text-transform:uppercase; color:#6b7280; margin-bottom:8px;">
-                Titlu job
-            </label>
-            <MudTextField @bind-Value="_dto.Title"
-                          Variant="Variant.Outlined" FullWidth="true"
-                          Margin="Margin.Dense" Style="border-radius:0;" />
-        </div>
+        @* ── Formular principal ── *@
+        <div style="display:flex; flex-direction:column; gap:20px;">
 
-        <!-- Locație -->
-        <div>
-            <label style="display:block; font-size:11px; font-weight:600; letter-spacing:2px;
-                          text-transform:uppercase; color:#6b7280; margin-bottom:8px;">
-                Locație
-            </label>
-            <MudTextField @bind-Value="_dto.Location"
-                          Variant="Variant.Outlined" FullWidth="true"
-                          Margin="Margin.Dense" Style="border-radius:0;" />
-        </div>
-
-        <!-- Mod de lucru + Tip angajare -->
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
-            <div>
-                <label style="display:block; font-size:11px; font-weight:600; letter-spacing:2px;
-                              text-transform:uppercase; color:#6b7280; margin-bottom:8px;">
-                    Mod de lucru
-                </label>
-                <MudSelect @bind-Value="_dto.JobType"
-                           Variant="Variant.Outlined" FullWidth="true"
-                           Margin="Margin.Dense" Style="border-radius:0;">
-                    <MudSelectItem Value="JobType.Remote">Remote</MudSelectItem>
-                    <MudSelectItem Value="JobType.OnSite">La birou</MudSelectItem>
-                    <MudSelectItem Value="JobType.Hybrid">Hibrid</MudSelectItem>
-                </MudSelect>
+            @* Informații de bază *@
+            <div style="background:#fff; border:1px solid #e5e7eb; border-radius:16px; padding:28px;">
+                <h2 style="font-size:14px; font-weight:700; color:#111827;
+                               margin:0 0 20px 0; padding-left:12px; border-left:3px solid #6366f1;">
+                    Informații de bază
+                </h2>
+                <div style="display:flex; flex-direction:column; gap:16px;">
+                    <div>
+                        <label style="display:block; font-size:11px; font-weight:600; letter-spacing:1px;
+                                          text-transform:uppercase; color:#6b7280; margin-bottom:6px;">
+                            Titlu job *
+                        </label>
+                        <MudTextField @bind-Value="_dto.Title"
+                                      Variant="Variant.Outlined" FullWidth="true"
+                                      Margin="Margin.Dense" Style="border-radius:8px;" />
+                    </div>
+                    <div>
+                        <label style="display:block; font-size:11px; font-weight:600; letter-spacing:1px;
+                                          text-transform:uppercase; color:#6b7280; margin-bottom:6px;">
+                            Locație
+                        </label>
+                        <MudTextField @bind-Value="_dto.Location" Placeholder="ex: Chișinău, Moldova"
+                                      Variant="Variant.Outlined" FullWidth="true"
+                                      Margin="Margin.Dense" Style="border-radius:8px;" />
+                    </div>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+                        <div>
+                            <label style="display:block; font-size:11px; font-weight:600; letter-spacing:1px;
+                                              text-transform:uppercase; color:#6b7280; margin-bottom:6px;">
+                                Mod de lucru
+                            </label>
+                            <MudSelect @bind-Value="_dto.JobType"
+                                       Variant="Variant.Outlined" FullWidth="true"
+                                       Margin="Margin.Dense" Style="border-radius:8px;">
+                                <MudSelectItem Value="JobType.OnSite">La birou</MudSelectItem>
+                                <MudSelectItem Value="JobType.Remote">Remote</MudSelectItem>
+                                <MudSelectItem Value="JobType.Hybrid">Hibrid</MudSelectItem>
+                            </MudSelect>
+                        </div>
+                        <div>
+                            <label style="display:block; font-size:11px; font-weight:600; letter-spacing:1px;
+                                              text-transform:uppercase; color:#6b7280; margin-bottom:6px;">
+                                Tip angajare
+                            </label>
+                            <MudSelect @bind-Value="_dto.EmploymentType"
+                                       Variant="Variant.Outlined" FullWidth="true"
+                                       Margin="Margin.Dense" Style="border-radius:8px;">
+                                <MudSelectItem Value="EmploymentType.FullTime">Full-time</MudSelectItem>
+                                <MudSelectItem Value="EmploymentType.PartTime">Part-time</MudSelectItem>
+                                <MudSelectItem Value="EmploymentType.Freelance">Freelance</MudSelectItem>
+                                <MudSelectItem Value="EmploymentType.Internship">Internship</MudSelectItem>
+                                <MudSelectItem Value="EmploymentType.Contract">Contract</MudSelectItem>
+                            </MudSelect>
+                        </div>
+                    </div>
+                    <div>
+                        <label style="display:block; font-size:11px; font-weight:600; letter-spacing:1px;
+                                          text-transform:uppercase; color:#6b7280; margin-bottom:6px;">
+                            Categorie
+                        </label>
+                        <MudSelect @bind-Value="_dto.CategoryId"
+                                   Variant="Variant.Outlined" FullWidth="true"
+                                   Margin="Margin.Dense" Style="border-radius:8px;"
+                                   T="int?">
+                            <MudSelectItem T="int?" Value="@((int?)null)">Selectează categoria</MudSelectItem>
+                            @foreach (var cat in _categories)
+                            {
+                                <MudSelectItem T="int?" Value="@((int?)cat.Id)">@cat.Name</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </div>
+                </div>
             </div>
-            <div>
-                <label style="display:block; font-size:11px; font-weight:600; letter-spacing:2px;
-                              text-transform:uppercase; color:#6b7280; margin-bottom:8px;">
-                    Tip angajare
-                </label>
-                <MudSelect @bind-Value="_dto.EmploymentType"
-                           Variant="Variant.Outlined" FullWidth="true"
-                           Margin="Margin.Dense" Style="border-radius:0;">
-                    <MudSelectItem Value="EmploymentType.FullTime">Full-time</MudSelectItem>
-                    <MudSelectItem Value="EmploymentType.PartTime">Part-time</MudSelectItem>
-                    <MudSelectItem Value="EmploymentType.Freelance">Freelance</MudSelectItem>
-                    <MudSelectItem Value="EmploymentType.Internship">Internship</MudSelectItem>
-                    <MudSelectItem Value="EmploymentType.Contract">Contract</MudSelectItem>
-                </MudSelect>
+
+            @* Descriere job *@
+            <div style="background:#fff; border:1px solid #e5e7eb; border-radius:16px; padding:28px;">
+                <h2 style="font-size:14px; font-weight:700; color:#111827;
+                               margin:0 0 20px 0; padding-left:12px; border-left:3px solid #6366f1;">
+                    Descriere job
+                </h2>
+                <div style="display:flex; flex-direction:column; gap:16px;">
+                    <div>
+                        <label style="display:block; font-size:11px; font-weight:600; letter-spacing:1px;
+                                          text-transform:uppercase; color:#6b7280; margin-bottom:6px;">
+                            Descriere *
+                        </label>
+                        <MudTextField @bind-Value="_dto.Description"
+                                      Lines="5" Variant="Variant.Outlined" FullWidth="true"
+                                      Margin="Margin.Dense" Style="border-radius:8px;" />
+                    </div>
+                    <div>
+                        <label style="display:block; font-size:11px; font-weight:600; letter-spacing:1px;
+                                          text-transform:uppercase; color:#6b7280; margin-bottom:6px;">
+                            Cerințe
+                        </label>
+                        <MudTextField @bind-Value="_dto.Requirements"
+                                      Lines="4" Variant="Variant.Outlined" FullWidth="true"
+                                      Margin="Margin.Dense" Style="border-radius:8px;" />
+                    </div>
+                    <div>
+                        <label style="display:block; font-size:11px; font-weight:600; letter-spacing:1px;
+                                          text-transform:uppercase; color:#6b7280; margin-bottom:6px;">
+                            Responsabilități
+                        </label>
+                        <MudTextField @bind-Value="_dto.Responsibilities"
+                                      Lines="4" Variant="Variant.Outlined" FullWidth="true"
+                                      Margin="Margin.Dense" Style="border-radius:8px;" />
+                    </div>
+                </div>
+            </div>
+
+            @* Salariu *@
+            <div style="background:#fff; border:1px solid #e5e7eb; border-radius:16px; padding:28px;">
+                <h2 style="font-size:14px; font-weight:700; color:#111827;
+                               margin:0 0 20px 0; padding-left:12px; border-left:3px solid #6366f1;">
+                    Salariu (MDL)
+                </h2>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:12px;">
+                    <div>
+                        <label style="display:block; font-size:11px; font-weight:600; letter-spacing:1px;
+                                          text-transform:uppercase; color:#6b7280; margin-bottom:6px;">
+                            De la
+                        </label>
+                        <MudNumericField @bind-Value="_dto.SalaryFrom"
+                                         Variant="Variant.Outlined" FullWidth="true"
+                                         Margin="Margin.Dense" Style="border-radius:8px;" />
+                    </div>
+                    <div>
+                        <label style="display:block; font-size:11px; font-weight:600; letter-spacing:1px;
+                                          text-transform:uppercase; color:#6b7280; margin-bottom:6px;">
+                            Până la
+                        </label>
+                        <MudNumericField @bind-Value="_dto.SalaryTo"
+                                         Variant="Variant.Outlined" FullWidth="true"
+                                         Margin="Margin.Dense" Style="border-radius:8px;" />
+                    </div>
+                </div>
+                <MudCheckBox @bind-Value="_dto.IsSalaryNegotiable"
+                             Label="Salariu negociabil"
+                             Color="Color.Primary" />
+            </div>
+
+            @* Tags *@
+            <div style="background:#fff; border:1px solid #e5e7eb; border-radius:16px; padding:28px;">
+                <h2 style="font-size:14px; font-weight:700; color:#111827;
+                               margin:0 0 8px 0; padding-left:12px; border-left:3px solid #6366f1;">
+                    Tags
+                </h2>
+                <p style="font-size:13px; color:#9ca3af; margin:0 0 14px 0;">
+                    Cuvinte cheie separate prin virgulă
+                </p>
+                <MudTextField @bind-Value="_dto.Tags" Placeholder="React, TypeScript, CSS"
+                              Variant="Variant.Outlined" FullWidth="true"
+                              Margin="Margin.Dense" Style="border-radius:8px;" />
+            </div>
+
+            @* Butoane *@
+            <div style="display:flex; gap:12px;">
+                <MudButton Variant="Variant.Filled" OnClick="HandleSave" Disabled="_saving"
+                           Style="background:#6366f1; color:#fff; border-radius:10px;
+                                      font-size:12px; font-weight:700; letter-spacing:1px;
+                                      text-transform:uppercase; height:44px; padding:0 24px; flex:1;">
+                    @if (_saving)
+                    {
+                        <MudProgressCircular Size="Size.Small" Indeterminate="true"
+                                             Color="Color.Surface" Class="mr-2" />
+                    }
+                    Salvează modificările
+                </MudButton>
+                <MudButton Variant="Variant.Outlined" OnClick="HandleDeactivate" Disabled="_saving"
+                           Style="border-color:#fca5a5; color:#dc2626; border-radius:10px;
+                                      font-size:12px; font-weight:700; letter-spacing:1px;
+                                      text-transform:uppercase; height:44px; padding:0 20px;">
+                    Dezactivează
+                </MudButton>
             </div>
         </div>
 
-        <!-- Descriere -->
-        <div>
-            <label style="display:block; font-size:11px; font-weight:600; letter-spacing:2px;
-                          text-transform:uppercase; color:#6b7280; margin-bottom:8px;">
-                Descriere
-            </label>
-            <MudTextField @bind-Value="_dto.Description"
-                          Lines="5" Variant="Variant.Outlined" FullWidth="true"
-                          Margin="Margin.Dense" Style="border-radius:0;" />
-        </div>
+        @* ── Sidebar ── *@
+        <div style="display:flex; flex-direction:column; gap:16px; position:sticky; top:24px;">
 
-        <!-- Cerințe -->
-        <div>
-            <label style="display:block; font-size:11px; font-weight:600; letter-spacing:2px;
-                          text-transform:uppercase; color:#6b7280; margin-bottom:8px;">
-                Cerințe
-            </label>
-            <MudTextField @bind-Value="_dto.Requirements"
-                          Lines="3" Variant="Variant.Outlined" FullWidth="true"
-                          Margin="Margin.Dense" Style="border-radius:0;" />
-        </div>
-
-        <!-- Responsabilități -->
-        <div>
-            <label style="display:block; font-size:11px; font-weight:600; letter-spacing:2px;
-                          text-transform:uppercase; color:#6b7280; margin-bottom:8px;">
-                Responsabilități
-            </label>
-            <MudTextField @bind-Value="_dto.Responsibilities"
-                          Lines="3" Variant="Variant.Outlined" FullWidth="true"
-                          Margin="Margin.Dense" Style="border-radius:0;" />
-        </div>
-
-        <!-- Salariu -->
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
-            <div>
-                <label style="display:block; font-size:11px; font-weight:600; letter-spacing:2px;
-                              text-transform:uppercase; color:#6b7280; margin-bottom:8px;">
-                    Salariu de la
-                </label>
-                <MudNumericField @bind-Value="_dto.SalaryFrom"
-                                 Variant="Variant.Outlined" FullWidth="true"
-                                 Margin="Margin.Dense" Style="border-radius:0;" />
+            @* Validare câmpuri *@
+            <div style="background:#fff; border:1px solid #e5e7eb; border-radius:16px; padding:24px;">
+                <p style="font-size:12px; font-weight:700; color:#9ca3af; text-transform:uppercase;
+                              letter-spacing:1px; margin:0 0 14px 0;">
+                    Completitudine
+                </p>
+                <div style="display:flex; flex-direction:column; gap:8px;">
+                    @foreach (var check in GetChecklist())
+                    {
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <span style="color:@(check.Ok ? "#16a34a" : "#d1d5db"); font-size:14px;">
+                                @(check.Ok ? "✓" : "○")
+                            </span>
+                            <p style="font-size:13px; color:@(check.Ok ? "#374151" : "#9ca3af"); margin:0;">
+                                @check.Label
+                            </p>
+                        </div>
+                    }
+                </div>
             </div>
-            <div>
-                <label style="display:block; font-size:11px; font-weight:600; letter-spacing:2px;
-                              text-transform:uppercase; color:#6b7280; margin-bottom:8px;">
-                    Salariu până la
-                </label>
-                <MudNumericField @bind-Value="_dto.SalaryTo"
-                                 Variant="Variant.Outlined" FullWidth="true"
-                                 Margin="Margin.Dense" Style="border-radius:0;" />
+
+            @* Acțiuni rapide *@
+            <div style="background:#fff; border:1px solid #e5e7eb; border-radius:16px; padding:24px;">
+                <p style="font-size:12px; font-weight:700; color:#9ca3af; text-transform:uppercase;
+                              letter-spacing:1px; margin:0 0 14px 0;">
+                    Acțiuni rapide
+                </p>
+                <div style="display:flex; flex-direction:column; gap:8px;">
+                    <a href="/employer/jobs/@Id/applications"
+                       style="display:flex; align-items:center; gap:8px; font-size:13px;
+                                  font-weight:600; color:#6366f1; text-decoration:none;">
+                        <MudIcon Icon="@Icons.Material.Filled.People" Style="font-size:18px;" />
+                        Vezi aplicările
+                    </a>
+                </div>
             </div>
-        </div>
 
-        <div>
-            <MudCheckBox @bind-Value="_dto.IsSalaryNegotiable" Label="Salariu negociabil"
-                         Color="Color.Primary" />
-        </div>
-        <!-- Categorie -->
-        <div>
-            <label style="display:block; font-size:11px; font-weight:600; letter-spacing:2px;
-                      text-transform:uppercase; color:#6b7280; margin-bottom:8px;">
-                Categorie
-            </label>
-            <MudSelect @bind-Value="_dto.CategoryId"
-                       Variant="Variant.Outlined" FullWidth="true"
-                       Margin="Margin.Dense" Style="border-radius:0;"
-                       T="int?">
-                <MudSelectItem T="int?" Value="@((int?)null)">Selectează categoria</MudSelectItem>
-                @foreach (var cat in _categories)
-                {
-                    <MudSelectItem T="int?" Value="@((int?)cat.Id)">@cat.Name</MudSelectItem>
-                }
-            </MudSelect>
-        </div>
-
-        <!-- Tags -->
-        <div>
-            <label style="display:block; font-size:11px; font-weight:600; letter-spacing:2px;
-                          text-transform:uppercase; color:#6b7280; margin-bottom:8px;">
-                Tags
-            </label>
-            <MudTextField @bind-Value="_dto.Tags"
-                          Variant="Variant.Outlined" FullWidth="true"
-                          Margin="Margin.Dense" Style="border-radius:0;" />
-        </div>
-
-        <!-- Butoane -->
-        <div style="display:flex; gap:16px;">
-            <MudButton Variant="Variant.Filled" OnClick="HandleSave" Disabled="_saving"
-                       Style="background:#6366f1; color:#fff; border-radius:0;
-                              font-size:11px; font-weight:600; letter-spacing:2px;
-                              text-transform:uppercase; padding:12px 24px;">
-                @if (_saving)
-                {
-                    <MudProgressCircular Size="Size.Small" Indeterminate="true" Color="Color.Surface" Class="mr-2" />
-                }
-                Salvează modificările
-            </MudButton>
-            <MudButton Variant="Variant.Outlined" OnClick="HandleDeactivate" Disabled="_saving"
-                       Style="border:1px solid #dc2626; color:#dc2626; border-radius:0;
-                              font-size:11px; font-weight:600; letter-spacing:2px;
-                              text-transform:uppercase; padding:12px 24px;">
-                Dezactivează
-            </MudButton>
+            @* Avertizare dezactivare *@
+            <div style="background:#fef2f2; border:1px solid #fecaca; border-radius:16px; padding:20px;">
+                <p style="font-size:13px; font-weight:700; color:#dc2626; margin:0 0 6px 0;">
+                    ⚠️ Dezactivare anunț
+                </p>
+                <p style="font-size:12px; color:#6b7280; margin:0; line-height:1.5;">
+                    Dezactivarea anunțului îl va ascunde din lista de joburi disponibile. Poți reactiva ulterior.
+                </p>
+            </div>
         </div>
     </div>
 }
+
+<style>
+    @@keyframes shimmer {
+        0% {
+            background-position: -800px 0;
+        }
+
+        100% {
+            background-position: 800px 0;
+        }
+    }
+</style>
 
 @code {
     [Parameter] public int Id { get; set; }
 
     private CreateJobPostingDto? _dto;
     private bool _loading = true;
-    private bool _saving;
-   
-
+    private bool _saving = false;
     private List<JobCategoryDto> _categories = new();
 
     protected override async Task OnInitializedAsync()
@@ -213,7 +306,6 @@ else
         {
             var jobTask = Http.GetFromJsonAsync<JobPostingDto>($"api/jobs/{Id}");
             var catsTask = Http.GetFromJsonAsync<List<JobCategoryDto>>("api/jobcategories");
-
             await Task.WhenAll(jobTask, catsTask);
 
             if (catsTask.Result != null) _categories = catsTask.Result;
@@ -241,16 +333,28 @@ else
         finally { _loading = false; }
     }
 
+    private List<(string Label, bool Ok)> GetChecklist()
+    {
+        if (_dto == null) return new();
+        return new()
+        {
+            ("Titlu job",          !string.IsNullOrWhiteSpace(_dto.Title)),
+            ("Descriere",          !string.IsNullOrWhiteSpace(_dto.Description)),
+            ("Locație",            !string.IsNullOrWhiteSpace(_dto.Location)),
+            ("Cerințe",            !string.IsNullOrWhiteSpace(_dto.Requirements)),
+            ("Salariu specificat", _dto.SalaryFrom.HasValue || _dto.SalaryTo.HasValue || _dto.IsSalaryNegotiable),
+            ("Categorie",          _dto.CategoryId.HasValue),
+        };
+    }
+
     private async Task HandleSave()
     {
         if (_dto == null) return;
-
         if (string.IsNullOrWhiteSpace(_dto.Title) || string.IsNullOrWhiteSpace(_dto.Description))
         {
             Snackbar.Add("Titlul și descrierea sunt obligatorii.", Severity.Warning);
             return;
         }
-
         _saving = true;
         try
         {
@@ -260,19 +364,10 @@ else
                 Snackbar.Add("Anunțul a fost actualizat cu succes!", Severity.Success);
                 Navigation.NavigateTo("/employer/jobs");
             }
-            else
-            {
-                Snackbar.Add("Eroare la salvarea modificărilor.", Severity.Error);
-            }
+            else Snackbar.Add("Eroare la salvarea modificărilor.", Severity.Error);
         }
-        catch
-        {
-            Snackbar.Add("Eroare de conexiune. Încercați din nou.", Severity.Error);
-        }
-        finally
-        {
-            _saving = false;
-        }
+        catch { Snackbar.Add("Eroare de conexiune. Încercați din nou.", Severity.Error); }
+        finally { _saving = false; }
     }
 
     private async Task HandleDeactivate()
@@ -286,18 +381,9 @@ else
                 Snackbar.Add("Anunțul a fost dezactivat.", Severity.Info);
                 Navigation.NavigateTo("/employer/jobs");
             }
-            else
-            {
-                Snackbar.Add("Eroare la dezactivarea anunțului.", Severity.Error);
-            }
+            else Snackbar.Add("Eroare la dezactivarea anunțului.", Severity.Error);
         }
-        catch
-        {
-            Snackbar.Add("Eroare de conexiune. Încercați din nou.", Severity.Error);
-        }
-        finally
-        {
-            _saving = false;
-        }
+        catch { Snackbar.Add("Eroare de conexiune. Încercați din nou.", Severity.Error); }
+        finally { _saving = false; }
     }
 }

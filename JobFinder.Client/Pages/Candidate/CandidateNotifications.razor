@@ -10,15 +10,18 @@
 
 <PageTitle>Notificări - JobFinder</PageTitle>
 
-<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-    <h1 style="font-size:22px; font-weight:700; margin:0;">
-        Notificările mele
-    </h1>
-
+@* ── Titlu ── *@
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:28px;">
+    <div>
+        <h1 style="font-size:22px; font-weight:700; color:#111827; margin:0 0 4px 0;">
+            Notificările mele
+        </h1>
+     
+    </div>
     @if (_unreadCount > 0)
     {
-        <span style="font-size:12px; padding:4px 10px; border-radius:999px;
-                         background:#eef2ff; color:#4f46e5; font-weight:600;">
+        <span style="font-size:12px; font-weight:700; padding:6px 16px; border-radius:20px;
+                         background:#ede9fe; color:#6366f1;">
             @_unreadCount necitite
         </span>
     }
@@ -26,45 +29,64 @@
 
 @if (_loading)
 {
-    <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
+    <div style="display:flex; flex-direction:column; gap:12px;">
+        @for (int i = 0; i < 4; i++)
+        {
+            <div style="height:90px; border-radius:16px;
+                                background:linear-gradient(90deg,#f3f4f6 25%,#e9eaec 50%,#f3f4f6 75%);
+                                background-size:800px 100%; animation:shimmer 1.4s infinite;"></div>
+        }
+    </div>
 }
 else if (_notifications.Count == 0)
 {
-    <p style="font-size:14px; color:#6b7280;">
-        Nu ai încă notificări. Când vei aplica sau se va schimba statusul unei aplicări,
-        le vei vedea aici.
-    </p>
+    <div style="background:#fff; border:1px solid #e5e7eb; border-radius:16px;
+                    text-align:center; padding:64px 32px;">
+        <MudIcon Icon="@Icons.Material.Filled.NotificationsNone"
+                 Style="font-size:48px; color:#d1d5db; display:block; margin:0 auto 12px;" />
+        <p style="font-size:16px; font-weight:600; color:#111827; margin:0 0 8px 0;">
+            Nicio notificare momentan.
+        </p>
+        <p style="font-size:14px; color:#9ca3af; margin:0;">
+            Când vei aplica sau se va schimba statusul unei aplicări, le vei vedea aici.
+        </p>
+    </div>
 }
 else
 {
-    <div style="display:flex; flex-direction:column; gap:8px;">
+    <div style="display:flex; flex-direction:column; gap:10px;">
         @foreach (var n in _notifications)
         {
             var accent = GetAccentColor(n.Type);
-            var icon = GetIcon(n.Type);
+            var icon = GetMudIcon(n.Type);
 
-            <div class="notif-card"
-                 style=$"display:flex; gap:12px; padding:10px 14px; border-radius:8px;
-                 border:1px solid #e5e7eb;
-                 background:{(n.IsRead ? "#ffffff" : "#f5f5ff" )};">
+            <div style="background:@(n.IsRead ? "#fff" : "#faf9ff");
+                                border:1px solid @(n.IsRead ? "#e5e7eb" : "#c4b5fd");
+                                border-radius:16px; padding:18px 20px;
+                                display:flex; gap:14px; align-items:flex-start;
+                                transition:box-shadow 0.15s;">
 
-                <div style=$"width:32px; height:32px; border-radius:999px;
-                     display:flex; align-items:center; justify-content:center;
-                     font-size:16px; background:{accent.bg}; color:{accent.fg};">
-                    @icon
+                @* Icoaniță tip notificare *@
+                <div style="width:42px; height:42px; min-width:42px; border-radius:12px;
+                                    display:flex; align-items:center; justify-content:center;
+                                    background:@accent.bg;">
+                    <MudIcon Icon="@icon" Style="@($"color:{accent.fg}; font-size:20px;")" />
                 </div>
 
-                <div style="flex:1;">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <p style="margin:0; font-size:14px; font-weight:600;">
+                @* Conținut *@
+                <div style="flex:1; min-width:0;">
+                    <div style="display:flex; justify-content:space-between;
+                                        align-items:flex-start; gap:12px; margin-bottom:4px;">
+                        <p style="font-size:14px; font-weight:700; color:#111827; margin:0;">
                             @n.Title
                         </p>
-                        <span style="font-size:11px; color:#9ca3af;">
+                        <span style="font-size:11px; color:#9ca3af; white-space:nowrap; flex-shrink:0;
+                                             font-family:'Roboto Mono',monospace;">
                             @n.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
                         </span>
                     </div>
 
-                    <p style="margin:3px 0 6px 0; font-size:13px; color:#4b5563;">
+                    <p style="font-size:13px; color:#6b7280; margin:0 0 10px 0; line-height:1.5;">
                         @n.Message
                     </p>
 
@@ -73,18 +95,18 @@ else
                         {
                             <button type="button"
                                     @onclick="() => NavigateTo(n)"
-                                    style="font-size:11px; padding:6px 10px; border-radius:999px;
-                                                       border:1px solid #4f46e5; background:#eef2ff;
-                                                       color:#4f46e5; font-weight:600; text-transform:uppercase;
-                                                       letter-spacing:1px; cursor:pointer;">
+                                    style="font-size:11px; font-weight:700; padding:6px 14px;
+                                                       border-radius:20px; border:1px solid #c4b5fd;
+                                                       background:#ede9fe; color:#6366f1;
+                                                       text-transform:uppercase; letter-spacing:1px;
+                                                       cursor:pointer;">
                                 Deschide
                             </button>
                         }
-
                         @if (!n.IsRead)
                         {
-                            <span style="font-size:10px; padding:3px 8px; border-radius:999px;
-                                                     background:#dcfce7; color:#166534; font-weight:600;">
+                            <span style="font-size:10px; font-weight:700; padding:3px 10px;
+                                                     border-radius:20px; background:#d1fae5; color:#065f46;">
                                 Nou
                             </span>
                         }
@@ -94,6 +116,18 @@ else
         }
     </div>
 }
+
+<style>
+    @@keyframes shimmer {
+        0% {
+            background-position: -800px 0;
+        }
+
+        100% {
+            background-position: 800px 0;
+        }
+    }
+</style>
 
 @code {
     private readonly List<NotificationDto> _notifications = new();
@@ -107,44 +141,18 @@ else
             var result = await Http.GetFromJsonAsync<List<NotificationDto>>("api/notification/mine");
             if (result != null)
             {
-                _notifications.AddRange(
-                    result.OrderByDescending(n => n.CreatedAt));
-
+                _notifications.AddRange(result.OrderByDescending(n => n.CreatedAt));
                 _unreadCount = _notifications.Count(n => !n.IsRead);
             }
         }
-        finally
-        {
-            _loading = false;
-        }
+        finally { _loading = false; }
     }
-
-    private (string bg, string fg) GetAccentColor(NotificationType type) => type switch
-    {
-        NotificationType.ApplicationStatusChanged => ("#eef2ff", "#4f46e5"), // mov
-        NotificationType.NewApplicationReceived => ("#dcfce7", "#166534"), // verde
-        NotificationType.NewMatchingJobs => ("#e0f2fe", "#0369a1"), // albastru
-        NotificationType.EmploymentConfirmed => ("#fef9c3", "#854d0e"), // galben
-        NotificationType.SystemSuggestion => ("#fee2e2", "#b91c1c"), // roșu deschis
-        _ => ("#e5e7eb", "#374151")
-    };
-
-    private string GetIcon(NotificationType type) => type switch
-    {
-        NotificationType.ApplicationStatusChanged => "●", // poți schimba cu iconițe Mud
-        NotificationType.NewApplicationReceived => "✉",
-        NotificationType.NewMatchingJobs => "★",
-        NotificationType.EmploymentConfirmed => "✓",
-        NotificationType.SystemSuggestion => "⚑",
-        _ => "•"
-    };
 
     private async Task NavigateTo(NotificationDto notif)
     {
         if (!string.IsNullOrWhiteSpace(notif.Link))
         {
             Navigation.NavigateTo(notif.Link);
-
             if (!notif.IsRead)
             {
                 notif.IsRead = true;
@@ -153,4 +161,24 @@ else
             }
         }
     }
+
+    private static (string bg, string fg) GetAccentColor(NotificationType type) => type switch
+    {
+        NotificationType.ApplicationStatusChanged => ("#ede9fe", "#6366f1"),
+        NotificationType.NewApplicationReceived => ("#d1fae5", "#065f46"),
+        NotificationType.NewMatchingJobs => ("#dbeafe", "#1d4ed8"),
+        NotificationType.EmploymentConfirmed => ("#fef9c3", "#92400e"),
+        NotificationType.SystemSuggestion => ("#fee2e2", "#b91c1c"),
+        _ => ("#f3f4f6", "#6b7280")
+    };
+
+    private static string GetMudIcon(NotificationType type) => type switch
+    {
+        NotificationType.ApplicationStatusChanged => Icons.Material.Filled.Update,
+        NotificationType.NewApplicationReceived => Icons.Material.Filled.Mail,
+        NotificationType.NewMatchingJobs => Icons.Material.Filled.AutoAwesome,
+        NotificationType.EmploymentConfirmed => Icons.Material.Filled.CheckCircle,
+        NotificationType.SystemSuggestion => Icons.Material.Filled.Info,
+        _ => Icons.Material.Filled.Notifications
+    };
 }

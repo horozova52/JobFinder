@@ -10,54 +10,97 @@
 
 <PageTitle>Căutare joburi - JobFinder</PageTitle>
 
-<PageHeader Title="Căutare joburi"
-            Description="Joburi ordonate după compatibilitatea cu profilul tău." />
+<div style="margin-bottom:28px;">
+    <h1 style="font-size:22px; font-weight:700; color:#111827; margin:0 0 4px 0;">
+        Căutare joburi
+    </h1>
+    </div>
 
 @* ── Filtre ── *@
-<div style="display:flex; gap:12px; margin-bottom:32px; flex-wrap:wrap;">
+<div style="background:#fff; border:1px solid #e5e7eb; border-radius:16px;
+            padding:20px 24px; margin-bottom:28px;
+            display:grid; grid-template-columns:1fr 180px 160px 160px 110px;
+            gap:12px; align-items:end;">
 
-    <MudTextField @bind-Value="_search"
-                  Placeholder="Caută după titlu, companie, locație..."
-                  Variant="Variant.Outlined"
-                  Margin="Margin.Dense"
-                  Adornment="Adornment.Start"
-                  AdornmentIcon="@Icons.Material.Filled.Search"
-                  Style="border-radius:0; flex:1; min-width:200px;"
-                  OnKeyUp="OnSearchKeyUp" />
+    <!-- Search -->
+    <div>
+        <label style="display:block; font-size:11px; font-weight:600; color:#9ca3af;
+                      letter-spacing:1px; text-transform:uppercase; margin-bottom:6px;">
+            Caută
+        </label>
+        <MudTextField @bind-Value="_search"
+                      Placeholder="Titlu, companie, locație..."
+                      Variant="Variant.Outlined"
+                      Margin="Margin.Dense"
+                      Adornment="Adornment.Start"
+                      AdornmentIcon="@Icons.Material.Filled.Search"
+                      Style="border-radius:8px;"
+                      OnKeyUp="OnSearchKeyUp" />
+    </div>
 
-    <MudSelect @bind-Value="_filterJobType"
-               Placeholder="Mod de lucru"
-               Variant="Variant.Outlined"
-               Margin="Margin.Dense"
-               Clearable="true"
-               Style="border-radius:0; min-width:160px;"
-               T="string">
-        <MudSelectItem Value="@("")">Toate modurile</MudSelectItem>
-        <MudSelectItem Value="@("Remote")">Remote</MudSelectItem>
-        <MudSelectItem Value="@("OnSite")">La birou</MudSelectItem>
-        <MudSelectItem Value="@("Hybrid")">Hibrid</MudSelectItem>
-    </MudSelect>
+    <!-- Categorie -->
+    <div>
+        <label style="display:block; font-size:11px; font-weight:600; color:#9ca3af;
+                      letter-spacing:1px; text-transform:uppercase; margin-bottom:6px;">
+            Categorie
+        </label>
+        <MudSelect @bind-Value="_filterCategoryId"
+                   Variant="Variant.Outlined"
+                   Margin="Margin.Dense"
+                   Style="border-radius:8px;"
+                   T="int?">
+            <MudSelectItem Value="@((int?)null)">Toate</MudSelectItem>
+            @foreach (var cat in _categories)
+            {
+                <MudSelectItem Value="@((int?)cat.Id)">@cat.Name</MudSelectItem>
+            }
+        </MudSelect>
+    </div>
 
-    <MudSelect @bind-Value="_filterEmploymentType"
-               Placeholder="Tip angajare"
-               Variant="Variant.Outlined"
-               Margin="Margin.Dense"
-               Clearable="true"
-               Style="border-radius:0; min-width:160px;"
-               T="string">
-        <MudSelectItem Value="@("")">Toate tipurile</MudSelectItem>
-        <MudSelectItem Value="@("FullTime")">Full-time</MudSelectItem>
-        <MudSelectItem Value="@("PartTime")">Part-time</MudSelectItem>
-        <MudSelectItem Value="@("Internship")">Internship</MudSelectItem>
-        <MudSelectItem Value="@("Freelance")">Freelance</MudSelectItem>
-        <MudSelectItem Value="@("Contract")">Contract</MudSelectItem>
-    </MudSelect>
+    <!-- Mod lucru -->
+    <div>
+        <label style="display:block; font-size:11px; font-weight:600; color:#9ca3af;
+                      letter-spacing:1px; text-transform:uppercase; margin-bottom:6px;">
+            Mod lucru
+        </label>
+        <MudSelect @bind-Value="_filterJobType"
+                   Variant="Variant.Outlined"
+                   Margin="Margin.Dense"
+                   Style="border-radius:8px;"
+                   T="string">
+            <MudSelectItem Value="@("")">Toate</MudSelectItem>
+            <MudSelectItem Value="@("Remote")">Remote</MudSelectItem>
+            <MudSelectItem Value="@("OnSite")">La birou</MudSelectItem>
+            <MudSelectItem Value="@("Hybrid")">Hibrid</MudSelectItem>
+        </MudSelect>
+    </div>
 
+    <!-- Tip angajare -->
+    <div>
+        <label style="display:block; font-size:11px; font-weight:600; color:#9ca3af;
+                      letter-spacing:1px; text-transform:uppercase; margin-bottom:6px;">
+            Contract
+        </label>
+        <MudSelect @bind-Value="_filterEmploymentType"
+                   Variant="Variant.Outlined"
+                   Margin="Margin.Dense"
+                   Style="border-radius:8px;"
+                   T="string">
+            <MudSelectItem Value="@("")">Toate</MudSelectItem>
+            <MudSelectItem Value="@("FullTime")">Full-time</MudSelectItem>
+            <MudSelectItem Value="@("PartTime")">Part-time</MudSelectItem>
+            <MudSelectItem Value="@("Internship")">Internship</MudSelectItem>
+            <MudSelectItem Value="@("Freelance")">Freelance</MudSelectItem>
+            <MudSelectItem Value="@("Contract")">Contract</MudSelectItem>
+        </MudSelect>
+    </div>
+
+    <!-- Buton -->
     <MudButton Variant="Variant.Filled"
                OnClick="LoadJobs"
-               Style="background:#6366f1; color:#fff; border-radius:0;
+               Style="background:#6366f1; color:#fff; border-radius:8px;
                       font-size:11px; font-weight:600; letter-spacing:2px;
-                      text-transform:uppercase; padding:0 20px; height:40px;">
+                      text-transform:uppercase; height:40px;">
         Caută
     </MudButton>
 </div>
@@ -259,9 +302,15 @@ else
     private string _search                = "";
     private string _filterJobType         = "";
     private string _filterEmploymentType  = "";
+    private int? _filterCategoryId = null;
+    private List<JobFinder.Shared.DTOs.Jobs.JobCategoryDto> _categories = new();
 
     protected override async Task OnInitializedAsync()
-        => await LoadJobs();
+    {
+        var cats = await Http.GetFromJsonAsync<List<JobFinder.Shared.DTOs.Jobs.JobCategoryDto>>("api/jobcategories");
+        if (cats != null) _categories = cats;
+        await LoadJobs();
+    }
 
     private async Task LoadJobs()
     {
@@ -277,6 +326,8 @@ else
                 query.Add($"jobType={_filterJobType}");
             if (!string.IsNullOrWhiteSpace(_filterEmploymentType))
                 query.Add($"employmentType={_filterEmploymentType}");
+            if (_filterCategoryId.HasValue)
+                query.Add($"categoryId={_filterCategoryId.Value}");
 
             var url = "api/jobfeed" +
                       (query.Count > 0 ? "?" + string.Join("&", query) : "");
@@ -320,7 +371,7 @@ else
 
     // ── Helpers ──────────────────────────────────────────────────────
 
-    // FIX: guard pentru ambele null
+  
     private static string FormatSalary(JobFeedItemDto job)
     {
         if (job.SalaryFrom.HasValue && job.SalaryTo.HasValue)

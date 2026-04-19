@@ -6,81 +6,196 @@
 
 <PageTitle>Anunțurile mele - JobFinder</PageTitle>
 
-<PageHeader Title="Anunțurile mele"
-            Description="Gestionează anunțurile de angajare publicate.">
-    <Actions>
-        <a href="/employer/jobs/create"
-           style="display:inline-block; background:#6366f1; color:#fff;
-                  padding:12px 24px; font-size:11px; font-weight:600;
-                  letter-spacing:2px; text-transform:uppercase; text-decoration:none;">
-            + Anunț nou
-        </a>
-    </Actions>
-</PageHeader>
+@* ── Titlu + buton nou ── *@
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:28px;">
+    <div>
+        <h1 style="font-size:22px; font-weight:700; color:#111827; margin:0 0 4px 0;">
+            Anunțurile mele
+        </h1>
+        <p style="font-size:14px; color:#9ca3af; margin:0;">
+            Gestionează anunțurile de angajare publicate.
+        </p>
+    </div>
+    <a href="/employer/jobs/create"
+       style="display:inline-flex; align-items:center; gap:8px; background:#6366f1; color:#fff;
+              padding:12px 24px; font-size:12px; font-weight:700; letter-spacing:1px;
+              text-transform:uppercase; text-decoration:none; border-radius:10px;">
+        + Anunț nou
+    </a>
+</div>
 
 @if (_loading)
 {
-    <div style="display:flex; justify-content:center; padding:48px 0;">
-        <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+    <div style="display:flex; flex-direction:column; gap:12px;">
+        @for (int i = 0; i < 4; i++)
+        {
+            <div style="height:90px; border-radius:16px;
+                                background:linear-gradient(90deg,#f3f4f6 25%,#e9eaec 50%,#f3f4f6 75%);
+                                background-size:800px 100%; animation:shimmer 1.4s infinite;"></div>
+        }
     </div>
 }
 else if (_jobs == null || _jobs.Count == 0)
 {
-    <p style="font-size:14px; color:#6b7280; padding:24px 0;">
-        Nu ai anunțuri publicate. Creează primul tău anunț!
-    </p>
+    <div style="background:#fff; border:1px solid #e5e7eb; border-radius:16px;
+                    text-align:center; padding:64px 32px;">
+        <MudIcon Icon="@Icons.Material.Filled.WorkOff"
+                 Style="font-size:48px; color:#d1d5db; display:block; margin:0 auto 12px;" />
+        <p style="font-size:16px; font-weight:600; color:#111827; margin:0 0 8px 0;">
+            Nu ai anunțuri publicate încă.
+        </p>
+        <p style="font-size:14px; color:#9ca3af; margin:0 0 20px 0;">
+            Creează primul tău anunț și atrage candidații potriviți.
+        </p>
+        <a href="/employer/jobs/create"
+           style="display:inline-block; background:#6366f1; color:#fff; text-decoration:none;
+                      font-size:12px; font-weight:700; letter-spacing:1px; text-transform:uppercase;
+                      padding:12px 24px; border-radius:10px;">
+            + Publică primul anunț
+        </a>
+    </div>
 }
 else
 {
-    @foreach (var job in _jobs)
-    {
-        <div style="border-bottom:1px solid #e5e7eb; padding:20px 0;
-                    display:flex; justify-content:space-between; align-items:center;">
-            <div>
-                <a href="/employer/jobs/@job.Id/edit"
-                   style="font-size:14px; font-weight:700; color:#111827;
-                          text-decoration:none; transition:color 0.15s;"
-                   onmouseover="this.style.color='#6366f1'"
-                   onmouseout="this.style.color='#111827'">
-                    @job.Title
-                </a>
-                <p style="font-size:14px; color:#6b7280; margin:4px 0 0 0;">
-                    @(job.Location ?? "—") · @(job.PublishedAt?.ToString("dd.MM.yyyy") ?? "—")
-                </p>
+    @* ── Sumar statusuri ── *@
+    <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:20px;">
+        @foreach (var s in _summary)
+        {
+            <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px;
+                                padding:14px 16px; text-align:center;
+                                border-top:3px solid @(s.Count > 0 ? s.Color : "#e5e7eb");">
+                <p style="font-size:22px; font-weight:700;
+                                  color:@(s.Count > 0 ? s.Color : "#d1d5db");
+                                  margin:0 0 2px 0; line-height:1;">@s.Count</p>
+                <p style="font-size:10px; font-weight:600; color:#9ca3af; margin:0;
+                                  text-transform:uppercase; letter-spacing:1px;">@s.Label</p>
             </div>
-            <div style="display:flex; align-items:center; gap:16px;">
-                <StatusBadge Status="@GetStatusText(job.Status)" Variant="@GetStatusVariant(job.Status)" />
-                <a href="/employer/jobs/@job.Id/applications"
-                   style="font-size:12px; font-weight:600; color:#6366f1;
-                          text-decoration:none; letter-spacing:0.5px;">
-                    Vezi aplicări →
-                </a>
+        }
+    </div>
+
+    @* ── Lista joburi ── *@
+    <div style="display:flex; flex-direction:column; gap:12px;">
+        @foreach (var job in _jobs.OrderByDescending(j => j.PublishedAt))
+        {
+            <div style="background:#fff; border:1px solid #e5e7eb; border-radius:16px;
+                                padding:20px 24px; transition:border-color 0.15s, box-shadow 0.15s;"
+                 onmouseover="this.style.borderColor='#c7d2fe'; this.style.boxShadow='0 4px 16px rgba(99,102,241,0.08)'"
+                 onmouseout="this.style.borderColor='#e5e7eb'; this.style.boxShadow='none'">
+
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:16px;">
+
+                    @* ── Stânga ── *@
+                    <div style="display:flex; gap:14px; flex:1; min-width:0;">
+                        <div style="width:44px; height:44px; min-width:44px; background:#f0eeff;
+                                            border-radius:10px; display:flex; align-items:center;
+                                            justify-content:center; flex-shrink:0;">
+                            <MudIcon Icon="@Icons.Material.Filled.Work"
+                                     Style="color:#6366f1; font-size:22px;" />
+                        </div>
+                        <div style="flex:1; min-width:0;">
+                            <a href="/employer/jobs/@job.Id/edit"
+                               style="font-size:15px; font-weight:700; color:#111827;
+                                              text-decoration:none; display:block; margin-bottom:4px;
+                                              white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
+                               onmouseover="this.style.color='#6366f1'"
+                               onmouseout="this.style.color='#111827'">
+                                @job.Title
+                            </a>
+                            <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:center;">
+                                @if (!string.IsNullOrWhiteSpace(job.Location))
+                                {
+                                    <span style="display:flex; align-items:center; gap:4px;
+                                                             font-size:12px; color:#9ca3af;">
+                                        <MudIcon Icon="@Icons.Material.Filled.LocationOn"
+                                                 Style="font-size:14px;" />
+                                        @job.Location
+                                    </span>
+                                }
+                                @if (job.PublishedAt.HasValue)
+                                {
+                                    <span style="font-size:12px; color:#9ca3af;
+                                                             font-family:'Roboto Mono',monospace;">
+                                        @job.PublishedAt.Value.ToString("dd.MM.yyyy")
+                                    </span>
+                                }
+                                @if (job.ExpiresAt.HasValue && job.Status == JobStatus.Published)
+                                {
+                                    var daysLeft = (job.ExpiresAt.Value - DateTime.UtcNow).Days;
+                                    <span style="font-size:12px; color:@(daysLeft <= 7 ? "#dc2626" : "#9ca3af");">
+                                        @(daysLeft > 0 ? $"Expiră în {daysLeft} zile" : "Expirat")
+                                    </span>
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+                    @* ── Dreapta ── *@
+                    <div style="display:flex; align-items:center; gap:10px; flex-shrink:0;">
+                        <span style="font-size:11px; font-weight:600; padding:5px 14px;
+                                             border-radius:20px;
+                                             background:@GetBadgeBg(job.Status);
+                                             color:@GetBadgeFg(job.Status);">
+                            @GetStatusText(job.Status)
+                        </span>
+                        <a href="/employer/jobs/@job.Id/applications"
+                           style="font-size:12px; font-weight:600; color:#6366f1;
+                                          text-decoration:none; padding:6px 14px;
+                                          border:1px solid #c4b5fd; border-radius:8px;
+                                          background:#f0eeff; white-space:nowrap;">
+                            Aplicări →
+                        </a>
+                        <a href="/employer/jobs/@job.Id/edit"
+                           style="font-size:12px; font-weight:600; color:#6b7280;
+                                          text-decoration:none; padding:6px 14px;
+                                          border:1px solid #e5e7eb; border-radius:8px;
+                                          background:#fff; white-space:nowrap;">
+                            Editează
+                        </a>
+                    </div>
+                </div>
             </div>
-        </div>
-    }
+        }
+    </div>
 }
+
+<style>
+    @@keyframes shimmer {
+        0% {
+            background-position: -800px 0;
+        }
+
+        100% {
+            background-position: 800px 0;
+        }
+    }
+</style>
 
 @code {
     private List<JobPostingDto>? _jobs;
     private bool _loading = true;
+    private List<(string Label, int Count, string Color)> _summary = new();
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
             _jobs = await Http.GetFromJsonAsync<List<JobPostingDto>>("api/employer/profile/jobs");
+            if (_jobs != null)
+            {
+                _summary = new()
+                {
+                    ("Active",   _jobs.Count(j => j.Status == JobStatus.Published), "#16a34a"),
+                    ("Ciorne",   _jobs.Count(j => j.Status == JobStatus.Draft),     "#f59e0b"),
+                    ("Închise",  _jobs.Count(j => j.Status == JobStatus.Closed),    "#6b7280"),
+                    ("Expirate", _jobs.Count(j => j.Status == JobStatus.Expired),   "#dc2626"),
+                };
+            }
         }
-        catch
-        {
-            _jobs = new();
-        }
-        finally
-        {
-            _loading = false;
-        }
+        catch { _jobs = new(); }
+        finally { _loading = false; }
     }
 
-    private static string GetStatusText(JobStatus status) => status switch
+    private static string GetStatusText(JobStatus s) => s switch
     {
         JobStatus.Published => "Activ",
         JobStatus.Draft => "Ciornă",
@@ -89,12 +204,21 @@ else
         _ => "Necunoscut"
     };
 
-    private static string GetStatusVariant(JobStatus status) => status switch
+    private static string GetBadgeBg(JobStatus s) => s switch
     {
-        JobStatus.Published => "success",
-        JobStatus.Draft => "warning",
-        JobStatus.Closed => "muted",
-        JobStatus.Expired => "muted",
-        _ => "default"
+        JobStatus.Published => "#d1fae5",
+        JobStatus.Draft => "#fef9c3",
+        JobStatus.Closed => "#f3f4f6",
+        JobStatus.Expired => "#fee2e2",
+        _ => "#f3f4f6"
+    };
+
+    private static string GetBadgeFg(JobStatus s) => s switch
+    {
+        JobStatus.Published => "#065f46",
+        JobStatus.Draft => "#92400e",
+        JobStatus.Closed => "#6b7280",
+        JobStatus.Expired => "#b91c1c",
+        _ => "#6b7280"
     };
 }

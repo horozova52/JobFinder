@@ -2,99 +2,236 @@
 @layout EmployerLayout
 @inject HttpClient Http
 @inject NavigationManager Navigation
+@using JobFinder.Shared.DTOs.Applications
+@using JobFinder.Shared.DTOs.Candidates
+@using JobFinder.Shared.DTOs.Jobs
 @using JobFinder.Shared.DTOs.Messaging
+@using JobFinder.Shared.Enums
 
 <PageTitle>Aplicări job - JobFinder</PageTitle>
 
+@* ── Înapoi ── *@
 <a href="/employer/jobs"
-   style="font-size:12px; font-weight:600; letter-spacing:1px; text-transform:uppercase;
-          color:#6b7280; text-decoration:none; display:inline-block; margin-bottom:24px;">
+   style="display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:600;
+          letter-spacing:1px; text-transform:uppercase; color:#6b7280; text-decoration:none;
+          margin-bottom:24px;">
     ← Înapoi la anunțuri
 </a>
 
-<PageHeader Title="@($"Aplicări — {_jobTitle}")"
-            Description="Candidații care au aplicat la acest anunț." />
-
-<!-- Filtre -->
-<div style="display:flex; gap:12px; margin-bottom:32px;">
-    <MudTextField @bind-Value="_search"
-                  Placeholder="Caută candidat..."
-                  Variant="Variant.Outlined"
-                  Margin="Margin.Dense"
-                  Style="border-radius:0; flex:1;"
-                  Immediate="true" />
-    <MudSelect @bind-Value="_filterStatus"
-               Variant="Variant.Outlined"
-               Margin="Margin.Dense"
-               Style="border-radius:0; min-width:180px;">
-        <MudSelectItem Value="@("")">Toate statusurile</MudSelectItem>
-        <MudSelectItem Value="@("Pending")">În așteptare</MudSelectItem>
-        <MudSelectItem Value="@("InReview")">În analiză</MudSelectItem>
-        <MudSelectItem Value="@("Interview")">Interviu</MudSelectItem>
-        <MudSelectItem Value="@("Accepted")">Acceptat</MudSelectItem>
-        <MudSelectItem Value="@("Rejected")">Respins</MudSelectItem>
-    </MudSelect>
+@* ── Titlu ── *@
+<div style="margin-bottom:24px;">
+    <h1 style="font-size:22px; font-weight:700; color:#111827; margin:0 0 4px 0;">
+        @(string.IsNullOrEmpty(_jobTitle) ? "Aplicări" : _jobTitle)
+    </h1>
+    <p style="font-size:14px; color:#9ca3af; margin:0;">
+        Candidații care au aplicat la acest anunț.
+    </p>
 </div>
 
 @if (_loading)
 {
-    <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
-}
-else if (!FilteredApplicants.Any())
-{
-    <p style="font-size:14px; color:#6b7280;">Nu există aplicări.</p>
+    <div style="display:flex; flex-direction:column; gap:12px;">
+        @for (int i = 0; i < 4; i++)
+        {
+            <div style="height:100px; border-radius:16px;
+                                background:linear-gradient(90deg,#f3f4f6 25%,#e9eaec 50%,#f3f4f6 75%);
+                                background-size:800px 100%; animation:shimmer 1.4s infinite;"></div>
+        }
+    </div>
 }
 else
 {
-    @foreach (var app in FilteredApplicants)
+    @* ── Filtre ── *@
+    <div style="background:#fff; border:1px solid #e5e7eb; border-radius:16px;
+                    padding:16px 20px; margin-bottom:20px;
+                    display:grid; grid-template-columns:1fr 200px; gap:12px; align-items:end;">
+        <div>
+            <label style="display:block; font-size:11px; font-weight:600; color:#9ca3af;
+                              text-transform:uppercase; letter-spacing:1px; margin-bottom:6px;">
+                Caută candidat
+            </label>
+            <MudTextField @bind-Value="_search"
+                          Placeholder="Numele candidatului..."
+                          Variant="Variant.Outlined"
+                          Margin="Margin.Dense"
+                          Style="border-radius:8px;"
+                          Immediate="true"
+                          Adornment="Adornment.Start"
+                          AdornmentIcon="@Icons.Material.Filled.Search" />
+        </div>
+        <div>
+            <label style="display:block; font-size:11px; font-weight:600; color:#9ca3af;
+                              text-transform:uppercase; letter-spacing:1px; margin-bottom:6px;">
+                Status
+            </label>
+            <MudSelect @bind-Value="_filterStatus"
+                       Variant="Variant.Outlined"
+                       Margin="Margin.Dense"
+                       Style="border-radius:8px;"
+                       T="string">
+                <MudSelectItem Value="@("")">Toate</MudSelectItem>
+                <MudSelectItem Value="@("Pending")">În așteptare</MudSelectItem>
+                <MudSelectItem Value="@("InReview")">În analiză</MudSelectItem>
+                <MudSelectItem Value="@("Interview")">Interviu</MudSelectItem>
+                <MudSelectItem Value="@("Accepted")">Acceptat</MudSelectItem>
+                <MudSelectItem Value="@("Rejected")">Respins</MudSelectItem>
+            </MudSelect>
+        </div>
+    </div>
+
+    @* ── Sumar ── *@
+    @if (_applications.Any())
     {
-        <a href="/employer/applications/@app.Id"
-           style="display:block; border-bottom:1px solid #e5e7eb; padding:20px 16px;
-                  margin:0 -16px; text-decoration:none; color:inherit; transition:background 0.15s;"
-           onmouseover="this.style.background='#f9fafb'"
-           onmouseout="this.style.background='transparent'">
-            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                <div>
-                    <h3 style="font-size:14px; font-weight:700; color:#111827; margin:0 0 4px 0;">
-                        @app.CandidateFullName
-                    </h3>
-                    <p style="font-size:14px; color:#6b7280; margin:0 0 8px 0;">
-                        Aplicat pe @app.AppliedAt.ToString("dd.MM.yyyy")
-                    </p>
-                    @if (_candidateSkills.ContainsKey(app.CandidateProfileId))
-                    {
-                        <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                            @foreach (var skill in _candidateSkills[app.CandidateProfileId])
-                            {
-                                var isMatch = _jobSkillIds.Contains(skill.SkillId);
-                                <span style="font-size:11px; font-weight:600;
-                                             color:@(isMatch ? "#16a34a" : "#6b7280");
-                                             border:1px solid @(isMatch ? "#bbf7d0" : "#e5e7eb");
-                                             background:@(isMatch ? "#f0fdf4" : "transparent");
-                                             padding:2px 8px;">@skill.SkillName</span>
-                            }
+        <div style="display:flex; align-items:center; justify-content:space-between;
+                            margin-bottom:16px; padding:0 4px;">
+            <p style="font-size:13px; color:#6b7280; margin:0;">
+                <strong style="color:#111827;">@FilteredApplicants.Count()</strong> candidați
+                @if (!string.IsNullOrEmpty(_filterStatus) || !string.IsNullOrEmpty(_search))
+                {
+                    <span> (filtrat)</span>
+                }
+            </p>
+            @if (_jobSkillIds.Any())
+            {
+                <p style="font-size:12px; color:#6366f1; font-weight:600; margin:0;">
+                    ✦ Sortat după compatibilitate
+                </p>
+            }
+        </div>
+    }
+
+    @* ── Lista candidați ── *@
+    @if (!FilteredApplicants.Any())
+    {
+        <div style="background:#fff; border:1px solid #e5e7eb; border-radius:16px;
+                            text-align:center; padding:64px 32px;">
+            <MudIcon Icon="@Icons.Material.Filled.PeopleOutline"
+                     Style="font-size:48px; color:#d1d5db; display:block; margin:0 auto 12px;" />
+            <p style="font-size:16px; font-weight:600; color:#111827; margin:0 0 8px 0;">
+                Niciun candidat găsit.
+            </p>
+            <p style="font-size:14px; color:#9ca3af; margin:0;">
+                @(_applications.Any() ? "Încearcă să modifici filtrele." : "Nu ai primit aplicări la acest job încă.")
+            </p>
+        </div>
+    }
+    else
+    {
+        <div style="display:flex; flex-direction:column; gap:12px;">
+            @foreach (var app in FilteredApplicants)
+            {
+                var matchPct = CalculateMatch(app.CandidateProfileId);
+                var skills = _candidateSkills.GetValueOrDefault(app.CandidateProfileId, new());
+
+                <div style="background:#fff; border:1px solid #e5e7eb; border-radius:16px;
+                                        padding:20px 24px; transition:border-color 0.15s, box-shadow 0.15s;"
+                     onmouseover="this.style.borderColor='#c7d2fe'; this.style.boxShadow='0 4px 16px rgba(99,102,241,0.08)'"
+                     onmouseout="this.style.borderColor='#e5e7eb'; this.style.boxShadow='none'">
+
+                    <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:16px;">
+
+                        @* ── Stânga: candidat info ── *@
+                        <a href="/employer/applications/@app.Id"
+                           style="display:flex; gap:14px; flex:1; min-width:0; text-decoration:none; color:inherit;">
+
+                            @* Avatar *@
+                            <div style="width:48px; height:48px; min-width:48px; background:#f0eeff;
+                                                    border-radius:12px; display:flex; align-items:center;
+                                                    justify-content:center; font-size:16px; font-weight:800;
+                                                    color:#6366f1; flex-shrink:0;">
+                                @(app.CandidateFullName?.Length >= 2
+                                                    ? app.CandidateFullName[..2].ToUpper() : "?")
+                </div>
+
+                            <div style="flex:1; min-width:0;">
+                                <div style="display:flex; align-items:center; gap:10px; margin-bottom:4px; flex-wrap:wrap;">
+                                    <h3 style="font-size:15px; font-weight:700; color:#111827; margin:0;">
+                                        @app.CandidateFullName
+                                    </h3>
+                        @if (_jobSkillIds.Any() && matchPct > 0)
+                                    {
+                                        <span style="font-size:11px; font-weight:700; padding:3px 10px;
+                                                                     border-radius:20px;
+                                                                     background:@GetMatchBg(matchPct);
+                                                                     color:@GetMatchColor(matchPct);">
+                                            @matchPct% match
+                                        </span>
+                                    }
+                                </div>
+                                <p style="font-size:12px; color:#9ca3af; margin:0 0 10px 0;">
+                                    Aplicat pe @app.AppliedAt.ToString("dd MMMM yyyy")
+                                </p>
+                                @if (skills.Any())
+                                {
+                                    <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                                        @foreach (var skill in skills.Take(5))
+                                        {
+                                            var isMatch = _jobSkillIds.Contains(skill.SkillId);
+                                            <span style="font-size:11px; font-weight:600; padding:3px 10px;
+                                                                             border-radius:20px;
+                                                                             background:@(isMatch ? "#d1fae5" : "#f3f4f6");
+                                                                             color:@(isMatch ? "#065f46" : "#6b7280");">
+                                                @if (isMatch)
+                                                {
+                                                    <span>✓ </span>
+                                                }
+                                                @skill.SkillName
+                                            </span>
+                                        }
+                                        @if (skills.Count > 5)
+                                        {
+                                            <span style="font-size:11px; color:#9ca3af; padding:3px 4px;">
+                                                +@(skills.Count - 5)
+                                            </span>
+                                        }
+                                    </div>
+                                }
+                            </div>
+                        </a>
+
+                        @* ── Dreapta: status + acțiuni ── *@
+                        <div style="display:flex; flex-direction:column; align-items:flex-end;
+                                                gap:10px; flex-shrink:0;">
+                            <span style="font-size:11px; font-weight:600; padding:5px 14px;
+                                                     border-radius:20px;
+                                                     background:@GetBadgeBg(app.Status);
+                                                     color:@GetBadgeFg(app.Status);">
+                                @GetStatusText(app.Status)
+                            </span>
+                            <div style="display:flex; gap:8px;">
+                                <a href="/employer/applications/@app.Id"
+                                   style="font-size:12px; font-weight:600; color:#6366f1;
+                                                      text-decoration:none; padding:6px 14px;
+                                                      border:1px solid #c4b5fd; border-radius:8px;
+                                                      background:#f0eeff;">
+                                    Vezi profil
+                                </a>
+                                <button @onclick="() => StartConversation(app.Id)"
+                                        style="font-size:12px; font-weight:600; color:#6b7280;
+                                                           background:#fff; border:1px solid #e5e7eb;
+                                                           border-radius:8px; padding:6px 14px; cursor:pointer;">
+                                    Mesaj
+                                </button>
+                            </div>
                         </div>
-                    }
+                    </div>
                 </div>
-                <div style="display:flex; align-items:center; gap:12px; flex-shrink:0; margin-left:24px;">
-                    @if (_candidateSkills.ContainsKey(app.CandidateProfileId))
-                    {
-                        <StatusBadge Status="@($"{CalculateMatch(app.CandidateProfileId)}% match")" Variant="default" />
-                    }
-                    <StatusBadge Status="@GetStatusText(app.Status)" Variant="@GetStatusVariant(app.Status)" />
-                    <button @onclick="() => StartConversation(app.Id)" @onclick:preventDefault @onclick:stopPropagation
-                            style="font-size:12px; font-weight:600; color:#6366f1; background:transparent;
-                                   border:1px solid #6366f1; padding:4px 12px; cursor:pointer;
-                                   transition:all 0.15s; white-space:nowrap;"
-                            onmouseover="this.style.background='#6366f1';this.style.color='#fff'"
-                            onmouseout="this.style.background='transparent';this.style.color='#6366f1'">
-                        Trimite mesaj
-                    </button>
-                </div>
-            </div>
-        </a>
+            }
+        </div>
     }
 }
+
+<style>
+    @@keyframes shimmer {
+        0% {
+            background-position: -800px 0;
+        }
+
+        100% {
+            background-position: 800px 0;
+        }
+    }
+</style>
 
 @code {
     [Parameter] public int Id { get; set; }
@@ -103,16 +240,17 @@ else
     private string _filterStatus = "";
     private bool _loading = true;
     private string _jobTitle = "";
-    private List<JobFinder.Shared.DTOs.Applications.ApplicationDto> _applications = new();
+
+    private List<ApplicationDto> _applications = new();
     private HashSet<int> _jobSkillIds = new();
-    private Dictionary<int, List<JobFinder.Shared.DTOs.Candidates.CandidateSkillDto>> _candidateSkills = new();
+    private Dictionary<int, List<CandidateSkillDto>> _candidateSkills = new();
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
-            var appsTask = Http.GetFromJsonAsync<List<JobFinder.Shared.DTOs.Applications.ApplicationDto>>($"api/applications/job/{Id}");
-            var jobTask = Http.GetFromJsonAsync<JobFinder.Shared.DTOs.Jobs.JobPostingDto>($"api/jobs/{Id}");
+            var appsTask = Http.GetFromJsonAsync<List<ApplicationDto>>($"api/applications/job/{Id}");
+            var jobTask = Http.GetFromJsonAsync<JobPostingDto>($"api/jobs/{Id}");
 
             await Task.WhenAll(appsTask, jobTask);
 
@@ -125,19 +263,16 @@ else
                 _jobSkillIds = job.Skills.Select(s => s.SkillId).ToHashSet();
             }
 
-            // Load candidate skills for each applicant
             var candidateIds = _applications.Select(a => a.CandidateProfileId).Distinct();
             var skillTasks = candidateIds.Select(async cid =>
             {
                 try
                 {
-                    var skills = await Http.GetFromJsonAsync<List<JobFinder.Shared.DTOs.Candidates.CandidateSkillDto>>($"api/CandidateSkills/candidate/{cid}");
+                    var skills = await Http.GetFromJsonAsync<List<CandidateSkillDto>>(
+                        $"api/CandidateSkills/candidate/{cid}");
                     return (cid, skills: skills ?? new());
                 }
-                catch
-                {
-                    return (cid, skills: new List<JobFinder.Shared.DTOs.Candidates.CandidateSkillDto>());
-                }
+                catch { return (cid, skills: new List<CandidateSkillDto>()); }
             });
 
             var results = await Task.WhenAll(skillTasks);
@@ -145,54 +280,33 @@ else
                 _candidateSkills[cid] = skills;
         }
         catch { }
-        finally
-        {
-            _loading = false;
-        }
+        finally { _loading = false; }
     }
+
+    private IEnumerable<ApplicationDto> FilteredApplicants => _applications
+        .Where(a => string.IsNullOrEmpty(_search) ||
+                    a.CandidateFullName.Contains(_search, StringComparison.OrdinalIgnoreCase))
+        .Where(a => string.IsNullOrEmpty(_filterStatus) ||
+                    a.Status.ToString() == _filterStatus)
+        .OrderByDescending(a => CalculateMatch(a.CandidateProfileId))
+        .ThenByDescending(a => a.AppliedAt);
 
     private int CalculateMatch(int candidateProfileId)
     {
         if (!_candidateSkills.ContainsKey(candidateProfileId) || _jobSkillIds.Count == 0)
             return 0;
-        var candidateIds = _candidateSkills[candidateProfileId].Select(s => s.SkillId).ToHashSet();
-        var matched = _jobSkillIds.Count(id => candidateIds.Contains(id));
+        var candidateSkillIds = _candidateSkills[candidateProfileId]
+            .Select(s => s.SkillId).ToHashSet();
+        var matched = _jobSkillIds.Count(id => candidateSkillIds.Contains(id));
         return (int)Math.Round((double)matched / _jobSkillIds.Count * 100);
     }
-
-    private IEnumerable<JobFinder.Shared.DTOs.Applications.ApplicationDto> FilteredApplicants => _applications
-        .Where(a => string.IsNullOrEmpty(_search) ||
-                     a.CandidateFullName.Contains(_search, StringComparison.OrdinalIgnoreCase))
-        .Where(a => string.IsNullOrEmpty(_filterStatus) ||
-                     a.Status.ToString() == _filterStatus);
-
-    private string GetStatusText(JobFinder.Shared.Enums.ApplicationState status) => status switch
-    {
-        JobFinder.Shared.Enums.ApplicationState.Pending => "În așteptare",
-        JobFinder.Shared.Enums.ApplicationState.InReview => "În analiză",
-        JobFinder.Shared.Enums.ApplicationState.Interview => "Interviu",
-        JobFinder.Shared.Enums.ApplicationState.Accepted => "Acceptat",
-        JobFinder.Shared.Enums.ApplicationState.Rejected => "Respins",
-        JobFinder.Shared.Enums.ApplicationState.Withdrawn => "Retras",
-        _ => status.ToString()
-    };
-
-    private string GetStatusVariant(JobFinder.Shared.Enums.ApplicationState status) => status switch
-    {
-        JobFinder.Shared.Enums.ApplicationState.Pending => "warning",
-        JobFinder.Shared.Enums.ApplicationState.InReview => "warning",
-        JobFinder.Shared.Enums.ApplicationState.Interview => "default",
-        JobFinder.Shared.Enums.ApplicationState.Accepted => "success",
-        JobFinder.Shared.Enums.ApplicationState.Rejected => "destructive",
-        JobFinder.Shared.Enums.ApplicationState.Withdrawn => "muted",
-        _ => "default"
-    };
 
     private async Task StartConversation(int applicationId)
     {
         try
         {
-            var response = await Http.PostAsJsonAsync("api/messages/conversations", new { applicationId });
+            var response = await Http.PostAsJsonAsync("api/messages/conversations",
+                new { applicationId });
             if (response.IsSuccessStatusCode)
             {
                 var result = await response.Content.ReadFromJsonAsync<ConversationResult>();
@@ -202,5 +316,52 @@ else
         }
         catch { }
     }
+
+    private static string GetMatchBg(int s) => s switch
+    {
+        >= 80 => "#d1fae5",
+        >= 50 => "#fef9c3",
+        >= 20 => "#ede9fe",
+        _ => "#f3f4f6"
+    };
+    private static string GetMatchColor(int s) => s switch
+    {
+        >= 80 => "#065f46",
+        >= 50 => "#92400e",
+        >= 20 => "#4f46e5",
+        _ => "#6b7280"
+    };
+
+    private static string GetStatusText(ApplicationState s) => s switch
+    {
+        ApplicationState.Pending => "În așteptare",
+        ApplicationState.InReview => "În analiză",
+        ApplicationState.Interview => "Interviu",
+        ApplicationState.Accepted => "Acceptat",
+        ApplicationState.Rejected => "Respins",
+        ApplicationState.Withdrawn => "Retras",
+        _ => s.ToString()
+    };
+
+    private static string GetBadgeBg(ApplicationState s) => s switch
+    {
+        ApplicationState.Accepted => "#d1fae5",
+        ApplicationState.Rejected => "#fee2e2",
+        ApplicationState.Interview => "#dbeafe",
+        ApplicationState.InReview => "#fef9c3",
+        ApplicationState.Withdrawn => "#f3f4f6",
+        _ => "#ede9fe"
+    };
+
+    private static string GetBadgeFg(ApplicationState s) => s switch
+    {
+        ApplicationState.Accepted => "#065f46",
+        ApplicationState.Rejected => "#b91c1c",
+        ApplicationState.Interview => "#1d4ed8",
+        ApplicationState.InReview => "#92400e",
+        ApplicationState.Withdrawn => "#6b7280",
+        _ => "#4f46e5"
+    };
+
     private record ConversationResult(int Id);
 }

@@ -9,96 +9,183 @@
 
 <PageTitle>Mesagerie - JobFinder</PageTitle>
 
-<PageHeader Title="Mesagerie"
-            Description="Conversațiile tale cu candidații." />
+@* ── Titlu ── *@
+<div style="margin-bottom:24px;">
+    <h1 style="font-size:22px; font-weight:700; color:#111827; margin:0 0 4px 0;">
+        Mesagerie
+    </h1>
+    <p style="font-size:14px; color:#9ca3af; margin:0;">
+        Conversațiile tale cu candidații.
+    </p>
+</div>
 
 @if (_loading)
 {
-    <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
+    <div style="display:flex; gap:16px;">
+        <div style="width:300px; height:500px; border-radius:16px; flex-shrink:0;
+                        background:linear-gradient(90deg,#f3f4f6 25%,#e9eaec 50%,#f3f4f6 75%);
+                        background-size:800px 100%; animation:shimmer 1.4s infinite;"></div>
+        <div style="flex:1; height:500px; border-radius:16px;
+                        background:linear-gradient(90deg,#f3f4f6 25%,#e9eaec 50%,#f3f4f6 75%);
+                        background-size:800px 100%; animation:shimmer 1.4s infinite;"></div>
+    </div>
 }
 else if (!_conversations.Any())
 {
-    <div style="text-align:center; padding:60px 20px;">
-        <p style="font-size:14px; color:#6b7280;">
-            Nu ai conversații încă. Conversațiile apar când comunici cu candidații.
+    <div style="background:#fff; border:1px solid #e5e7eb; border-radius:16px;
+                    text-align:center; padding:64px 32px;">
+        <MudIcon Icon="@Icons.Material.Filled.Forum"
+                 Style="font-size:48px; color:#d1d5db; display:block; margin:0 auto 12px;" />
+        <p style="font-size:16px; font-weight:600; color:#111827; margin:0 0 8px 0;">
+            Nicio conversație încă.
+        </p>
+        <p style="font-size:14px; color:#9ca3af; margin:0;">
+            Conversațiile apar când comunici cu candidații din secțiunea Aplicări.
         </p>
     </div>
 }
 else
 {
-    <div style="display:flex; border:1px solid #e5e7eb; height:520px; background:#fff;">
-        @* Left panel — conversation list *@
-        <div style="width:320px; border-right:1px solid #e5e7eb; overflow-y:auto; flex-shrink:0;">
-            @foreach (var conv in _conversations)
-            {
-                var isActive = _selectedConversation?.Id == conv.Id;
-                <div @onclick="() => SelectConversation(conv)"
-                     style="padding:14px 16px; border-bottom:1px solid #e5e7eb; cursor:pointer;
-                            background:@(isActive ? "#f0f0ff" : "transparent");
-                            transition:background 0.15s;">
-                    <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                        <div style="min-width:0; flex:1;">
-                            <div style="display:flex; align-items:center; gap:6px;">
-                                <span style="font-size:13px; font-weight:@(conv.UnreadCount > 0 ? "700" : "500");
-                                             color:#111827; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+    <div style="display:flex; gap:16px; height:600px;">
+
+        @* ════════════════════════════════
+           PANEL STÂNGA — lista conversații
+        ════════════════════════════════ *@
+        <div style="width:300px; flex-shrink:0; background:#fff; border:1px solid #e5e7eb;
+                        border-radius:16px; overflow:hidden; display:flex; flex-direction:column;">
+
+            <div style="padding:16px 20px; border-bottom:1px solid #f0f0f0;">
+                <p style="font-size:12px; font-weight:700; color:#9ca3af; text-transform:uppercase;
+                              letter-spacing:1px; margin:0;">
+                    Conversații (@_conversations.Count)
+                </p>
+            </div>
+
+            <div style="overflow-y:auto; flex:1;">
+                @foreach (var conv in _conversations)
+                {
+                    var isActive = _selectedConversation?.Id == conv.Id;
+                    <div @onclick="() => SelectConversation(conv)"
+                         style="padding:14px 20px; border-bottom:1px solid #f5f5f5; cursor:pointer;
+                                        background:@(isActive ? "#f0eeff" : "transparent");
+                                        border-left:3px solid @(isActive ? "#6366f1" : "transparent");
+                                        transition:background 0.15s;"
+                         onmouseover="@(isActive ? "" : "this.style.background='#fafafa'")"
+                         onmouseout="@(isActive ? "" : "this.style.background='transparent'")">
+
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
+                            <div style="flex:1; min-width:0;">
+                                <div style="display:flex; align-items:center; gap:6px; margin-bottom:2px;">
+                                    <div style="width:32px; height:32px; min-width:32px; border-radius:8px;
+                                                        background:#ede9fe; display:flex; align-items:center;
+                                                        justify-content:center; font-size:11px; font-weight:700;
+                                                        color:#6366f1;">
+                                        @(conv.OtherPartyName?.Length >= 2
+                                                                        ? conv.OtherPartyName[..2].ToUpper() : "?")
+                            </div>
+                            <div style="flex:1; min-width:0;">
+                                <p style="font-size:13px; font-weight:@(conv.UnreadCount > 0 ? "700" : "600");
+                                                  color:#111827; margin:0; white-space:nowrap;
+                                                  overflow:hidden; text-overflow:ellipsis;">
                                     @conv.OtherPartyName
-                                </span>
-                                @if (conv.UnreadCount > 0)
+                                </p>
+                            </div>
+                            @if (conv.UnreadCount > 0)
+                                    {
+                                        <span style="background:#6366f1; color:#fff; font-size:10px;
+                                                                 font-weight:700; min-width:18px; height:18px;
+                                                                 border-radius:9px; display:inline-flex;
+                                                                 align-items:center; justify-content:center;
+                                                                 padding:0 5px; flex-shrink:0;">
+                                            @conv.UnreadCount
+                                        </span>
+                                    }
+                                </div>
+                                <p style="font-size:11px; color:#6366f1; margin:0 0 4px 36px;
+                                                  font-weight:600; white-space:nowrap; overflow:hidden;
+                                                  text-overflow:ellipsis;">
+                                    @conv.JobTitle
+                                </p>
+                                @if (!string.IsNullOrEmpty(conv.LastMessage))
                                 {
-                                    <span style="background:#6366f1; color:#fff; font-size:10px; font-weight:700;
-                                                 min-width:18px; height:18px; border-radius:9px; display:inline-flex;
-                                                 align-items:center; justify-content:center; padding:0 5px; flex-shrink:0;">
-                                        @conv.UnreadCount
-                                    </span>
+                                    <p style="font-size:12px; color:#9ca3af; margin:0 0 0 36px;
+                                                          overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                                        @conv.LastMessage
+                                    </p>
                                 }
                             </div>
-                            <p style="font-size:11px; color:#6b7280; margin:2px 0 0 0;">@conv.JobTitle</p>
-                            @if (!string.IsNullOrEmpty(conv.LastMessage))
-                            {
-                                <p style="font-size:12px; color:#9ca3af; margin:4px 0 0 0;
-                                          overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:220px;">
-                                    @conv.LastMessage
-                                </p>
-                            }
+                            <span style="font-size:10px; color:#9ca3af; flex-shrink:0;
+                                                 font-family:'Roboto Mono',monospace; margin-top:2px;">
+                                @FormatTime(conv.LastMessageAt)
+                            </span>
                         </div>
-                        <span style="font-size:11px; color:#9ca3af; flex-shrink:0; margin-left:8px;">
-                            @FormatTime(conv.LastMessageAt)
-                        </span>
                     </div>
-                </div>
-            }
+                }
+            </div>
         </div>
 
-        @* Right panel — messages *@
-        <div style="flex:1; display:flex; flex-direction:column; min-width:0;">
+        @* ════════════════════════════════
+           PANEL DREAPTA — mesaje
+        ════════════════════════════════ *@
+        <div style="flex:1; background:#fff; border:1px solid #e5e7eb; border-radius:16px;
+                        display:flex; flex-direction:column; overflow:hidden; min-width:0;">
+
             @if (_selectedConversation == null)
             {
-                <div style="flex:1; display:flex; align-items:center; justify-content:center;">
-                    <p style="font-size:14px; color:#9ca3af;">Selectează o conversație</p>
+                <div style="flex:1; display:flex; flex-direction:column;
+                                    align-items:center; justify-content:center; gap:12px;">
+                    <MudIcon Icon="@Icons.Material.Filled.ChatBubbleOutline"
+                             Style="font-size:48px; color:#d1d5db;" />
+                    <p style="font-size:14px; color:#9ca3af; margin:0;">
+                        Selectează o conversație pentru a vedea mesajele
+                    </p>
                 </div>
             }
             else
             {
-                @* Header *@
-                <div style="padding:12px 16px; border-bottom:1px solid #e5e7eb; background:#fafafa;">
-                    <span style="font-size:14px; font-weight:600; color:#111827;">
-                        @_selectedConversation.OtherPartyName
-                    </span>
-                    <span style="font-size:12px; color:#6b7280; margin-left:8px;">
-                        @_selectedConversation.JobTitle
-                    </span>
+                @* Header conversație *@
+                <div style="padding:16px 24px; border-bottom:1px solid #f0f0f0;
+                                    display:flex; align-items:center; justify-content:space-between;">
+                    <div style="display:flex; align-items:center; gap:12px;">
+                        <div style="width:40px; height:40px; border-radius:10px; background:#ede9fe;
+                                            display:flex; align-items:center; justify-content:center;
+                                            font-size:14px; font-weight:700; color:#6366f1; flex-shrink:0;">
+                            @(_selectedConversation.OtherPartyName?.Length >= 2
+                                                ? _selectedConversation.OtherPartyName[..2].ToUpper() : "?")
                 </div>
+                <div>
+                    <p style="font-size:14px; font-weight:700; color:#111827; margin:0;">
+                        @_selectedConversation.OtherPartyName
+                    </p>
+                    <p style="font-size:12px; color:#6366f1; margin:0; font-weight:600;">
+                        @_selectedConversation.JobTitle
+                    </p>
+                </div>
+            </div>
+        </div>
 
-                @* Messages area *@
-                <div id="messagesContainer" style="flex:1; overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:8px;">
-                    @if (_loadingMessages)
+                @* Zona mesaje *@
+                <div id="messagesContainer"
+                     style="flex:1; overflow-y:auto; padding:20px 24px;
+                                    display:flex; flex-direction:column; gap:10px;
+                                    background:#fafafa;">
+
+            @if (_loadingMessages)
                     {
-                        <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
+                        <div style="display:flex; justify-content:center; padding:32px 0;">
+                            <MudProgressCircular Indeterminate="true" Color="Color.Primary"
+                                                 Size="Size.Small" />
+                        </div>
                     }
                     else if (!_messages.Any())
                     {
-                        <div style="flex:1; display:flex; align-items:center; justify-content:center;">
-                            <p style="font-size:13px; color:#9ca3af;">Niciun mesaj încă. Trimite primul mesaj!</p>
+                        <div style="flex:1; display:flex; flex-direction:column;
+                                                align-items:center; justify-content:center; gap:8px; padding:32px 0;">
+                            <MudIcon Icon="@Icons.Material.Filled.Chat"
+                                     Style="font-size:36px; color:#d1d5db;" />
+                            <p style="font-size:13px; color:#9ca3af; margin:0;">
+                                Niciun mesaj încă. Trimite primul mesaj!
+                            </p>
                         </div>
                     }
                     else
@@ -106,14 +193,20 @@ else
                         @foreach (var msg in _messages)
                         {
                             <div style="display:flex; justify-content:@(msg.IsMine ? "flex-end" : "flex-start");">
-                                <div style="max-width:70%; padding:10px 14px;
-                                            background:@(msg.IsMine ? "#6366f1" : "#f3f4f6");
-                                            color:@(msg.IsMine ? "#ffffff" : "#111827");
-                                            border-radius:@(msg.IsMine ? "16px 16px 4px 16px" : "16px 16px 16px 4px");">
-                                    <p style="font-size:13px; margin:0; word-break:break-word; white-space:pre-wrap;">@msg.Content</p>
-                                    <p style="font-size:10px; margin:4px 0 0 0;
-                                              color:@(msg.IsMine ? "rgba(255,255,255,0.7)" : "#9ca3af");
-                                              text-align:@(msg.IsMine ? "right" : "left");">
+                                <div style="max-width:68%; padding:12px 16px;
+                                                            background:@(msg.IsMine ? "#6366f1" : "#fff");
+                                                            color:@(msg.IsMine ? "#fff" : "#111827");
+                                                            border-radius:@(msg.IsMine ? "16px 16px 4px 16px" : "16px 16px 16px 4px");
+                                                            border:@(msg.IsMine ? "none" : "1px solid #e5e7eb");
+                                                            box-shadow:0 1px 3px rgba(0,0,0,0.06);">
+                                    <p style="font-size:13px; margin:0; word-break:break-word;
+                                                              white-space:pre-wrap; line-height:1.5;">
+                                        @msg.Content
+                                    </p>
+                                    <p style="font-size:10px; margin:6px 0 0 0;
+                                                              color:@(msg.IsMine ? "rgba(255,255,255,0.65)" : "#9ca3af");
+                                                              text-align:@(msg.IsMine ? "right" : "left");
+                                                              font-family:'Roboto Mono',monospace;">
                                         @msg.SentAt.ToLocalTime().ToString("HH:mm")
                                     </p>
                                 </div>
@@ -122,17 +215,19 @@ else
                     }
                 </div>
 
-                @* Input *@
-                <div style="padding:12px 16px; border-top:1px solid #e5e7eb; display:flex; gap:8px; align-items:center;">
+                @* Input mesaj *@
+                <div style="padding:16px 24px; border-top:1px solid #f0f0f0;
+                                    display:flex; gap:10px; align-items:center; background:#fff;">
                     <MudTextField @bind-Value="_newMessage"
-                                  Placeholder="Scrie un mesaj..."
+                                  Placeholder="Scrie un mesaj candidatului..."
                                   Variant="Variant.Outlined"
                                   Margin="Margin.Dense"
-                                  Style="flex:1;"
+                                  Style="flex:1; border-radius:10px;"
                                   Immediate="true"
                                   OnKeyDown="HandleKeyDown" />
                     <MudIconButton Icon="@Icons.Material.Filled.Send"
-                                   Color="Color.Primary"
+                                   Style="background:#6366f1; color:#fff; border-radius:10px;
+                                                  width:40px; height:40px;"
                                    OnClick="SendMessage"
                                    Disabled="@(string.IsNullOrWhiteSpace(_newMessage))" />
                 </div>
@@ -141,11 +236,23 @@ else
     </div>
 }
 
+<style>
+    @@keyframes shimmer {
+        0% {
+            background-position: -800px 0;
+        }
+
+        100% {
+            background-position: 800px 0;
+        }
+    }
+</style>
+
 @code {
     [Parameter] public int? ConversationId { get; set; }
 
     private bool _loading = true;
-    private bool _loadingMessages;
+    private bool _loadingMessages = false;
     private List<ConversationDto> _conversations = new();
     private ConversationDto? _selectedConversation;
     private List<MessageDto> _messages = new();
@@ -156,13 +263,11 @@ else
     {
         try
         {
-            _conversations = await Http.GetFromJsonAsync<List<ConversationDto>>("api/messages/conversations") ?? new();
+            _conversations = await Http.GetFromJsonAsync<List<ConversationDto>>(
+                "api/messages/conversations") ?? new();
         }
         catch { }
-        finally
-        {
-            _loading = false;
-        }
+        finally { _loading = false; }
 
         _hubConnection = new HubConnectionBuilder()
             .WithUrl(Navigation.ToAbsoluteUri("/hubs/chat"))
@@ -189,17 +294,12 @@ else
             }
         });
 
-        try
-        {
-            await _hubConnection.StartAsync();
-        }
-        catch { }
+        try { await _hubConnection.StartAsync(); } catch { }
 
         if (ConversationId.HasValue)
         {
             var conv = _conversations.FirstOrDefault(c => c.Id == ConversationId.Value);
-            if (conv != null)
-                await SelectConversation(conv);
+            if (conv != null) await SelectConversation(conv);
         }
     }
 
@@ -212,7 +312,8 @@ else
 
         try
         {
-            _messages = await Http.GetFromJsonAsync<List<MessageDto>>($"api/messages/conversations/{conv.Id}") ?? new();
+            _messages = await Http.GetFromJsonAsync<List<MessageDto>>(
+                $"api/messages/conversations/{conv.Id}") ?? new();
 
             if (conv.UnreadCount > 0)
             {
@@ -226,11 +327,7 @@ else
                 await _hubConnection.InvokeAsync("JoinConversation", conv.Id);
         }
         catch { }
-        finally
-        {
-            _loadingMessages = false;
-            StateHasChanged();
-        }
+        finally { _loadingMessages = false; StateHasChanged(); }
     }
 
     private async Task HandleKeyDown(KeyboardEventArgs e)
@@ -261,13 +358,16 @@ else
             }
             else
             {
-                var dto = new SendMessageDto { ConversationId = _selectedConversation.Id, Content = content };
+                var dto = new SendMessageDto
+                {
+                    ConversationId = _selectedConversation.Id,
+                    Content = content
+                };
                 var response = await Http.PostAsJsonAsync("api/messages/send", dto);
                 if (response.IsSuccessStatusCode)
                 {
                     var msg = await response.Content.ReadFromJsonAsync<MessageDto>();
-                    if (msg != null)
-                        _messages.Add(msg);
+                    if (msg != null) _messages.Add(msg);
                 }
             }
 
@@ -278,17 +378,16 @@ else
         catch { }
     }
 
-    private string FormatTime(DateTime? dt)
+    private static string FormatTime(DateTime? dt)
     {
         if (dt == null) return "";
         var local = dt.Value.ToLocalTime();
-        var now = DateTime.Now;
-        var diff = now - local;
+        var diff = DateTime.Now - local;
 
         if (diff.TotalMinutes < 1) return "acum";
-        if (diff.TotalMinutes < 60) return $"acum {(int)diff.TotalMinutes} min";
-        if (diff.TotalHours < 24 && local.Date == now.Date) return local.ToString("HH:mm");
-        if (local.Date == now.Date.AddDays(-1)) return "ieri";
+        if (diff.TotalMinutes < 60) return $"{(int)diff.TotalMinutes}m";
+        if (local.Date == DateTime.Now.Date) return local.ToString("HH:mm");
+        if (local.Date == DateTime.Now.Date.AddDays(-1)) return "ieri";
         return local.ToString("dd MMM");
     }
 
