@@ -712,7 +712,12 @@ else
         finally { _isUploadingAvatar = false; StateHasChanged(); }
     }
 
-    private async Task DownloadPdf() => await JS.InvokeVoidAsync("window.print");
+    //private async Task DownloadPdf() => await JS.InvokeVoidAsync("window.print");
+    // private async Task DownloadPdf()
+    // {
+    //     await JS.InvokeVoidAsync("printCvOnly");
+    // }
+    private async Task DownloadPdf() => await JS.InvokeVoidAsync("eval", "window.print()");
     private void RemoveSkill(int id) => _skills?.RemoveAll(s => s.Id == id);
 
     private static int LevelToInt(LanguageProficiencyLevel l) => l switch

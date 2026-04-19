@@ -88,7 +88,7 @@ public class ChatHub : Hub
             IsMine = false
         };
 
-        await Clients.Group($"conversation_{conversationId}").SendAsync("ReceiveMessage", dto);
+        await Clients.OthersInGroup($"conversation_{conversationId}").SendAsync("ReceiveMessage", dto);
     }
 
     public async Task MarkAsRead(int conversationId)

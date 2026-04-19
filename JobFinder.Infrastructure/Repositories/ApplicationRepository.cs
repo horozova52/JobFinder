@@ -29,12 +29,12 @@ public class ApplicationRepository : IApplicationRepository
         return await _context.Applications
             .Include(a => a.JobPosting)
                 .ThenInclude(j => j.EmployerProfile)
+            .Include(a => a.CandidateProfile)
             .Include(a => a.StatusHistory)
             .Where(a => a.CandidateProfileId == candidateProfileId)
             .AsNoTracking()
             .ToListAsync(cancellationToken);
     }
-
     public async Task<Application?> GetByIdAsync(int id, CancellationToken cancellationToken = default)
     {
         return await _context.Applications
