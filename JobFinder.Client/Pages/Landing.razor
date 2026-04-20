@@ -11,7 +11,57 @@
 @inject AuthenticationStateProvider AuthStateProvider
 
 <PageTitle>JobFinder - Platformă de recrutare transparentă</PageTitle>
+<!-- HERO -->
+<section style="background:linear-gradient(180deg,#f8f7ff 0%,#ffffff 5%,#ffffff 95%,#f8f7ff 100%);
+            padding:64px 0; margin-bottom:-1px;">
+    <div style="max-width:1200px; margin:0 auto; padding:0 32px;
+                display:grid; grid-template-columns:3fr 2fr; gap:64px; align-items:center;">
 
+        <!-- Coloana STÂNGĂ -->
+        <div>
+            <p style="font-size:11px; font-weight:700; letter-spacing:3px; text-transform:uppercase;
+                      color:#6366f1; margin:0 0 20px 0; font-family:'Roboto Mono',monospace;">
+                Platformă de recrutare transparentă
+            </p>
+            <h1 style="font-size:clamp(40px,5vw,62px); font-weight:800; line-height:1.08;
+                       letter-spacing:-2px; margin:0 0 24px 0; color:#111827;">
+                Recrutare simplă.<br />
+                Transparentă.<br />
+                <span style="color:#6366f1;">Fără compromisuri.</span>
+            </h1>
+            <div style="display:flex; gap:12px; flex-wrap:wrap;">
+                <a href="/register/candidate"
+                   style="display:inline-block; background:#111827; color:#fff; text-decoration:none;
+                          font-size:11px; font-weight:700; letter-spacing:2px; text-transform:uppercase;
+                          padding:15px 28px; border-radius:10px;">
+                    Sunt candidat →
+                </a>
+                <a href="/register/employer"
+                   style="display:inline-block; background:#fff; color:#111827; text-decoration:none;
+                          font-size:11px; font-weight:700; letter-spacing:2px; text-transform:uppercase;
+                          padding:15px 28px; border-radius:10px; border:2px solid #e5e7eb;">
+                    Sunt angajator
+                </a>
+                <a href="/jobs"
+                   style="display:inline-block; color:#6366f1; text-decoration:none;
+                          font-size:11px; font-weight:700; letter-spacing:2px; text-transform:uppercase;
+                          padding:15px 16px;">
+                    Explorează joburi →
+                </a>
+            </div>
+        </div>
+
+        <!-- Coloana DREAPTA - SVG animat -->
+        <div style="display:flex; align-items:center; justify-content:center; overflow:hidden; max-width:100%;">
+            <img src="hero_matching_animated.svg"
+                 alt="Candidați conectați la angajatori prin JobFinder"
+                 style="width:100%; max-width:420px; height:auto; display:block;" />
+        </div>
+
+    </div>
+</section>
+
+@* 
 <!-- HERO -->
 
     <section style="background:linear-gradient(180deg,#f8f7ff 0%,#ffffff 5%,#ffffff 95%,#f8f7ff 100%);
@@ -50,9 +100,7 @@
                     Explorează joburi →
                 </a>
             </div>
-
-           
-        </div>
+                               </div>
 
         <div style="background:rgba(255,255,255,0.75); backdrop-filter:blur(16px);
                     border:1px solid rgba(99,102,241,0.15); border-radius:20px;
@@ -104,7 +152,7 @@
             </div>
         </div>
     </div>
-</section>
+</section> *@
 
 <!-- SEARCH BAR -->
 

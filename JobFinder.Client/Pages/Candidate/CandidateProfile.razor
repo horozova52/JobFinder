@@ -446,9 +446,24 @@ else
         min-width: 0 !important;
         padding: 0 12px !important;
     }
+
     @@media print {
-        body > * { display:none !important; }
-        #cv-preview { display:block !important; border:none !important; }
+        body * {
+            visibility: hidden;
+        }
+
+        #cv-preview, #cv-preview * {
+            visibility: visible;
+        }
+
+        #cv-preview {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            border: none !important;
+            box-shadow: none !important;
+        }
     }
 </style>
 
@@ -711,13 +726,17 @@ else
         }
         finally { _isUploadingAvatar = false; StateHasChanged(); }
     }
-
-    //private async Task DownloadPdf() => await JS.InvokeVoidAsync("window.print");
+    private void DownloadPdf()
+    {
+        // Mergem la tab CV Preview, apoi navigăm la pagina dedicată de print
+        Navigation.NavigateTo("/candidate/cv-print");
+    }
+   // private async Task DownloadPdf() => await JS.InvokeVoidAsync("window.print");
     // private async Task DownloadPdf()
     // {
     //     await JS.InvokeVoidAsync("printCvOnly");
     // }
-    private async Task DownloadPdf() => await JS.InvokeVoidAsync("eval", "window.print()");
+  //  private async Task DownloadPdf() => await JS.InvokeVoidAsync("eval", "window.print()");
     private void RemoveSkill(int id) => _skills?.RemoveAll(s => s.Id == id);
 
     private static int LevelToInt(LanguageProficiencyLevel l) => l switch

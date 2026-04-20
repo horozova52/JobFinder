@@ -1,0 +1,300 @@
+﻿@page "/candidate/cv-print"
+@using JobFinder.Shared.DTOs.Candidates
+@using JobFinder.Shared.Enums
+@using System.Net.Http.Json
+@inject HttpClient Http
+@inject IJSRuntime JS
+
+<PageTitle>CV - @_profile?.FirstName @_profile?.LastName</PageTitle>
+
+@if (_loading)
+{
+    <p style="text-align:center; padding:40px; font-size:14px; color:#6b7280;">Se generează CV-ul...</p>
+}
+else if (_profile == null)
+{
+    <p style="text-align:center; padding:40px; font-size:14px; color:#dc2626;">Profilul nu a fost găsit.</p>
+}
+else
+{
+    <div style="max-width:800px; margin:0 auto; padding:20px;">
+
+        <!-- Buton print (ascuns la print) -->
+        <div class="no-print" style="display:flex; gap:12px; margin-bottom:20px;">
+            <button onclick="window.print()"
+                    style="background:#6366f1; color:#fff; border:none; padding:10px 24px;
+                               font-size:13px; font-weight:700; cursor:pointer; border-radius:8px;">
+                🖨 Salvează ca PDF
+            </button>
+            <a href="/candidate/profile"
+               style="background:#fff; color:#6b7280; border:1px solid #e5e7eb; padding:10px 24px;
+                          font-size:13px; font-weight:600; text-decoration:none; border-radius:8px;
+                          display:inline-flex; align-items:center;">
+                ← Înapoi la profil
+            </a>
+        </div>
+
+        <!-- CV CONTENT -->
+        <div id="cv-content" style="background:#fff; border:1px solid #e5e7eb; font-family:Arial, sans-serif;">
+
+            <!-- HEADER -->
+            <div style="background:#111827; padding:32px 36px; display:flex; justify-content:space-between; align-items:flex-start;">
+                <div style="flex:1;">
+                    <p style="font-size:9px; font-weight:600; letter-spacing:3px; text-transform:uppercase;
+                                  color:#6366f1; margin:0 0 8px 0;">
+                        Curriculum Vitae
+                    </p>
+                    <h1 style="font-size:24px; font-weight:700; color:#fff; margin:0 0 5px 0; letter-spacing:-0.5px;">
+                        @_profile.FirstName @_profile.LastName
+                    </h1>
+                    @if (!string.IsNullOrWhiteSpace(_profile.Headline))
+                    {
+                        <p style="font-size:13px; color:#9ca3af; margin:0;">@_profile.Headline</p>
+                    }
+                </div>
+                <div style="display:flex; flex-direction:column; align-items:flex-end; gap:4px; color:#9ca3af; font-size:11px;">
+                    @if (!string.IsNullOrWhiteSpace(_profile.Email))
+                    {
+                        <span>@_profile.Email</span>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(_profile.Phone))
+                    {
+                        <span>@_profile.Phone</span>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(_profile.Location))
+                    {
+                        <span>@_profile.Location</span>
+                    }
+                    @if (_profile.DateOfBirth.HasValue)
+                    {
+                        <span>@_profile.DateOfBirth.Value.ToString("dd.MM.yyyy")</span>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(_profile.Nationality))
+                    {
+                        <span>@_profile.Nationality</span>
+                    }
+                </div>
+            </div>
+
+            <div style="padding:28px 36px;">
+
+                <!-- PROFIL PROFESIONAL -->
+                @if (!string.IsNullOrWhiteSpace(_profile.Summary))
+                {
+                    <section style="margin-bottom:28px;">
+                        <h2 style="font-size:10px; font-weight:600; letter-spacing:3px; text-transform:uppercase;
+                                           color:#6b7280; margin:0 0 12px 0; padding-bottom:8px; border-bottom:1px solid #e5e7eb;">
+                            Profil profesional
+                        </h2>
+                        <p style="font-size:13px; color:#374151; line-height:1.7; margin:0;">
+                            @_profile.Summary
+                        </p>
+                    </section>
+                }
+
+                <!-- EXPERIENȚĂ PROFESIONALĂ -->
+                @if (_profile.Experiences?.Any() == true)
+                {
+                    <section style="margin-bottom:28px;">
+                        <h2 style="font-size:10px; font-weight:600; letter-spacing:3px; text-transform:uppercase;
+                                           color:#6b7280; margin:0 0 12px 0; padding-bottom:8px; border-bottom:1px solid #e5e7eb;">
+                            Experiență profesională
+                        </h2>
+                        @foreach (var exp in _profile.Experiences.OrderByDescending(e => e.StartDate))
+                        {
+                            <div style="margin-bottom:16px;">
+                                <div style="display:flex; justify-content:space-between; align-items:baseline;">
+                                    <div>
+                                        <p style="font-size:14px; font-weight:700; color:#111827; margin:0;">
+                                            @exp.Position
+                                        </p>
+                                        <p style="font-size:13px; color:#6366f1; margin:2px 0 0 0; font-weight:600;">
+                                            @exp.CompanyName
+                                        </p>
+                                    </div>
+                                    <p style="font-size:11px; color:#9ca3af; margin:0; white-space:nowrap;">
+                                        @exp.StartDate.ToString("MM.yyyy") –
+                                        @(exp.IsCurrent ? "Prezent" : exp.EndDate?.ToString("MM.yyyy"))
+                                    </p>
+                                </div>
+                                @if (!string.IsNullOrWhiteSpace(exp.Description))
+                                {
+                                    <p style="font-size:12px; color:#6b7280; margin:6px 0 0 0; line-height:1.6;">
+                                        @exp.Description
+                                    </p>
+                                }
+                            </div>
+                        }
+                    </section>
+                }
+
+                <!-- EDUCAȚIE -->
+                @if (_profile.Educations?.Any() == true)
+                {
+                    <section style="margin-bottom:28px;">
+                        <h2 style="font-size:10px; font-weight:600; letter-spacing:3px; text-transform:uppercase;
+                                           color:#6b7280; margin:0 0 12px 0; padding-bottom:8px; border-bottom:1px solid #e5e7eb;">
+                            Educație
+                        </h2>
+                        @foreach (var edu in _profile.Educations.OrderByDescending(e => e.StartDate))
+                        {
+                            <div style="margin-bottom:14px;">
+                                <div style="display:flex; justify-content:space-between; align-items:baseline;">
+                                    <div>
+                                        <p style="font-size:14px; font-weight:700; color:#111827; margin:0;">
+                                            @edu.Degree
+                                            @if (!string.IsNullOrWhiteSpace(edu.FieldOfStudy))
+                                            {
+                                                <span style="font-weight:400; color:#6b7280;"> — @edu.FieldOfStudy</span>
+                                            }
+                                        </p>
+                                        <p style="font-size:13px; color:#6366f1; margin:2px 0 0 0; font-weight:600;">
+                                            @edu.Institution
+                                        </p>
+                                    </div>
+                                    <p style="font-size:11px; color:#9ca3af; margin:0; white-space:nowrap;">
+                                        @edu.StartDate.Year – @(edu.EndDate?.Year.ToString() ?? "Prezent")
+                                    </p>
+                                </div>
+                            </div>
+                        }
+                    </section>
+                }
+
+                <!-- COMPETENȚE -->
+                @if (_profile.Skills?.Any() == true)
+                {
+                    <section style="margin-bottom:28px;">
+                        <h2 style="font-size:10px; font-weight:600; letter-spacing:3px; text-transform:uppercase;
+                                           color:#6b7280; margin:0 0 12px 0; padding-bottom:8px; border-bottom:1px solid #e5e7eb;">
+                            Competențe
+                        </h2>
+                        <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                            @foreach (var skill in _profile.Skills)
+                            {
+                                <span style="font-size:11px; font-weight:600; color:#374151;
+                                                         border:1px solid #e5e7eb; padding:4px 10px;">
+                                    @skill.SkillName
+                                </span>
+                            }
+                        </div>
+                    </section>
+                }
+
+                <!-- LIMBI -->
+                @if (_profile.Languages?.Any() == true)
+                {
+                    <section style="margin-bottom:28px;">
+                        <h2 style="font-size:10px; font-weight:600; letter-spacing:3px; text-transform:uppercase;
+                                           color:#6b7280; margin:0 0 12px 0; padding-bottom:8px; border-bottom:1px solid #e5e7eb;">
+                            Limbi cunoscute
+                        </h2>
+                        @foreach (var lang in _profile.Languages)
+                        {
+                            <div style="display:flex; align-items:center; gap:12px; margin-bottom:8px;">
+                                <span style="font-size:13px; font-weight:600; color:#111827; min-width:120px;">
+                                    @lang.LanguageName
+                                </span>
+                                <span style="font-size:12px; color:#6b7280;">
+                                    @GetLevelLabel(lang.ProficiencyLevel)
+                                                                    </span>
+                            </div>
+                        }
+                    </section>
+                }
+
+                <!-- CERTIFICĂRI -->
+                @if (_profile.Certifications?.Any() == true)
+                {
+                    <section>
+                        <h2 style="font-size:10px; font-weight:600; letter-spacing:3px; text-transform:uppercase;
+                                           color:#6b7280; margin:0 0 12px 0; padding-bottom:8px; border-bottom:1px solid #e5e7eb;">
+                            Certificări
+                        </h2>
+                        @foreach (var cert in _profile.Certifications)
+                        {
+                            <div style="margin-bottom:8px;">
+                                <p style="font-size:13px; font-weight:600; color:#111827; margin:0;">
+                                    @cert.Name
+                                </p>
+                                @if (!string.IsNullOrWhiteSpace(cert.Issuer))
+                                {
+                                    <p style="font-size:12px; color:#6b7280; margin:2px 0 0 0;">
+                                        @cert.Issuer
+                                        @if (cert.IssueDate != null)
+                                        {
+                                            <span> · @cert.IssueDate.ToString("MM.yyyy")</span>
+                                        }
+                                    </p>
+                                }
+                            </div>
+                        }
+                    </section>
+                }
+            </div>
+        </div>
+    </div>
+}
+
+<style>
+    @@media print {
+        .no-print {
+            display: none !important;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        #cv-content {
+            border: none !important;
+            box-shadow: none !important;
+        }
+
+        header, nav, .mud-appbar, .mud-drawer {
+            display: none !important;
+        }
+
+        main {
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+    }
+</style>
+
+@code {
+    private CandidateProfileDto? _profile;
+    private bool _loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _profile = await Http.GetFromJsonAsync<CandidateProfileDto>("api/candidateprofile");
+        }
+        catch { }
+        finally { _loading = false; }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && _profile != null)
+        {
+            await Task.Delay(500);
+            await JS.InvokeVoidAsync("window.print");
+        }
+    }
+
+    private static string GetLevelLabel(LanguageProficiencyLevel l) => l switch
+    {
+        LanguageProficiencyLevel.A1 => "A1 — Începător",
+        LanguageProficiencyLevel.A2 => "A2 — Elementar",
+        LanguageProficiencyLevel.B1 => "B1 — Intermediar",
+        LanguageProficiencyLevel.B2 => "B2 — Intermediar avansat",
+        LanguageProficiencyLevel.C1 => "C1 — Avansat",
+        LanguageProficiencyLevel.C2 => "C2 — Competent",
+        LanguageProficiencyLevel.Native => "Maternă",
+        _ => l.ToString()
+    };
+}
