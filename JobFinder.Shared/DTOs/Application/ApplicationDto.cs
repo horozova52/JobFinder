@@ -16,4 +16,5 @@ public class ApplicationDto
     public ApplicationState Status { get; set; }
 
     public string? CoverLetter { get; set; }
+    public string? RejectionFeedback { get; set; }
 }

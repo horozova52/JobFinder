@@ -185,7 +185,7 @@ else
                 _summary = new()
                 {
                     ("Active",   _jobs.Count(j => j.Status == JobStatus.Published), "#16a34a"),
-                    ("Ciorne",   _jobs.Count(j => j.Status == JobStatus.Draft),     "#f59e0b"),
+                    ("Draft",   _jobs.Count(j => j.Status == JobStatus.Draft),     "#f59e0b"),
                     ("Închise",  _jobs.Count(j => j.Status == JobStatus.Closed),    "#6b7280"),
                     ("Expirate", _jobs.Count(j => j.Status == JobStatus.Expired),   "#dc2626"),
                 };

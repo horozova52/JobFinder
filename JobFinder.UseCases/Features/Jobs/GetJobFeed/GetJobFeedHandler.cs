@@ -44,14 +44,12 @@ public class GetJobFeedHandler : IRequestHandler<GetJobFeedQuery, GetJobFeedResu
                 .Select(s => s.Skill?.Name ?? "")
                 .Where(n => !string.IsNullOrEmpty(n))
                 .ToList();
-
             int matched = jobSkillNames
                 .Count(sn => candidateSkills.Contains(sn));
 
             int matchScore = jobSkillNames.Count > 0
                 ? (int)Math.Round((double)matched / jobSkillNames.Count * 100)
                 : 0;
-
             return new JobFeedItemDto
             {
                 Id = job.Id,
@@ -76,7 +74,6 @@ public class GetJobFeedHandler : IRequestHandler<GetJobFeedQuery, GetJobFeedResu
         .ThenByDescending(x => x.PublishedAt)
         .Take(request.PageSize)
         .ToList();
-
         return new GetJobFeedResult(items, items.Count);
     }
 

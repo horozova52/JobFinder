@@ -22,7 +22,6 @@ public class CandidateProfile
     public string? AvatarUrl { get; set; }
     public int? PreferredJobCategoryId { get; set; }
     public JobType? PreferredJobType { get; set; }
-
     public ICollection<Experience> Experiences { get; set; } = new List<Experience>();
     public ICollection<Education> Educations { get; set; } = new List<Education>();
     public ICollection<CandidateSkill> Skills { get; set; } = new List<CandidateSkill>();

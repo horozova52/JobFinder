@@ -30,15 +30,15 @@
         @for (int i = 0; i < 3; i++)
         {
             <div style="height:100px; border-radius:16px;
-                                background:linear-gradient(90deg,#f3f4f6 25%,#e9eaec 50%,#f3f4f6 75%);
-                                background-size:800px 100%; animation:shimmer 1.4s infinite;"></div>
+                                        background:linear-gradient(90deg,#f3f4f6 25%,#e9eaec 50%,#f3f4f6 75%);
+                                        background-size:800px 100%; animation:shimmer 1.4s infinite;"></div>
         }
     </div>
 }
 else if (_application == null)
 {
     <div style="background:#fff; border:1px solid #e5e7eb; border-radius:16px;
-                    text-align:center; padding:64px 32px;">
+                        text-align:center; padding:64px 32px;">
         <p style="font-size:14px; color:#6b7280; margin:0;">Aplicarea nu a fost găsită.</p>
     </div>
 }
@@ -54,12 +54,12 @@ else
             @* ── Card header candidat ── *@
             <div style="background:#fff; border:1px solid #e5e7eb; border-radius:16px; padding:28px;">
                 <div style="display:flex; justify-content:space-between; align-items:flex-start;
-                                gap:16px; margin-bottom:16px;">
+                                    gap:16px; margin-bottom:16px;">
                     <div style="display:flex; align-items:center; gap:14px; flex:1; min-width:0;">
                         <div style="width:56px; height:56px; min-width:56px; background:#f0eeff;
-                                        border-radius:12px; display:flex; align-items:center;
-                                        justify-content:center; font-size:20px; font-weight:800;
-                                        color:#6366f1; flex-shrink:0;">
+                                            border-radius:12px; display:flex; align-items:center;
+                                            justify-content:center; font-size:20px; font-weight:800;
+                                            color:#6366f1; flex-shrink:0;">
                             @(_application.CandidateFullName?.Length >= 2
                                                     ? _application.CandidateFullName[..2].ToUpper() : "?")
                     </div>
@@ -86,12 +86,12 @@ else
             @if (_candidateProfile != null)
                 {
                     <div style="display:flex; gap:16px; flex-wrap:wrap; padding-top:16px;
-                                        border-top:1px solid #f0f0f0;">
+                                                border-top:1px solid #f0f0f0;">
                         @if (!string.IsNullOrWhiteSpace(_candidateProfile.Email))
                         {
                             <a href="mailto:@_candidateProfile.Email"
                                style="display:flex; align-items:center; gap:6px; font-size:13px;
-                                                  color:#6366f1; text-decoration:none;">
+                                                              color:#6366f1; text-decoration:none;">
                                 <MudIcon Icon="@Icons.Material.Filled.Email" Style="font-size:16px;" />
                                 @_candidateProfile.Email
                             </a>
@@ -100,7 +100,7 @@ else
                         {
                             <a href="tel:@_candidateProfile.Phone"
                                style="display:flex; align-items:center; gap:6px; font-size:13px;
-                                                  color:#6366f1; text-decoration:none;">
+                                                              color:#6366f1; text-decoration:none;">
                                 <MudIcon Icon="@Icons.Material.Filled.Phone" Style="font-size:16px;" />
                                 @_candidateProfile.Phone
                             </a>
@@ -108,7 +108,7 @@ else
                         @if (!string.IsNullOrWhiteSpace(_candidateProfile.Location))
                         {
                             <span style="display:flex; align-items:center; gap:6px;
-                                                     font-size:13px; color:#6b7280;">
+                                                                 font-size:13px; color:#6b7280;">
                                 <MudIcon Icon="@Icons.Material.Filled.LocationOn" Style="font-size:16px; color:#9ca3af;" />
                                 @_candidateProfile.Location
                             </span>
@@ -125,7 +125,7 @@ else
                 {
                     <div style="background:#fff; border:1px solid #e5e7eb; border-radius:16px; padding:28px;">
                         <h2 style="font-size:14px; font-weight:700; color:#111827;
-                                               margin:0 0 14px 0; padding-left:12px; border-left:3px solid #6366f1;">
+                                                           margin:0 0 14px 0; padding-left:12px; border-left:3px solid #6366f1;">
                             Despre candidat
                         </h2>
                         <p style="font-size:14px; color:#374151; line-height:1.7; margin:0;">
@@ -139,7 +139,7 @@ else
                 {
                     <div style="background:#fff; border:1px solid #e5e7eb; border-radius:16px; padding:28px;">
                         <h2 style="font-size:14px; font-weight:700; color:#111827;
-                                               margin:0 0 16px 0; padding-left:12px; border-left:3px solid #6366f1;">
+                                                           margin:0 0 16px 0; padding-left:12px; border-left:3px solid #6366f1;">
                             Experiență
                         </h2>
                         <div style="display:flex; flex-direction:column; gap:14px;">
@@ -147,8 +147,8 @@ else
                             {
                                 <div style="display:flex; gap:12px; align-items:flex-start;">
                                     <div style="width:36px; height:36px; min-width:36px; background:#f3f4f6;
-                                                                border-radius:8px; display:flex; align-items:center;
-                                                                justify-content:center;">
+                                                                                border-radius:8px; display:flex; align-items:center;
+                                                                                justify-content:center;">
                                         <MudIcon Icon="@Icons.Material.Filled.Business"
                                                  Style="font-size:18px; color:#6b7280;" />
                                     </div>
@@ -174,7 +174,7 @@ else
                 {
                     <div style="background:#fff; border:1px solid #e5e7eb; border-radius:16px; padding:28px;">
                         <h2 style="font-size:14px; font-weight:700; color:#111827;
-                                               margin:0 0 16px 0; padding-left:12px; border-left:3px solid #6366f1;">
+                                                           margin:0 0 16px 0; padding-left:12px; border-left:3px solid #6366f1;">
                             Competențe
                         </h2>
                         <div style="display:flex; gap:8px; flex-wrap:wrap;">
@@ -182,10 +182,10 @@ else
                             {
                                 var isMatch = _jobSkillIds.Contains(skill.SkillId);
                                 <span style="font-size:12px; font-weight:600; padding:6px 14px;
-                                                             border-radius:20px;
-                                                             background:@(isMatch ? "#d1fae5" : "#f3f4f6");
-                                                             color:@(isMatch ? "#065f46" : "#6b7280");
-                                                             border:1px solid @(isMatch ? "#6ee7b7" : "#e5e7eb");">
+                                                                             border-radius:20px;
+                                                                             background:@(isMatch ? "#d1fae5" : "#f3f4f6");
+                                                                             color:@(isMatch ? "#065f46" : "#6b7280");
+                                                                             border:1px solid @(isMatch ? "#6ee7b7" : "#e5e7eb");">
                                     @if (isMatch)
                                     {
                                         <span>✓ </span>
@@ -210,13 +210,43 @@ else
             {
                 <div style="background:#fff; border:1px solid #e5e7eb; border-radius:16px; padding:28px;">
                     <h2 style="font-size:14px; font-weight:700; color:#111827;
-                                       margin:0 0 14px 0; padding-left:12px; border-left:3px solid #6366f1;">
+                                               margin:0 0 14px 0; padding-left:12px; border-left:3px solid #6366f1;">
                         Scrisoare de intenție
                     </h2>
                     <div style="background:#f5f3ff; border-radius:10px; padding:16px 20px;">
                         <p style="font-size:14px; color:#374151; margin:0; line-height:1.7;
-                                          white-space:pre-line;">
+                                                  white-space:pre-line;">
                             @_application.CoverLetter
+                        </p>
+                    </div>
+                </div>
+            }
+
+            @* ── Feedback respingere (vizibil dacă există deja) ── *@
+            @if (_application.Status == ApplicationState.Rejected &&
+                    !string.IsNullOrWhiteSpace(_application.RejectionFeedback))
+            {
+                <div style="background:#fff; border:1px solid #fecaca; border-radius:16px; padding:28px;
+                                    border-left:4px solid #dc2626;">
+                    <div style="display:flex; align-items:center; gap:10px; margin-bottom:14px;">
+                        <div style="width:36px; height:36px; background:#fee2e2; border-radius:10px;
+                                            display:flex; align-items:center; justify-content:center;">
+                            <MudIcon Icon="@Icons.Material.Filled.Feedback"
+                                     Style="color:#dc2626; font-size:20px;" />
+                        </div>
+                        <div>
+                            <h2 style="font-size:14px; font-weight:700; color:#111827; margin:0;">
+                                Feedback trimis candidatului
+                            </h2>
+                            <p style="font-size:12px; color:#9ca3af; margin:2px 0 0 0;">
+                                Motivul respingerii vizibil candidatului
+                            </p>
+                        </div>
+                    </div>
+                    <div style="background:#fef2f2; border-radius:10px; padding:16px 20px;">
+                        <p style="font-size:14px; color:#374151; margin:0; line-height:1.7;
+                                          white-space:pre-line;">
+                            @_application.RejectionFeedback
                         </p>
                     </div>
                 </div>
@@ -225,7 +255,7 @@ else
             @* ── Actualizare status ── *@
             <div style="background:#fff; border:1px solid #e5e7eb; border-radius:16px; padding:28px;">
                 <h2 style="font-size:14px; font-weight:700; color:#111827;
-                               margin:0 0 16px 0; padding-left:12px; border-left:3px solid #6366f1;">
+                                   margin:0 0 16px 0; padding-left:12px; border-left:3px solid #6366f1;">
                     Actualizare status
                 </h2>
                 <div style="display:flex; gap:8px; flex-wrap:wrap;">
@@ -235,12 +265,12 @@ else
                         <button @onclick="() => UpdateStatus(state)"
                                 disabled="@(_updatingStatus || isActive)"
                                 style="font-size:12px; font-weight:600; padding:8px 18px;
-                                               border-radius:20px; cursor:pointer;
-                                               border:2px solid @(isActive? GetBadgeFg(state) : "#e5e7eb");
-                                               color:@(isActive? GetBadgeFg(state) : "#6b7280");
-                                               background:@(isActive? GetBadgeBg(state) : "#fff");
-                                               opacity:@(_updatingStatus ? "0.6" : "1");
-                                               transition:all 0.15s;">
+                                                       border-radius:20px; cursor:pointer;
+                                                       border:2px solid @(isActive? GetBadgeFg(state) : "#e5e7eb");
+                                                       color:@(isActive? GetBadgeFg(state) : "#6b7280");
+                                                       background:@(isActive? GetBadgeBg(state) : "#fff");
+                                                       opacity:@(_updatingStatus ? "0.6" : "1");
+                                                       transition:all 0.15s;">
                             @label
                         </button>
                     }
@@ -252,7 +282,7 @@ else
                     @if (_pendingConfirmation != null)
                     {
                         <div style="margin-top:20px; background:#fefce8; border:1px solid #fde68a;
-                                                border-radius:12px; padding:20px;">
+                                                            border-radius:12px; padding:20px;">
                             <p style="font-size:14px; font-weight:700; color:#92400e; margin:0 0 6px 0;">
                                 ⏳ Candidatul a confirmat angajarea și așteaptă validarea ta.
                             </p>
@@ -265,14 +295,14 @@ else
                                            OnClick="ValidateEmployment"
                                            Disabled="_validating"
                                            Style="background:#16a34a; color:#fff; border-radius:10px;
-                                                              font-size:12px; font-weight:700; height:40px; padding:0 20px;">
+                                                                          font-size:12px; font-weight:700; height:40px; padding:0 20px;">
                                     @(_validating ? "Se procesează..." : "✓ Validează angajarea")
                                 </MudButton>
                                 <MudButton Variant="Variant.Outlined"
                                            OnClick="RejectEmployment"
                                            Disabled="_validating"
                                            Style="border-color:#dc2626; color:#dc2626; border-radius:10px;
-                                                              font-size:12px; font-weight:700; height:40px; padding:0 20px;">
+                                                                          font-size:12px; font-weight:700; height:40px; padding:0 20px;">
                                     Respinge
                                 </MudButton>
                             </div>
@@ -281,7 +311,7 @@ else
                     else if (_confirmationValidated)
                     {
                         <div style="margin-top:16px; background:#f0fdf4; border:1px solid #bbf7d0;
-                                                border-radius:12px; padding:16px 20px;">
+                                                            border-radius:12px; padding:16px 20px;">
                             <p style="font-size:14px; font-weight:700; color:#15803d; margin:0;">
                                 ✓ Angajarea validată. Experiența a fost adăugată în profilul candidatului.
                             </p>
@@ -300,16 +330,16 @@ else
             @if (_matchPercent > 0)
             {
                 <div style="background:#fff; border:1px solid #e5e7eb; border-radius:16px;
-                                    padding:24px; text-align:center;">
+                                            padding:24px; text-align:center;">
                     <p style="font-size:11px; font-weight:600; color:#9ca3af; text-transform:uppercase;
-                                      letter-spacing:1px; margin:0 0 12px 0;">
+                                              letter-spacing:1px; margin:0 0 12px 0;">
                         Compatibilitate
                     </p>
                     <div style="width:80px; height:80px; border-radius:50%; margin:0 auto 12px auto;
-                                        background:@GetMatchBg(_matchPercent);
-                                        display:flex; align-items:center; justify-content:center;
-                                        font-size:24px; font-weight:800; color:@GetMatchColor(_matchPercent);
-                                        border:3px solid @GetMatchBorder(_matchPercent);">
+                                                background:@GetMatchBg(_matchPercent);
+                                                display:flex; align-items:center; justify-content:center;
+                                                font-size:24px; font-weight:800; color:@GetMatchColor(_matchPercent);
+                                                border:3px solid @GetMatchBorder(_matchPercent);">
                         @_matchPercent%
                     </div>
                     <p style="font-size:13px; color:#6b7280; margin:0;">
@@ -321,7 +351,7 @@ else
             @* ── Acțiuni rapide ── *@
             <div style="background:#fff; border:1px solid #e5e7eb; border-radius:16px; padding:24px;">
                 <p style="font-size:12px; font-weight:700; color:#9ca3af; text-transform:uppercase;
-                              letter-spacing:1px; margin:0 0 14px 0;">
+                                  letter-spacing:1px; margin:0 0 14px 0;">
                     Acțiuni
                 </p>
                 <div style="display:flex; flex-direction:column; gap:8px;">
@@ -329,15 +359,15 @@ else
                                OnClick="GoToMessages"
                                FullWidth="true"
                                Style="background:#6366f1; color:#fff; border-radius:10px;
-                                          font-size:12px; font-weight:700; height:40px;">
+                                              font-size:12px; font-weight:700; height:40px;">
                         Deschide conversația
                     </MudButton>
                     @if (!string.IsNullOrWhiteSpace(_candidateProfile?.LinkedIn))
                     {
                         <a href="@_candidateProfile.LinkedIn" target="_blank"
                            style="display:block; text-align:center; padding:10px;
-                                          background:#f0eeff; border-radius:10px;
-                                          font-size:12px; font-weight:700; color:#6366f1; text-decoration:none;">
+                                                  background:#f0eeff; border-radius:10px;
+                                                  font-size:12px; font-weight:700; color:#6366f1; text-decoration:none;">
                             Vezi profil LinkedIn
                         </a>
                     }
@@ -347,7 +377,7 @@ else
             @* ── Info aplicare ── *@
             <div style="background:#fff; border:1px solid #e5e7eb; border-radius:16px; padding:24px;">
                 <p style="font-size:12px; font-weight:700; color:#9ca3af; text-transform:uppercase;
-                              letter-spacing:1px; margin:0 0 14px 0;">
+                                  letter-spacing:1px; margin:0 0 14px 0;">
                     Detalii aplicare
                 </p>
                 <div style="display:flex; flex-direction:column; gap:10px;">
@@ -366,9 +396,9 @@ else
                     <div>
                         <p style="font-size:11px; color:#9ca3af; margin:0 0 2px 0;">Status curent</p>
                         <span style="font-size:12px; font-weight:600; padding:4px 12px;
-                                         border-radius:20px;
-                                         background:@GetBadgeBg(_application.Status);
-                                         color:@GetBadgeFg(_application.Status);">
+                                             border-radius:20px;
+                                             background:@GetBadgeBg(_application.Status);
+                                             color:@GetBadgeFg(_application.Status);">
                             @GetStatusText(_application.Status)
                         </span>
                     </div>
@@ -377,6 +407,52 @@ else
         </div>
     </div>
 }
+
+@* ════════════════════════════════
+   DIALOG RESPINGERE CU FEEDBACK
+════════════════════════════════ *@
+<MudDialog @bind-Visible="_showRejectDialog"
+           Options="@(new DialogOptions { CloseOnEscapeKey = false, MaxWidth = MaxWidth.Small, FullWidth = true })">
+    <TitleContent>
+        <div style="display:flex; align-items:center; gap:10px;">
+            <MudIcon Icon="@Icons.Material.Filled.Feedback" Style="color:#dc2626;" />
+            <span style="font-size:16px; font-weight:700; color:#111827;">
+                Motivul respingerii
+            </span>
+        </div>
+    </TitleContent>
+    <DialogContent>
+        <p style="font-size:13px; color:#6b7280; margin:0 0 16px 0; line-height:1.5;">
+            Oferă candidatului un feedback constructiv. Acest mesaj va fi afișat candidatului
+            și îl va ajuta să înțeleagă decizia.
+        </p>
+
+        <MudTextField @bind-Value="_rejectionFeedback"
+                      Label="Feedback pentru candidat"
+                      Variant="Variant.Outlined"
+                      Lines="6"
+                      Counter="500"
+                      MaxLength="500"
+                      Immediate="true"
+                      Placeholder="Ex: Mulțumim pentru aplicare. Am decis să continuăm cu un candidat care are mai multă experiență practică în domeniul X. Te încurajăm să aplici la alte poziții pe viitor."
+                      HelperText="@(_rejectionError ?? $"Minim 50 caractere ({(_rejectionFeedback?.Trim().Length ?? 0)}/50)")"
+                      Error="@(!string.IsNullOrEmpty(_rejectionError))" />
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="CancelReject"
+                   Style="color:#6b7280; font-size:13px; font-weight:600; text-transform:none;">
+            Anulează
+        </MudButton>
+        <MudButton OnClick="ConfirmReject"
+                   Variant="Variant.Filled"
+                   Disabled="@(_updatingStatus)"
+                   Style="background:#dc2626; color:#fff; border-radius:10px;
+                          font-size:13px; font-weight:700; text-transform:none;
+                          padding:0 20px; height:40px;">
+            @(_updatingStatus ? "Se trimite..." : "Confirmă respingerea")
+        </MudButton>
+    </DialogActions>
+</MudDialog>
 
 <style>
     @@keyframes shimmer {
@@ -403,6 +479,11 @@ else
     private bool _validating = false;
     private bool _confirmationValidated = false;
     private int _matchPercent = 0;
+
+    // ── Dialog respingere ─────────────────────────────────────────────
+    private bool _showRejectDialog = false;
+    private string _rejectionFeedback = string.Empty;
+    private string? _rejectionError;
 
     private readonly List<(ApplicationState State, string Label)> _statusOptions = new()
     {
@@ -478,19 +559,66 @@ else
     private async Task UpdateStatus(ApplicationState newStatus)
     {
         if (_application == null || _application.Status == newStatus) return;
+
+        // ── Dacă se respinge → deschidem dialog pentru feedback ──
+        if (newStatus == ApplicationState.Rejected)
+        {
+            _rejectionFeedback = string.Empty;
+            _rejectionError = null;
+            _showRejectDialog = true;
+            return;
+        }
+
+        await PerformStatusUpdate(newStatus, null);
+    }
+
+    private async Task PerformStatusUpdate(ApplicationState newStatus, string? rejectionFeedback)
+    {
         _updatingStatus = true;
         try
         {
-            var r = await Http.PutAsJsonAsync($"api/applications/{Id}/status", new { Status = (int)newStatus });
+            var body = new
+            {
+                Status = (int)newStatus,
+                RejectionFeedback = rejectionFeedback
+            };
+
+            var r = await Http.PutAsJsonAsync($"api/applications/{Id}/status", body);
             if (r.IsSuccessStatusCode)
             {
-                _application.Status = newStatus;
+                _application!.Status = newStatus;
+                if (newStatus == ApplicationState.Rejected && !string.IsNullOrWhiteSpace(rejectionFeedback))
+                    _application.RejectionFeedback = rejectionFeedback;
                 Snackbar.Add($"Status actualizat: {GetStatusText(newStatus)}", Severity.Success);
             }
-            else Snackbar.Add("Eroare la actualizarea statusului.", Severity.Error);
+            else
+            {
+                Snackbar.Add("Eroare la actualizarea statusului.", Severity.Error);
+            }
         }
         catch { Snackbar.Add("Eroare de conexiune.", Severity.Error); }
         finally { _updatingStatus = false; }
+    }
+
+    private async Task ConfirmReject()
+    {
+        var trimmed = _rejectionFeedback?.Trim() ?? string.Empty;
+        if (trimmed.Length < 50)
+        {
+            _rejectionError = $"Feedback-ul trebuie să conțină minim 50 de caractere. ({trimmed.Length}/50)";
+            return;
+        }
+
+        _rejectionError = null;
+        _showRejectDialog = false;
+        await PerformStatusUpdate(ApplicationState.Rejected, trimmed);
+    }
+
+    private void CancelReject()
+    {
+        _showRejectDialog = false;
+        _rejectionFeedback = string.Empty;
+        _rejectionError = null;
     }
 
     private async Task ValidateEmployment()

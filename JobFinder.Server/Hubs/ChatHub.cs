@@ -43,7 +43,6 @@ public class ChatHub : Hub
     public async Task SendMessage(int conversationId, string content)
     {
         if (string.IsNullOrWhiteSpace(content)) return;
-
         var conversation = await _db.Conversations
             .Include(c => c.Application)
                 .ThenInclude(a => a.CandidateProfile)
@@ -51,14 +50,10 @@ public class ChatHub : Hub
                 .ThenInclude(a => a.JobPosting)
                     .ThenInclude(j => j.EmployerProfile)
             .FirstOrDefaultAsync(c => c.Id == conversationId);
-
         if (conversation == null) return;
-
         var candidateUserId = conversation.Application.CandidateProfile.UserId;
         var employerUserId = conversation.Application.JobPosting.EmployerProfile.UserId;
-
         if (UserId != candidateUserId && UserId != employerUserId) return;
-
         var message = new Message
         {
             ConversationId = conversationId,
@@ -67,15 +62,12 @@ public class ChatHub : Hub
             SentAt = DateTime.UtcNow,
             IsRead = false
         };
-
         _db.Messages.Add(message);
         conversation.LastMessageAt = message.SentAt;
         await _db.SaveChangesAsync();
-
         var senderName = UserId == candidateUserId
             ? $"{conversation.Application.CandidateProfile.FirstName} {conversation.Application.CandidateProfile.LastName}"
             : conversation.Application.JobPosting.EmployerProfile.CompanyName;
-
         var dto = new MessageDto
         {
             Id = message.Id,
@@ -87,7 +79,6 @@ public class ChatHub : Hub
             IsRead = message.IsRead,
             IsMine = false
         };
-
         await Clients.OthersInGroup($"conversation_{conversationId}").SendAsync("ReceiveMessage", dto);
     }
 

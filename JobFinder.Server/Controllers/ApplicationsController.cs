@@ -38,11 +38,9 @@ public class ApplicationsController : ControllerBase
         var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (string.IsNullOrEmpty(userId))
             return Unauthorized(new { message = "Utilizator neidentificat" });
-
-        var candidate = await _db.CandidateProfiles
+         var candidate = await _db.CandidateProfiles
             .AsNoTracking()
             .FirstOrDefaultAsync(c => c.UserId == userId, ct);
-
         if (candidate == null)
             return BadRequest(new { message = "Profilul de candidat nu a fost găsit" });
 
@@ -55,15 +53,12 @@ public class ApplicationsController : ControllerBase
             CandidateProfileId = candidate.Id,
             CoverLetter = dto.CoverLetter
         };
-
         var created = await _applicationRepo.CreateAsync(application, ct);
-
-        // ── Notificare angajator — aplicare nouă ──────────────────────
+                // ── Notificare angajator — aplicare nouă ──────────────────────
         var jobWithEmployer = await _db.JobPostings
             .Include(j => j.EmployerProfile)
             .AsNoTracking()
             .FirstOrDefaultAsync(j => j.Id == dto.JobPostingId, ct);
-
         if (jobWithEmployer?.EmployerProfile?.UserId is string employerUserId)
         {
             _db.Notifications.Add(new Notification
@@ -126,23 +121,27 @@ public class ApplicationsController : ControllerBase
         var dtos = _mapper.Map<IEnumerable<ApplicationDto>>(applications);
         return Ok(dtos);
     }
-
     [HttpPut("{id:int}/status")]
     public async Task<IActionResult> UpdateStatus(
-    int id,
-    [FromBody] UpdateApplicationStatusDto dto,
-    CancellationToken ct)
+        int id,
+        [FromBody] UpdateApplicationStatusDto dto,
+        CancellationToken ct)
     {
         var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (string.IsNullOrEmpty(userId))
             return Unauthorized(new { message = "Utilizator neidentificat" });
 
-        var employer = await _db.EmployerProfiles
-            .AsNoTracking()
-            .FirstOrDefaultAsync(e => e.UserId == userId, ct);
+        var newStatus = (ApplicationState)dto.Status;
 
-        if (employer == null)
-            return BadRequest(new { message = "Profilul de angajator nu a fost găsit" });
+        // ── Validare feedback obligatoriu la respingere ──────────────
+        if (newStatus == ApplicationState.Rejected)
+        {
+            if (string.IsNullOrWhiteSpace(dto.RejectionFeedback))
+                return BadRequest(new { message = "Feedback-ul este obligatoriu la respingerea aplicării." });
+
+            if (dto.RejectionFeedback.Trim().Length < 50)
+                return BadRequest(new { message = "Feedback-ul trebuie să conțină minim 50 de caractere." });
+        }
 
         var application = await _db.Applications
             .Include(a => a.JobPosting)
@@ -152,11 +151,31 @@ public class ApplicationsController : ControllerBase
         if (application == null)
             return NotFound(new { message = "Aplicarea nu a fost găsită" });
 
-        if (application.JobPosting.EmployerProfileId != employer.Id)
-            return Forbid();
+        // ── Permitem candidatului să-și retragă propria aplicare ──────
+        if (newStatus == ApplicationState.Withdrawn)
+        {
+            if (application.CandidateProfile.UserId != userId)
+                return Forbid();
+        }
+        else
+        {
+            var employer = await _db.EmployerProfiles
+                .AsNoTracking()
+                .FirstOrDefaultAsync(e => e.UserId == userId, ct);
 
-        var newStatus = (ApplicationState)dto.Status;
+            if (employer == null)
+                return BadRequest(new { message = "Profilul de angajator nu a fost găsit" });
+
+            if (application.JobPosting.EmployerProfileId != employer.Id)
+                return Forbid();
+        }
+
         application.Status = newStatus;
+
+        // ── Salvăm feedback-ul doar la respingere ────────────────────
+        if (newStatus == ApplicationState.Rejected)
+            application.RejectionFeedback = dto.RejectionFeedback!.Trim();
+
         await _db.SaveChangesAsync(ct);
 
         // ── Notificare candidat — status schimbat ─────────────────────
@@ -170,15 +189,19 @@ public class ApplicationsController : ControllerBase
         };
 
         var candidateUserId = application.CandidateProfile.UserId;
-        if (!string.IsNullOrEmpty(candidateUserId))
+        if (!string.IsNullOrEmpty(candidateUserId) && newStatus != ApplicationState.Withdrawn)
         {
+            var notifMessage = newStatus == ApplicationState.Rejected
+                ? $"Aplicarea ta la \"{application.JobPosting.Title}\" a fost respinsă. Angajatorul a oferit feedback."
+                : $"Aplicarea ta la \"{application.JobPosting.Title}\" este acum: {statusLabel}.";
+
             _db.Notifications.Add(new Notification
             {
                 UserId = candidateUserId,
                 Target = NotificationTarget.Candidate,
                 Type = NotificationType.ApplicationStatusChanged,
                 Title = "Status aplicare actualizat",
-                Message = $"Aplicarea ta la \"{application.JobPosting.Title}\" este acum: {statusLabel}.",
+                Message = notifMessage,
                 Link = $"/candidate/applications/{application.Id}",
                 CreatedAt = DateTime.UtcNow,
                 IsRead = false
@@ -238,4 +261,5 @@ public class ApplicationsController : ControllerBase
 public class UpdateApplicationStatusDto
 {
     public int Status { get; set; }
+    public string ? RejectionFeedback { get; set; }
 }
