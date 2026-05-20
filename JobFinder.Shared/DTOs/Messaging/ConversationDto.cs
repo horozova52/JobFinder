@@ -9,4 +9,5 @@ public class ConversationDto
     public string? LastMessage { get; set; }
     public DateTime? LastMessageAt { get; set; }
     public int UnreadCount { get; set; }
+    public int EmployerProfileId { get; set; }
 }

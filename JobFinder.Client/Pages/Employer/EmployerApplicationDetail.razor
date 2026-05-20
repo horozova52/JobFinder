@@ -657,9 +657,34 @@ else
         catch { Snackbar.Add("Eroare de conexiune.", Severity.Error); }
         finally { _validating = false; }
     }
+    private async Task GoToMessages()
+    {
+        if (_application == null) return;
 
-    private void GoToMessages() => Navigation.NavigateTo("/employer/messages");
+        try
+        {
+            var response = await Http.PostAsJsonAsync("api/messages/conversations",
+                new { applicationId = _application.Id });
 
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<ConversationResult>();
+                if (result != null)
+                {
+                    Navigation.NavigateTo($"/employer/messages/{result.Id}");
+                    return;
+                }
+            }
+
+            Snackbar.Add("Nu am putut deschide conversația. Încearcă din nou.", Severity.Error);
+        }
+        catch
+        {
+            Snackbar.Add("Eroare de conexiune.", Severity.Error);
+        }
+    }
+
+    private record ConversationResult(int Id);
     // ── Match helpers ─────────────────────────────────────────────────
     private static string GetMatchBg(int s) => s switch { >= 80 => "#d1fae5", >= 50 => "#fef9c3", >= 20 => "#ede9fe", _ => "#f3f4f6" };
     private static string GetMatchColor(int s) => s switch { >= 80 => "#065f46", >= 50 => "#92400e", >= 20 => "#4f46e5", _ => "#6b7280" };

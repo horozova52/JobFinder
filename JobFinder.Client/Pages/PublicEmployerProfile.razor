@@ -6,9 +6,11 @@
 @using JobFinder.Shared.Enums
 @using System.Net.Http.Json
 @using System.Text.Json
+@using Microsoft.AspNetCore.Components.Authorization
 
 @inject HttpClient Http
 @inject NavigationManager Navigation
+@inject AuthenticationStateProvider AuthState
 
 <PageTitle>@(_profile?.CompanyName ?? "Companie") - JobFinder</PageTitle>
 
@@ -343,7 +345,8 @@
                     {
                         <div style="padding:16px 20px; border-bottom:1px solid #f3f4f6;
                                     cursor:pointer;"
-                             @onclick="@(() => Navigation.NavigateTo($"/jobs/{job.Id}"))">
+                             @onclick="@(() => NavigateToJob(job.Id))">
+                            
                             <div style="display:flex; justify-content:space-between; align-items:flex-start;">
                                 <div>
                                     <span style="font-size:14px; font-weight:600; color:#111827; display:block;">
@@ -395,7 +398,7 @@
 @code {
     [Parameter]
     public int Id { get; set; }
-
+    private bool _isCandidate;
     private EmployerProfileDto? _profile;
     private List<JobPostingDto>? _jobs;
     private bool _isLoading = true;
@@ -407,9 +410,17 @@
 
     protected override async Task OnInitializedAsync()
     {
+        var authState = await AuthState.GetAuthenticationStateAsync();
+        _isCandidate = authState.User.IsInRole("Candidate");
         await LoadData();
     }
-
+    private void NavigateToJob(int jobId)
+    {
+        var targetUrl = _isCandidate
+            ? $"/candidate/jobs/{jobId}"
+            : $"/jobs/{jobId}";
+        Navigation.NavigateTo(targetUrl);
+    }
     private async Task LoadData()
     {
         try

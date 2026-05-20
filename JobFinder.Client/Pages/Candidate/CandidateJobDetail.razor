@@ -55,11 +55,23 @@ else
                     </div>
                     <div style="flex:1;">
                         <h1 style="font-size:22px; font-weight:700; color:#111827;
-                                       margin:0 0 4px 0; line-height:1.2;">
+                                           margin:0 0 4px 0; line-height:1.2;">
                             @_job.Title
                         </h1>
                         <p style="font-size:14px; color:#6b7280; margin:0;">
-                            @_job.CompanyName
+                            @if (_job.EmployerProfileId > 0)
+                            {
+                                <a href="/company/@_job.EmployerProfileId"
+                                   style="color:#6366f1; text-decoration:none; font-weight:600;"
+                                   onmouseover="this.style.textDecoration='underline'"
+                                   onmouseout="this.style.textDecoration='none'">
+                                    @_job.CompanyName
+                                </a>
+                            }
+                            else
+                            {
+                                @_job.CompanyName
+                            }
                             @if (!string.IsNullOrWhiteSpace(_job.Location))
                             {
                                 <span> · @_job.Location</span>
@@ -283,19 +295,32 @@ else
             @* ── Info companie ── *@
             <div style="background:#fff; border:1px solid #e5e7eb; border-radius:16px; padding:24px;">
                 <p style="font-size:11px; font-weight:600; color:#9ca3af; text-transform:uppercase;
-                              letter-spacing:1px; margin:0 0 14px 0;">
+                                  letter-spacing:1px; margin:0 0 14px 0;">
                     Despre companie
                 </p>
-                <div style="display:flex; align-items:center; gap:12px; margin-bottom:14px;">
+                <a href="/company/@_job.EmployerProfileId"
+                   style="display:flex; align-items:center; gap:12px; margin-bottom:14px;
+                              text-decoration:none; color:inherit; padding:8px; margin-left:-8px;
+                              margin-right:-8px; border-radius:10px; transition:background 0.15s;"
+                   onmouseover="this.style.background='#f9fafb'"
+                   onmouseout="this.style.background='transparent'"
+                   title="Vezi profilul companiei">
                     <div style="width:40px; height:40px; background:#f0eeff; border-radius:10px;
-                                    display:flex; align-items:center; justify-content:center;
-                                    font-size:14px; font-weight:800; color:#6366f1;">
+                                        display:flex; align-items:center; justify-content:center;
+                                        font-size:14px; font-weight:800; color:#6366f1;">
                         @(_job.CompanyName?.Length >= 2 ? _job.CompanyName[..2].ToUpper() : "?")
                     </div>
-                    <p style="font-size:14px; font-weight:700; color:#111827; margin:0;">
-                        @_job.CompanyName
-                    </p>
-                </div>
+                    <div style="flex:1;">
+                        <p style="font-size:14px; font-weight:700; color:#111827; margin:0;
+                                      display:flex; align-items:center; gap:6px;">
+                            @_job.CompanyName
+                            <span style="font-size:11px; color:#6366f1;">→</span>
+                        </p>
+                        <p style="font-size:11px; color:#6366f1; margin:0; font-weight:600;">
+                            Vezi profilul
+                        </p>
+                    </div>
+                </a>
                 @if (!string.IsNullOrWhiteSpace(_job.Location))
                 {
                     <div style="display:flex; align-items:center; gap:6px;">

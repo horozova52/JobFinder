@@ -65,9 +65,15 @@ else
                                 @_application.JobTitle
                             </h1>
                             <p style="font-size:13px; color:#9ca3af; margin:0;">
-                                @if (!string.IsNullOrWhiteSpace(_job?.CompanyName))
+                                @if (!string.IsNullOrWhiteSpace(_job?.CompanyName) && _job.EmployerProfileId > 0)
                                 {
-                                    <span>@_job.CompanyName · </span>
+                                    <a href="/company/@_job.EmployerProfileId"
+                                       style="color:#6366f1; text-decoration:none; font-weight:600;"
+                                       onmouseover="this.style.textDecoration='underline'"
+                                       onmouseout="this.style.textDecoration='none'">
+                                        @_job.CompanyName
+                                    </a>
+                                    <span> · </span>
                                 }
                                 Aplicat pe @_application.AppliedAt.ToString("dd MMMM yyyy")
                             </p>
@@ -190,7 +196,19 @@ else
                                 @_job.Title
                             </p>
                             <p style="font-size:13px; color:#6b7280; margin:0 0 12px 0;">
-                                @_job.CompanyName
+                                @if (_job.EmployerProfileId > 0)
+                                {
+                                    <a href="/company/@_job.EmployerProfileId"
+                                       style="color:#6366f1; text-decoration:none; font-weight:600;"
+                                       onmouseover="this.style.textDecoration='underline'"
+                                       onmouseout="this.style.textDecoration='none'">
+                                        @_job.CompanyName
+                                    </a>
+                                }
+                                else
+                                {
+                                    @_job.CompanyName
+                                }
                                 @if (!string.IsNullOrWhiteSpace(_job.Location))
                                 {
                                     <span> · @_job.Location</span>

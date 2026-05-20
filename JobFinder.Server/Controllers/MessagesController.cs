@@ -36,6 +36,10 @@ public class MessagesController : ControllerBase
         var employer = await _db.EmployerProfiles.AsNoTracking()
             .FirstOrDefaultAsync(e => e.UserId == userId, ct);
 
+        // 🔧 FIX: Folosim rolul real al utilizatorului, nu doar existența profilului
+        var isEmployer = User.IsInRole("Employer");
+        var isCandidate = User.IsInRole("Candidate");
+
         var query = _db.Conversations
             .Include(c => c.Application)
                 .ThenInclude(a => a.CandidateProfile)
@@ -45,10 +49,11 @@ public class MessagesController : ControllerBase
             .Include(c => c.Messages)
             .AsNoTracking();
 
-        if (candidate != null)
-            query = query.Where(c => c.Application.CandidateProfileId == candidate.Id);
-        else if (employer != null)
+        // 🔧 FIX: Prioritizăm rolul, nu primul profil găsit în DB
+        if (isEmployer && employer != null)
             query = query.Where(c => c.Application.JobPosting.EmployerProfileId == employer.Id);
+        else if (isCandidate && candidate != null)
+            query = query.Where(c => c.Application.CandidateProfileId == candidate.Id);
         else
             return Ok(Array.Empty<ConversationDto>());
 
@@ -61,11 +66,12 @@ public class MessagesController : ControllerBase
             var lastMsg = c.Messages.OrderByDescending(m => m.SentAt).FirstOrDefault();
             var unread = c.Messages.Count(m => m.SenderUserId != userId && !m.IsRead);
 
+            // 🔧 FIX: Folosim rolul real și aici
             string otherPartyName;
-            if (candidate != null)
-                otherPartyName = c.Application.JobPosting.EmployerProfile.CompanyName;
-            else
+            if (isEmployer)
                 otherPartyName = $"{c.Application.CandidateProfile.FirstName} {c.Application.CandidateProfile.LastName}";
+            else
+                otherPartyName = c.Application.JobPosting.EmployerProfile.CompanyName;
 
             return new ConversationDto
             {
@@ -75,7 +81,8 @@ public class MessagesController : ControllerBase
                 JobTitle = c.Application.JobPosting.Title,
                 LastMessage = lastMsg?.Content,
                 LastMessageAt = lastMsg?.SentAt ?? c.CreatedAt,
-                UnreadCount = unread
+                UnreadCount = unread,
+                EmployerProfileId = c.Application.JobPosting.EmployerProfileId
             };
         }).ToList();
 

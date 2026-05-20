@@ -14,9 +14,7 @@
     <h1 style="font-size:22px; font-weight:700; color:#111827; margin:0 0 4px 0;">
         Mesagerie
     </h1>
-    <p style="font-size:14px; color:#9ca3af; margin:0;">
-        Conversațiile tale cu candidații.
-    </p>
+    
 </div>
 
 @if (_loading)
@@ -143,25 +141,32 @@ else
             }
             else
             {
-                @* Header conversație *@
+                @* Header conversație — clickable spre profilul candidatului *@
                 <div style="padding:16px 24px; border-bottom:1px solid #f0f0f0;
-                                    display:flex; align-items:center; justify-content:space-between;">
-                    <div style="display:flex; align-items:center; gap:12px;">
+                    display:flex; align-items:center; justify-content:space-between;">
+                    <a href="/employer/applications/@_selectedConversation.ApplicationId"
+                       style="display:flex; align-items:center; gap:12px; text-decoration:none; color:inherit;
+                      padding:6px 10px; margin:-6px -10px; border-radius:10px; transition:background 0.15s;"
+                       onmouseover="this.style.background='#f9fafb'"
+                       onmouseout="this.style.background='transparent'"
+                       title="Vezi profilul candidatului">
                         <div style="width:40px; height:40px; border-radius:10px; background:#ede9fe;
-                                            display:flex; align-items:center; justify-content:center;
-                                            font-size:14px; font-weight:700; color:#6366f1; flex-shrink:0;">
+                            display:flex; align-items:center; justify-content:center;
+                            font-size:14px; font-weight:700; color:#6366f1; flex-shrink:0;">
                             @(_selectedConversation.OtherPartyName?.Length >= 2
                                                 ? _selectedConversation.OtherPartyName[..2].ToUpper() : "?")
                 </div>
                 <div>
-                    <p style="font-size:14px; font-weight:700; color:#111827; margin:0;">
+                    <p style="font-size:14px; font-weight:700; color:#111827; margin:0;
+                      display:flex; align-items:center; gap:6px;">
                         @_selectedConversation.OtherPartyName
+                        <span style="font-size:11px; color:#6366f1;">→</span>
                     </p>
                     <p style="font-size:12px; color:#6366f1; margin:0; font-weight:600;">
                         @_selectedConversation.JobTitle
                     </p>
                 </div>
-            </div>
+            </a>
         </div>
 
                 @* Zona mesaje *@
@@ -180,12 +185,40 @@ else
                     else if (!_messages.Any())
                     {
                         <div style="flex:1; display:flex; flex-direction:column;
-                                                align-items:center; justify-content:center; gap:8px; padding:32px 0;">
+                            align-items:center; justify-content:center; gap:16px; padding:32px 24px;">
                             <MudIcon Icon="@Icons.Material.Filled.Chat"
                                      Style="font-size:36px; color:#d1d5db;" />
                             <p style="font-size:13px; color:#9ca3af; margin:0;">
                                 Niciun mesaj încă. Trimite primul mesaj!
                             </p>
+
+                            @* ── Propuneri de mesaje (conversation starters) ── *@
+                            <div style="display:flex; flex-direction:column; gap:8px;
+                                width:100%; max-width:480px; margin-top:8px;">
+                                <p style="font-size:11px; font-weight:700; color:#9ca3af;
+                                  text-transform:uppercase; letter-spacing:1px;
+                                  margin:0 0 4px 0; text-align:center;">
+                                    Propuneri de mesaje
+                                </p>
+                                @foreach (var suggestion in _suggestedMessages)
+                                {
+                                    <div @onclick="() => SendSuggestion(suggestion)"
+                                         style="background:#fff; border:1px solid #e5e7eb; border-radius:12px;
+                                            padding:12px 16px; cursor:pointer; font-size:13px; color:#374151;
+                                            line-height:1.5; transition:all 0.15s ease;
+                                            display:flex; align-items:center; gap:10px;"
+                                         onmouseover="this.style.background='#f5f3ff';
+                                                  this.style.borderColor='#6366f1';
+                                                  this.style.color='#4338ca';"
+                                         onmouseout="this.style.background='#fff';
+                                                 this.style.borderColor='#e5e7eb';
+                                                 this.style.color='#374151';">
+                                        <MudIcon Icon="@Icons.Material.Outlined.Send"
+                                                 Style="font-size:14px; color:#6366f1; flex-shrink:0;" />
+                                        <span>@suggestion</span>
+                                    </div>
+                                }
+                            </div>
                         </div>
                     }
                     else
@@ -259,6 +292,18 @@ else
     private string _newMessage = "";
     private HubConnection? _hubConnection;
 
+    private readonly List<string> _suggestedMessages = new()
+{
+    "Bună ziua! Vă mulțumim pentru aplicare. Am dori să vă invităm la un interviu.",
+    "Bună ziua! CV-ul dvs. ne-a atras atenția. Când ați fi disponibil pentru o discuție?",
+    "Bună ziua! Aș dori să aflu mai multe despre experiența dvs. profesională."
+};
+
+    private async Task SendSuggestion(string text)
+    {
+        _newMessage = text;
+        await SendMessage();
+    }
     protected override async Task OnInitializedAsync()
     {
         try
