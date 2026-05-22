@@ -3,8 +3,17 @@
 @using JobFinder.Shared.DTOs.Jobs
 @using JobFinder.Shared.Enums
 @inject HttpClient Http
+@inject IJSRuntime JS
 
 <PageTitle>Anunțurile mele - JobFinder</PageTitle>
+
+<button @onclick="GoBack"
+        style="display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:600;
+               letter-spacing:1px; text-transform:uppercase; color:#6b7280;
+               background:none; border:none; cursor:pointer; padding:0;
+               margin-bottom:24px;">
+    ← Înapoi
+</button>
 
 @* ── Titlu + buton nou ── *@
 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:28px;">
@@ -12,7 +21,7 @@
         <h1 style="font-size:22px; font-weight:700; color:#111827; margin:0 0 4px 0;">
             Anunțurile mele
         </h1>
-        
+
     </div>
     <a href="/employer/jobs/create"
        style="display:inline-flex; align-items:center; gap:8px; background:#6366f1; color:#fff;
@@ -28,15 +37,15 @@
         @for (int i = 0; i < 4; i++)
         {
             <div style="height:90px; border-radius:16px;
-                                background:linear-gradient(90deg,#f3f4f6 25%,#e9eaec 50%,#f3f4f6 75%);
-                                background-size:800px 100%; animation:shimmer 1.4s infinite;"></div>
+                                        background:linear-gradient(90deg,#f3f4f6 25%,#e9eaec 50%,#f3f4f6 75%);
+                                        background-size:800px 100%; animation:shimmer 1.4s infinite;"></div>
         }
     </div>
 }
 else if (_jobs == null || _jobs.Count == 0)
 {
     <div style="background:#fff; border:1px solid #e5e7eb; border-radius:16px;
-                    text-align:center; padding:64px 32px;">
+                        text-align:center; padding:64px 32px;">
         <MudIcon Icon="@Icons.Material.Filled.WorkOff"
                  Style="font-size:48px; color:#d1d5db; display:block; margin:0 auto 12px;" />
         <p style="font-size:16px; font-weight:600; color:#111827; margin:0 0 8px 0;">
@@ -47,8 +56,8 @@ else if (_jobs == null || _jobs.Count == 0)
         </p>
         <a href="/employer/jobs/create"
            style="display:inline-block; background:#6366f1; color:#fff; text-decoration:none;
-                      font-size:12px; font-weight:700; letter-spacing:1px; text-transform:uppercase;
-                      padding:12px 24px; border-radius:10px;">
+                          font-size:12px; font-weight:700; letter-spacing:1px; text-transform:uppercase;
+                          padding:12px 24px; border-radius:10px;">
             + Publică primul anunț
         </a>
     </div>
@@ -60,13 +69,13 @@ else
         @foreach (var s in _summary)
         {
             <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px;
-                                padding:14px 16px; text-align:center;
-                                border-top:3px solid @(s.Count > 0 ? s.Color : "#e5e7eb");">
+                                        padding:14px 16px; text-align:center;
+                                        border-top:3px solid @(s.Count > 0 ? s.Color : "#e5e7eb");">
                 <p style="font-size:22px; font-weight:700;
-                                  color:@(s.Count > 0 ? s.Color : "#d1d5db");
-                                  margin:0 0 2px 0; line-height:1;">@s.Count</p>
+                                          color:@(s.Count > 0 ? s.Color : "#d1d5db");
+                                          margin:0 0 2px 0; line-height:1;">@s.Count</p>
                 <p style="font-size:10px; font-weight:600; color:#9ca3af; margin:0;
-                                  text-transform:uppercase; letter-spacing:1px;">@s.Label</p>
+                                          text-transform:uppercase; letter-spacing:1px;">@s.Label</p>
             </div>
         }
     </div>
@@ -76,34 +85,33 @@ else
         @foreach (var job in _jobs.OrderByDescending(j => j.PublishedAt))
         {
             <div style="background:#fff; border:1px solid #e5e7eb; border-radius:16px;
-                                padding:20px 24px; transition:border-color 0.15s, box-shadow 0.15s;"
+                                        padding:20px 24px; transition:border-color 0.15s, box-shadow 0.15s;"
                  onmouseover="this.style.borderColor='#c7d2fe'; this.style.boxShadow='0 4px 16px rgba(99,102,241,0.08)'"
                  onmouseout="this.style.borderColor='#e5e7eb'; this.style.boxShadow='none'">
 
                 <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:16px;">
 
-                    @* ── Stânga ── *@
-                    <div style="display:flex; gap:14px; flex:1; min-width:0;">
+                    @* ── Stânga: icon + titlu → duc la pagina de detalii ── *@
+                    <a href="/employer/jobs/@job.Id"
+                       style="display:flex; gap:14px; flex:1; min-width:0;
+                                      text-decoration:none; color:inherit;">
                         <div style="width:44px; height:44px; min-width:44px; background:#f0eeff;
-                                            border-radius:10px; display:flex; align-items:center;
-                                            justify-content:center; flex-shrink:0;">
+                                                    border-radius:10px; display:flex; align-items:center;
+                                                    justify-content:center; flex-shrink:0;">
                             <MudIcon Icon="@Icons.Material.Filled.Work"
                                      Style="color:#6366f1; font-size:22px;" />
                         </div>
                         <div style="flex:1; min-width:0;">
-                            <a href="/employer/jobs/@job.Id/edit"
-                               style="font-size:15px; font-weight:700; color:#111827;
-                                              text-decoration:none; display:block; margin-bottom:4px;
-                                              white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
-                               onmouseover="this.style.color='#6366f1'"
-                               onmouseout="this.style.color='#111827'">
+                            <p style="font-size:15px; font-weight:700; color:#111827;
+                                              margin:0 0 4px 0; white-space:nowrap;
+                                              overflow:hidden; text-overflow:ellipsis;">
                                 @job.Title
-                            </a>
+                            </p>
                             <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:center;">
                                 @if (!string.IsNullOrWhiteSpace(job.Location))
                                 {
                                     <span style="display:flex; align-items:center; gap:4px;
-                                                             font-size:12px; color:#9ca3af;">
+                                                                         font-size:12px; color:#9ca3af;">
                                         <MudIcon Icon="@Icons.Material.Filled.LocationOn"
                                                  Style="font-size:14px;" />
                                         @job.Location
@@ -112,7 +120,7 @@ else
                                 @if (job.PublishedAt.HasValue)
                                 {
                                     <span style="font-size:12px; color:#9ca3af;
-                                                             font-family:'Roboto Mono',monospace;">
+                                                                         font-family:'Roboto Mono',monospace;">
                                         @job.PublishedAt.Value.ToString("dd.MM.yyyy")
                                     </span>
                                 }
@@ -125,28 +133,28 @@ else
                                 }
                             </div>
                         </div>
-                    </div>
+                    </a>
 
                     @* ── Dreapta ── *@
                     <div style="display:flex; align-items:center; gap:10px; flex-shrink:0;">
                         <span style="font-size:11px; font-weight:600; padding:5px 14px;
-                                             border-radius:20px;
-                                             background:@GetBadgeBg(job.Status);
-                                             color:@GetBadgeFg(job.Status);">
+                                                     border-radius:20px;
+                                                     background:@GetBadgeBg(job.Status);
+                                                     color:@GetBadgeFg(job.Status);">
                             @GetStatusText(job.Status)
                         </span>
                         <a href="/employer/jobs/@job.Id/applications"
                            style="font-size:12px; font-weight:600; color:#6366f1;
-                                          text-decoration:none; padding:6px 14px;
-                                          border:1px solid #c4b5fd; border-radius:8px;
-                                          background:#f0eeff; white-space:nowrap;">
+                                                  text-decoration:none; padding:6px 14px;
+                                                  border:1px solid #c4b5fd; border-radius:8px;
+                                                  background:#f0eeff; white-space:nowrap;">
                             Aplicări →
                         </a>
                         <a href="/employer/jobs/@job.Id/edit"
                            style="font-size:12px; font-weight:600; color:#6b7280;
-                                          text-decoration:none; padding:6px 14px;
-                                          border:1px solid #e5e7eb; border-radius:8px;
-                                          background:#fff; white-space:nowrap;">
+                                                  text-decoration:none; padding:6px 14px;
+                                                  border:1px solid #e5e7eb; border-radius:8px;
+                                                  background:#fff; white-space:nowrap;">
                             Editează
                         </a>
                     </div>
@@ -210,6 +218,10 @@ else
         JobStatus.Expired => "#fee2e2",
         _ => "#f3f4f6"
     };
+    private async Task GoBack()
+    {
+        await JS.InvokeVoidAsync("history.back");
+    }
 
     private static string GetBadgeFg(JobStatus s) => s switch
     {
@@ -219,4 +231,5 @@ else
         JobStatus.Expired => "#b91c1c",
         _ => "#6b7280"
     };
+
 }

@@ -1,0 +1,45 @@
+﻿
+@inject NavigationManager Navigation
+
+<div style="display:flex; gap:4px; border-bottom:1px solid #e5e7eb;
+            margin-bottom:24px; flex-wrap:wrap;">
+
+    @foreach (var tab in _tabs)
+    {
+        var isActive = tab.Key == Active;
+        <button @onclick="@(() => Go(tab.Key, tab.Route))"
+                style="background:none; border:none; cursor:pointer;
+                           font-size:13px; font-weight:600; padding:10px 16px;
+                           border-bottom:2px solid @(isActive ? "#6366f1" : "transparent");
+                           color:@(isActive ? "#6366f1" : "#6b7280");
+                           transition:color 0.15s, border-color 0.15s;">
+            @tab.Label
+        </button>
+    }
+</div>
+
+@code {
+    
+    [Parameter, EditorRequired] public int JobId { get; set; }
+
+    [Parameter, EditorRequired] public string Active { get; set; } = "details";
+
+    private record Tab(string Key, string Label, string RouteSuffix)
+    {
+        public string Route => RouteSuffix;
+    }
+
+    private static readonly List<Tab> _tabs = new()
+    {
+        new("details", "Detalii job",      ""),
+        new("list",    "Listă candidați",  "/applications"),
+        new("board",   "Board ", "/board"),
+        new("chat",    "Chat",             "/chat"),
+    };
+
+    private void Go(string key, string routeSuffix)
+    {
+        if (key == Active) return;
+        Navigation.NavigateTo($"/employer/jobs/{JobId}{routeSuffix}");
+    }
+}

@@ -5,15 +5,17 @@
 @inject HttpClient Http
 @inject ISnackbar Snackbar
 @inject NavigationManager Navigation
+@inject IJSRuntime JS
 
 <PageTitle>Creare anunț - JobFinder</PageTitle>
 
-<a href="/employer/jobs"
-   style="display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:600;
-          letter-spacing:1px; text-transform:uppercase; color:#6b7280; text-decoration:none;
-          margin-bottom:24px;">
+<button @onclick="GoBack"
+        style="display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:600;
+               letter-spacing:1px; text-transform:uppercase; color:#6b7280;
+               background:none; border:none; cursor:pointer; padding:0;
+               margin-bottom:24px;">
     ← Înapoi la anunțuri
-</a>
+</button>
 
 <div style="margin-bottom:28px;">
     <h1 style="font-size:22px; font-weight:700; color:#111827; margin:0 0 4px 0;">
@@ -261,6 +263,11 @@
     {
         var cats = await Http.GetFromJsonAsync<List<JobCategoryDto>>("api/jobcategories");
         if (cats != null) _categories = cats;
+    }
+
+    private async Task GoBack()
+    {
+        await JS.InvokeVoidAsync("history.back");
     }
 
     private async Task HandleSubmit()

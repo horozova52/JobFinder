@@ -1,0 +1,199 @@
+﻿@page "/employer/jobs/{Id:int}/chat"
+@layout EmployerLayout
+
+@using JobFinder.Shared.DTOs.Jobs
+@using JobFinder.Shared.DTOs.Messaging
+@using System.Net.Http.Json
+
+@inject HttpClient Http
+@inject NavigationManager Navigation
+
+<PageTitle>Chat anunț - JobFinder</PageTitle>
+
+@* ── Înapoi ── *@
+<a href="/employer/jobs"
+   style="display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:600;
+          letter-spacing:1px; text-transform:uppercase; color:#6b7280; text-decoration:none;
+          margin-bottom:24px;">
+    ← Înapoi la anunțuri
+</a>
+
+@if (_loading)
+{
+    <div style="display:flex; flex-direction:column; gap:16px;">
+        <div style="height:60px; border-radius:16px;
+                        background:linear-gradient(90deg,#f3f4f6 25%,#e9eaec 50%,#f3f4f6 75%);
+                        background-size:800px 100%; animation:shimmer 1.4s infinite;"></div>
+        <div style="height:300px; border-radius:16px;
+                        background:linear-gradient(90deg,#f3f4f6 25%,#e9eaec 50%,#f3f4f6 75%);
+                        background-size:800px 100%; animation:shimmer 1.4s infinite;"></div>
+    </div>
+}
+else if (_job == null)
+{
+    <div style="background:#fff; border:1px solid #e5e7eb; border-radius:16px;
+                    text-align:center; padding:64px 32px;">
+        <MudIcon Icon="@Icons.Material.Filled.SearchOff"
+                 Style="font-size:48px; color:#d1d5db; display:block; margin:0 auto 12px;" />
+        <p style="font-size:14px; color:#6b7280; margin:0;">Anunțul nu a fost găsit.</p>
+    </div>
+}
+else
+{
+    @* ── Titlu ── *@
+    <div style="margin-bottom:20px;">
+        <h1 style="font-size:22px; font-weight:700; color:#111827; margin:0 0 4px 0;">
+            @_job.Title
+        </h1>
+        <p style="font-size:14px; color:#9ca3af; margin:0;">
+            Conversațiile cu candidații care au aplicat la acest anunț.
+        </p>
+    </div>
+
+    @* ── Tab-uri: Detalii / Listă / Board / Chat (aici) ── *@
+    <JobBoardTabs JobId="Id" Active="chat" />
+
+    @* ── Lista conversații filtrate pe job ── *@
+    @if (!_jobConversations.Any())
+    {
+        <div style="background:#fff; border:1px solid #e5e7eb; border-radius:16px;
+                            text-align:center; padding:64px 32px;">
+            <MudIcon Icon="@Icons.Material.Filled.Forum"
+                     Style="font-size:48px; color:#d1d5db; display:block; margin:0 auto 12px;" />
+            <p style="font-size:16px; font-weight:600; color:#111827; margin:0 0 8px 0;">
+                Nicio conversație pentru acest anunț.
+            </p>
+            <p style="font-size:14px; color:#9ca3af; margin:0;">
+                Conversațiile apar când scrii unui candidat din lista de aplicări.
+            </p>
+        </div>
+    }
+    else
+    {
+        <div style="display:flex; flex-direction:column; gap:10px;">
+            @foreach (var conv in _jobConversations)
+            {
+                <div @onclick="@(() => OpenConversation(conv.Id))"
+                     style="display:flex; align-items:center; gap:14px; cursor:pointer;
+                                        background:#fff; border:1px solid #e5e7eb; border-radius:14px;
+                                        padding:16px 20px; transition:border-color 0.15s, box-shadow 0.15s;"
+                     onmouseover="this.style.borderColor='#c7d2fe'; this.style.boxShadow='0 4px 16px rgba(99,102,241,0.08)'"
+                     onmouseout="this.style.borderColor='#e5e7eb'; this.style.boxShadow='none'">
+
+                    @* Avatar *@
+                    <div style="width:44px; height:44px; min-width:44px; background:#ede9fe;
+                                            border-radius:10px; display:flex; align-items:center;
+                                            justify-content:center; font-size:14px; font-weight:700;
+                                            color:#6366f1; flex-shrink:0;">
+                        @GetInitials(conv.OtherPartyName)
+                    </div>
+
+                    @* Nume + ultim mesaj *@
+                    <div style="flex:1; min-width:0;">
+                        <p style="font-size:14px; font-weight:700; color:#111827;
+                                              margin:0 0 2px 0; white-space:nowrap;
+                                              overflow:hidden; text-overflow:ellipsis;">
+                            @conv.OtherPartyName
+                        </p>
+                        <p style="font-size:12px; color:#9ca3af; margin:0; white-space:nowrap;
+                                              overflow:hidden; text-overflow:ellipsis;">
+                            @(string.IsNullOrEmpty(conv.LastMessage) ? "Fără mesaje încă" : conv.LastMessage)
+                        </p>
+                    </div>
+
+                    @* Necitite + timp *@
+                    <div style="display:flex; flex-direction:column; align-items:flex-end;
+                                            gap:6px; flex-shrink:0;">
+                        @if (conv.UnreadCount > 0)
+                        {
+                            <span style="font-size:10px; font-weight:700; color:#fff;
+                                                         background:#6366f1; border-radius:20px;
+                                                         min-width:18px; height:18px; padding:0 6px;
+                                                         display:flex; align-items:center; justify-content:center;">
+                                @conv.UnreadCount
+                            </span>
+                        }
+                        @if (conv.LastMessageAt.HasValue)
+                        {
+                            <span style="font-size:11px; color:#9ca3af;
+                                                         font-family:'Roboto Mono',monospace;">
+                                @conv.LastMessageAt.Value.ToLocalTime().ToString("dd.MM HH:mm")
+                            </span>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    }
+}
+
+<style>
+    @@keyframes shimmer {
+        0% {
+            background-position: -800px 0;
+        }
+
+        100% {
+            background-position: 800px 0;
+        }
+    }
+</style>
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    private bool _loading = true;
+    private JobPostingDto? _job;
+    private List<ConversationDto> _jobConversations = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var jobTask = Http.GetFromJsonAsync<JobPostingDto>($"api/jobs/{Id}");
+            var convTask = Http.GetFromJsonAsync<List<ConversationDto>>(
+                "api/messages/conversations");
+
+            await Task.WhenAll(jobTask, convTask);
+
+            _job = jobTask.Result;
+            var allConversations = convTask.Result ?? new();
+
+            // Filtrăm conversațiile după titlul jobului curent.
+            if (_job != null)
+            {
+                _jobConversations = allConversations
+                    .Where(c => string.Equals(c.JobTitle, _job.Title,
+                                               StringComparison.OrdinalIgnoreCase))
+                    .OrderByDescending(c => c.LastMessageAt ?? DateTime.MinValue)
+                    .ToList();
+            }
+        }
+        catch
+        {
+            _job = null;
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private void OpenConversation(int conversationId)
+    {
+        // Deschide conversația în pagina de mesagerie existentă (cu SignalR).
+        Navigation.NavigateTo($"/employer/messages/{conversationId}");
+    }
+
+    private static string GetInitials(string? name)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+            return "?";
+
+        var parts = name.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length >= 2)
+            return $"{char.ToUpper(parts[0][0])}{char.ToUpper(parts[1][0])}";
+
+        return name.Length >= 2 ? name[..2].ToUpper() : name.ToUpper();
+    }
+}

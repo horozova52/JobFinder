@@ -2,52 +2,59 @@
 @layout EmployerLayout
 @inject HttpClient Http
 @inject NavigationManager Navigation
+@inject IJSRuntime JS
 @using JobFinder.Shared.DTOs.Applications
 @using JobFinder.Shared.DTOs.Candidates
 @using JobFinder.Shared.DTOs.Jobs
 @using JobFinder.Shared.DTOs.Messaging
 @using JobFinder.Shared.Enums
 
+
 <PageTitle>Aplicări job - JobFinder</PageTitle>
 
+
 @* ── Înapoi ── *@
-<a href="/employer/jobs"
-   style="display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:600;
-          letter-spacing:1px; text-transform:uppercase; color:#6b7280; text-decoration:none;
-          margin-bottom:24px;">
-    ← Înapoi la anunțuri
-</a>
+<button @onclick="GoBack"
+        style="display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:600;
+               letter-spacing:1px; text-transform:uppercase; color:#6b7280;
+               background:none; border:none; cursor:pointer; padding:0;
+               margin-bottom:24px;">
+    ← Înapoi
+</button>
 
 @* ── Titlu ── *@
-<div style="margin-bottom:24px;">
-    <h1 style="font-size:22px; font-weight:700; color:#111827; margin:0 0 4px 0;">
-        @(string.IsNullOrEmpty(_jobTitle) ? "Aplicări" : _jobTitle)
-    </h1>
-    <p style="font-size:14px; color:#9ca3af; margin:0;">
-        Candidații care au aplicat la acest anunț.
-    </p>
-</div>
+@if (!_loading)
+{
+    @* ── Titlu ── *@
+    <div style="margin-bottom:24px;">
+        <h1 style="font-size:22px; font-weight:700; color:#111827; margin:0 0 4px 0;">
+            @(string.IsNullOrEmpty(_jobTitle) ? "Aplicări" : _jobTitle)
+        </h1>
+        
+    </div>
+
+    @* ── Tab-uri: Listă (aici) / Board ── *@
+    <JobBoardTabs JobId="Id" Active="list" />
+}
+
 
 @if (_loading)
 {
-    <div style="display:flex; flex-direction:column; gap:12px;">
-        @for (int i = 0; i < 4; i++)
-        {
-            <div style="height:100px; border-radius:16px;
-                                background:linear-gradient(90deg,#f3f4f6 25%,#e9eaec 50%,#f3f4f6 75%);
-                                background-size:800px 100%; animation:shimmer 1.4s infinite;"></div>
-        }
+    <div style="display:flex; flex-direction:column; align-items:center;
+                    justify-content:center; padding:120px 32px; gap:14px;">
+        <div class="job-spinner"></div>
+        <p style="font-size:13px; color:#9ca3af; margin:0;">Se încarcă...</p>
     </div>
 }
 else
 {
     @* ── Filtre ── *@
     <div style="background:#fff; border:1px solid #e5e7eb; border-radius:16px;
-                    padding:16px 20px; margin-bottom:20px;
-                    display:grid; grid-template-columns:1fr 200px; gap:12px; align-items:end;">
+                        padding:16px 20px; margin-bottom:20px;
+                        display:grid; grid-template-columns:1fr 200px; gap:12px; align-items:end;">
         <div>
             <label style="display:block; font-size:11px; font-weight:600; color:#9ca3af;
-                              text-transform:uppercase; letter-spacing:1px; margin-bottom:6px;">
+                                  text-transform:uppercase; letter-spacing:1px; margin-bottom:6px;">
                 Caută candidat
             </label>
             <MudTextField @bind-Value="_search"
@@ -61,7 +68,7 @@ else
         </div>
         <div>
             <label style="display:block; font-size:11px; font-weight:600; color:#9ca3af;
-                              text-transform:uppercase; letter-spacing:1px; margin-bottom:6px;">
+                                  text-transform:uppercase; letter-spacing:1px; margin-bottom:6px;">
                 Status
             </label>
             <MudSelect @bind-Value="_filterStatus"
@@ -83,7 +90,7 @@ else
     @if (_applications.Any())
     {
         <div style="display:flex; align-items:center; justify-content:space-between;
-                            margin-bottom:16px; padding:0 4px;">
+                                    margin-bottom:16px; padding:0 4px;">
             <p style="font-size:13px; color:#6b7280; margin:0;">
                 <strong style="color:#111827;">@FilteredApplicants.Count()</strong> candidați
                 @if (!string.IsNullOrEmpty(_filterStatus) || !string.IsNullOrEmpty(_search))
@@ -104,7 +111,7 @@ else
     @if (!FilteredApplicants.Any())
     {
         <div style="background:#fff; border:1px solid #e5e7eb; border-radius:16px;
-                            text-align:center; padding:64px 32px;">
+                                    text-align:center; padding:64px 32px;">
             <MudIcon Icon="@Icons.Material.Filled.PeopleOutline"
                      Style="font-size:48px; color:#d1d5db; display:block; margin:0 auto 12px;" />
             <p style="font-size:16px; font-weight:600; color:#111827; margin:0 0 8px 0;">
@@ -124,7 +131,7 @@ else
                 var skills = _candidateSkills.GetValueOrDefault(app.CandidateProfileId, new());
 
                 <div style="background:#fff; border:1px solid #e5e7eb; border-radius:16px;
-                                        padding:20px 24px; transition:border-color 0.15s, box-shadow 0.15s;"
+                                                    padding:20px 24px; transition:border-color 0.15s, box-shadow 0.15s;"
                      onmouseover="this.style.borderColor='#c7d2fe'; this.style.boxShadow='0 4px 16px rgba(99,102,241,0.08)'"
                      onmouseout="this.style.borderColor='#e5e7eb'; this.style.boxShadow='none'">
 
@@ -136,9 +143,9 @@ else
 
                             @* Avatar *@
                             <div style="width:48px; height:48px; min-width:48px; background:#f0eeff;
-                                                    border-radius:12px; display:flex; align-items:center;
-                                                    justify-content:center; font-size:16px; font-weight:800;
-                                                    color:#6366f1; flex-shrink:0;">
+                                                                border-radius:12px; display:flex; align-items:center;
+                                                                justify-content:center; font-size:16px; font-weight:800;
+                                                                color:#6366f1; flex-shrink:0;">
                                 @(app.CandidateFullName?.Length >= 2
                                                     ? app.CandidateFullName[..2].ToUpper() : "?")
                 </div>
@@ -151,9 +158,9 @@ else
                         @if (_jobSkillIds.Any() && matchPct > 0)
                                     {
                                         <span style="font-size:11px; font-weight:700; padding:3px 10px;
-                                                                     border-radius:20px;
-                                                                     background:@GetMatchBg(matchPct);
-                                                                     color:@GetMatchColor(matchPct);">
+                                                                                     border-radius:20px;
+                                                                                     background:@GetMatchBg(matchPct);
+                                                                                     color:@GetMatchColor(matchPct);">
                                             @matchPct% match
                                         </span>
                                     }
@@ -168,9 +175,9 @@ else
                                         {
                                             var isMatch = _jobSkillIds.Contains(skill.SkillId);
                                             <span style="font-size:11px; font-weight:600; padding:3px 10px;
-                                                                             border-radius:20px;
-                                                                             background:@(isMatch ? "#d1fae5" : "#f3f4f6");
-                                                                             color:@(isMatch ? "#065f46" : "#6b7280");">
+                                                                                                 border-radius:20px;
+                                                                                                 background:@(isMatch ? "#d1fae5" : "#f3f4f6");
+                                                                                                 color:@(isMatch ? "#065f46" : "#6b7280");">
                                                 @if (isMatch)
                                                 {
                                                     <span>✓ </span>
@@ -191,25 +198,25 @@ else
 
                         @* ── Dreapta: status + acțiuni ── *@
                         <div style="display:flex; flex-direction:column; align-items:flex-end;
-                                                gap:10px; flex-shrink:0;">
+                                                            gap:10px; flex-shrink:0;">
                             <span style="font-size:11px; font-weight:600; padding:5px 14px;
-                                                     border-radius:20px;
-                                                     background:@GetBadgeBg(app.Status);
-                                                     color:@GetBadgeFg(app.Status);">
+                                                                 border-radius:20px;
+                                                                 background:@GetBadgeBg(app.Status);
+                                                                 color:@GetBadgeFg(app.Status);">
                                 @GetStatusText(app.Status)
                             </span>
                             <div style="display:flex; gap:8px;">
                                 <a href="/employer/applications/@app.Id"
                                    style="font-size:12px; font-weight:600; color:#6366f1;
-                                                      text-decoration:none; padding:6px 14px;
-                                                      border:1px solid #c4b5fd; border-radius:8px;
-                                                      background:#f0eeff;">
+                                                                  text-decoration:none; padding:6px 14px;
+                                                                  border:1px solid #c4b5fd; border-radius:8px;
+                                                                  background:#f0eeff;">
                                     Vezi profil
                                 </a>
                                 <button @onclick="() => StartConversation(app.Id)"
                                         style="font-size:12px; font-weight:600; color:#6b7280;
-                                                           background:#fff; border:1px solid #e5e7eb;
-                                                           border-radius:8px; padding:6px 14px; cursor:pointer;">
+                                                                       background:#fff; border:1px solid #e5e7eb;
+                                                                       border-radius:8px; padding:6px 14px; cursor:pointer;">
                                     Mesaj
                                 </button>
                             </div>
@@ -229,6 +236,21 @@ else
 
         100% {
             background-position: 800px 0;
+        }
+    }
+
+    .job-spinner {
+        width: 36px;
+        height: 36px;
+        border: 3px solid #ede9fe;
+        border-top-color: #6366f1;
+        border-radius: 50%;
+        animation: job-spin 0.8s linear infinite;
+    }
+
+    @@keyframes job-spin {
+        to {
+            transform: rotate(360deg);
         }
     }
 </style>
@@ -315,6 +337,11 @@ else
             }
         }
         catch { }
+    }
+
+    private async Task GoBack()
+    {
+        await JS.InvokeVoidAsync("history.back");
     }
 
     private static string GetMatchBg(int s) => s switch

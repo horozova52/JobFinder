@@ -9,9 +9,11 @@
 
     <AppSidebar Title="JobFinder"
                 Subtitle="Panou angajator"
-                Links="_links" />
+                Links="_links"
+                @bind-Collapsed="_sidebarCollapsed" />
 
-    <main style="margin-left:256px; min-height:100vh; flex:1;">
+    <main style="margin-left:@(_sidebarCollapsed ? "72px" : "256px");
+                 min-height:100vh; flex:1; transition:margin-left 0.2s ease;">
         <div style="max-width:896px; margin:0 auto; padding:40px 32px;">
             @Body
         </div>
@@ -20,10 +22,12 @@
 </div>
 
 @code {
+    private bool _sidebarCollapsed;
+
     private readonly List<AppSidebar.SidebarLink> _links = new()
     {
         new() { Label = "Dashboard",  Href = "/employer/dashboard", Icon = "⊞" },
-       new() { Label = "Notificări", Href = "/employer/notifications", Icon = "✦" },
+        new() { Label = "Notificări", Href = "/employer/notifications", Icon = "✦" },
         new() { Label = "Anunțuri",   Href = "/employer/jobs",      Icon = "◈" },
         new() { Label = "Mesagerie",  Href = "/employer/messages",  Icon = "✉" },
         new() { Label = "Profil",     Href = "/employer/profile",   Icon = "◉" },

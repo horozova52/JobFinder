@@ -1,0 +1,324 @@
+﻿@page "/employer/jobs/{Id:int}/board"
+@layout EmployerLayout
+
+@using JobFinder.Shared.DTOs.Applications
+@using JobFinder.Shared.DTOs.Jobs
+@using JobFinder.Shared.Enums
+@using System.Net.Http.Json
+
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+@inject IJSRuntime JS
+
+<PageTitle>Board candidați - JobFinder</PageTitle>
+
+@* ── Înapoi ── *@
+<button @onclick="GoBack"
+        style="display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:600;
+               letter-spacing:1px; text-transform:uppercase; color:#6b7280;
+               background:none; border:none; cursor:pointer; padding:0;
+               margin-bottom:24px;">
+    ← Înapoi la anunțuri
+</button>
+
+@if (_loading)
+{
+    <div style="display:flex; flex-direction:column; gap:16px;">
+        <div style="height:64px; border-radius:16px;
+                    background:linear-gradient(90deg,#f3f4f6 25%,#e9eaec 50%,#f3f4f6 75%);
+                    background-size:800px 100%; animation:shimmer 1.4s infinite;"></div>
+        <div style="height:380px; border-radius:16px;
+                    background:linear-gradient(90deg,#f3f4f6 25%,#e9eaec 50%,#f3f4f6 75%);
+                    background-size:800px 100%; animation:shimmer 1.4s infinite;"></div>
+    </div>
+}
+else if (_job == null)
+{
+    <div style="background:#fff; border:1px solid #e5e7eb; border-radius:16px;
+                text-align:center; padding:64px 32px;">
+        <MudIcon Icon="@Icons.Material.Filled.SearchOff"
+                 Style="font-size:48px; color:#d1d5db; display:block; margin:0 auto 12px;" />
+        <p style="font-size:14px; color:#6b7280; margin:0;">Anunțul nu a fost găsit.</p>
+    </div>
+}
+else
+{
+    @* ── Titlu ── *@
+    <div style="margin-bottom:24px;">
+        <h1 style="font-size:22px; font-weight:700; color:#111827; margin:0 0 4px 0;">
+            @_job.Title
+        </h1>
+        <p style="font-size:14px; color:#9ca3af; margin:0;">
+            @if (!string.IsNullOrWhiteSpace(_job.Location))
+            {
+                <span>@_job.Location · </span>
+            }
+            
+        </p>
+    </div>
+
+    @* ── Tab-uri: Listă / Board (aici) ── *@
+    <JobBoardTabs JobId="Id" Active="board" />
+
+    @* ════════════════════════════════
+       STATISTICI PER JOB — bandă compactă
+    ════════════════════════════════ *@
+    <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:24px;">
+        <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:14px 18px;">
+            <p style="font-size:24px; font-weight:700; color:#111827; margin:0; line-height:1;">
+                @_applications.Count
+            </p>
+            <p style="font-size:11px; font-weight:600; color:#9ca3af; text-transform:uppercase;
+                      letter-spacing:1px; margin:4px 0 0 0;">Total candidați</p>
+        </div>
+        <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:14px 18px;">
+            <p style="font-size:24px; font-weight:700; color:#92400e; margin:0; line-height:1;">
+                @CountByStatus(ApplicationState.InReview)
+            </p>
+            <p style="font-size:11px; font-weight:600; color:#9ca3af; text-transform:uppercase;
+                      letter-spacing:1px; margin:4px 0 0 0;">În analiză</p>
+        </div>
+        <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:14px 18px;">
+            <p style="font-size:24px; font-weight:700; color:#1d4ed8; margin:0; line-height:1;">
+                @CountByStatus(ApplicationState.Interview)
+            </p>
+            <p style="font-size:11px; font-weight:600; color:#9ca3af; text-transform:uppercase;
+                      letter-spacing:1px; margin:4px 0 0 0;">Interviu</p>
+        </div>
+        <div style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:14px 18px;">
+            <p style="font-size:24px; font-weight:700; color:#065f46; margin:0; line-height:1;">
+                @CountByStatus(ApplicationState.Accepted)
+            </p>
+            <p style="font-size:11px; font-weight:600; color:#9ca3af; text-transform:uppercase;
+                      letter-spacing:1px; margin:4px 0 0 0;">Acceptați</p>
+        </div>
+    </div>
+           <div style="overflow-x:auto; padding-bottom:8px;">
+
+        <MudDropContainer T="ApplicationDto"
+                          Items="_applications"
+                          ItemsSelector="@((app, zoneId) => app.Status.ToString() == zoneId)"
+                          ItemDropped="OnItemDropped"
+                          Class="board-grid">
+
+            <ChildContent>
+                @foreach (var col in _columns)
+                {
+                    var colCount = CountByStatus(col.Status);
+
+                    <div style="background:#f3f4f6; border-radius:12px; padding:10px;
+                                display:flex; flex-direction:column;">
+
+                        @* ── Header coloană ── *@
+                        <div style="display:flex; align-items:center; gap:8px;
+                                    padding:6px 8px 12px 8px;">
+                            <span style="width:8px; height:8px; border-radius:50%;
+                                         background:@col.Dot; flex-shrink:0;"></span>
+                            <span style="font-size:12px; font-weight:700; color:#374151;
+                                         text-transform:uppercase; letter-spacing:0.5px;">
+                                @col.Title
+                            </span>
+                            <span style="font-size:11px; font-weight:700; color:#6b7280;
+                                         background:#fff; border-radius:20px; padding:1px 8px;
+                                         margin-left:auto;">
+                                @colCount
+                            </span>
+                        </div>
+
+                        @* ── Zona de drop ── *@
+                        <MudDropZone T="ApplicationDto"
+                                     Identifier="@col.Status.ToString()"
+                                     Class="board-zone"
+                                     Style="flex:1; min-height:80px;" />
+                    </div>
+                }
+            </ChildContent>
+
+            <ItemRenderer>
+                <div style="background:#fff; border:1px solid #e5e7eb; border-radius:10px;
+                            padding:12px; margin-bottom:8px; cursor:grab;">
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <div style="width:34px; height:34px; min-width:34px; background:#f0eeff;
+                                    border-radius:8px; display:flex; align-items:center;
+                                    justify-content:center; font-size:12px; font-weight:700;
+                                    color:#6366f1; flex-shrink:0;">
+                            @GetInitials(context.CandidateFullName)
+                        </div>
+                        <div style="flex:1; min-width:0;">
+                            <p style="font-size:13px; font-weight:600; color:#111827;
+                                      margin:0 0 2px 0; white-space:nowrap;
+                                      overflow:hidden; text-overflow:ellipsis;">
+                                @context.CandidateFullName
+                            </p>
+                            <p style="font-size:11px; color:#9ca3af; margin:0;">
+                                @context.AppliedAt.ToString("dd.MM.yyyy")
+                            </p>
+                        </div>
+                    </div>
+                    <a href="/employer/applications/@context.Id"
+                       style="display:inline-block; margin-top:8px; font-size:11px;
+                              font-weight:600; color:#6366f1; text-decoration:none;">
+                        Vezi detalii →
+                    </a>
+                </div>
+            </ItemRenderer>
+        </MudDropContainer>
+    </div>
+}
+
+<style>
+    @@keyframes shimmer {
+        0% {
+            background-position: -800px 0;
+        }
+
+        100% {
+            background-position: 800px 0;
+        }
+    }
+
+    .board-grid {
+        display: grid;
+        grid-template-columns: repeat(5, 250px);
+        gap: 12px;
+        align-items: start;
+        width: max-content;
+    }
+
+    /* Zona de drop */
+    .board-zone {
+        border-radius: 8px;
+        transition: background 0.15s;
+    }
+
+    /* Coloana evidențiată când un card e tras deasupra ei */
+    .board-zone.mud-drop-zone-active {
+        background: #e0e7ff;
+        outline: 2px dashed #6366f1;
+        outline-offset: -2px;
+    }
+</style>
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    private bool _loading = true;
+    private JobPostingDto? _job;
+    private List<ApplicationDto> _applications = new();
+
+    // Definiția coloanelor board-ului, în ordinea pipeline-ului (fără Withdrawn).
+    private sealed record BoardColumn(ApplicationState Status, string Title, string Dot);
+
+    private static readonly List<BoardColumn> _columns = new()
+    {
+        new(ApplicationState.Pending,   "Noi",        "#6366f1"),
+        new(ApplicationState.InReview,  "În analiză", "#f59e0b"),
+        new(ApplicationState.Interview, "Interviu",   "#3b82f6"),
+        new(ApplicationState.Accepted,  "Acceptați",  "#22c55e"),
+        new(ApplicationState.Rejected,  "Respinși",   "#ef4444"),
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var jobTask = Http.GetFromJsonAsync<JobPostingDto>($"api/jobs/{Id}");
+            var appsTask = Http.GetFromJsonAsync<List<ApplicationDto>>($"api/applications/job/{Id}");
+
+            await Task.WhenAll(jobTask, appsTask);
+
+            _job = jobTask.Result;
+            // Excludem aplicările retrase — nu au coloană pe board.
+            _applications = (appsTask.Result ?? new())
+                .Where(a => a.Status != ApplicationState.Withdrawn)
+                .ToList();
+        }
+        catch
+        {
+            _job = null;
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    // ── Eveniment: un card a fost tras într-o altă coloană ──────────────
+    private async Task OnItemDropped(MudItemDropInfo<ApplicationDto> dropInfo)
+    {
+        var app = dropInfo.Item;
+        if (app == null) return;
+
+        // Identifier-ul zonei = numele statusului (ex. "Interview").
+        if (!Enum.TryParse<ApplicationState>(dropInfo.DropzoneIdentifier, out var newStatus))
+            return;
+
+        var oldStatus = app.Status;
+
+        // Dacă a fost lăsat în aceeași coloană, nu facem nimic.
+        if (oldStatus == newStatus) return;
+
+        // Mutare optimistă: actualizăm vizual imediat.
+        app.Status = newStatus;
+
+        try
+        {
+            var response = await Http.PutAsJsonAsync(
+                $"api/applications/{app.Id}/status",
+                new { Status = (int)newStatus });
+
+            if (response.IsSuccessStatusCode)
+            {
+                Snackbar.Add(
+                    $"{app.CandidateFullName}: status schimbat în „{GetStatusLabel(newStatus)}”.",
+                    Severity.Success);
+            }
+            else
+            {
+                // Server-ul a refuzat — revenim la statusul vechi.
+                app.Status = oldStatus;
+                Snackbar.Add("Statusul nu a putut fi actualizat. Încearcă din nou.",
+                    Severity.Error);
+            }
+        }
+        catch
+        {
+            app.Status = oldStatus;
+            Snackbar.Add("Eroare de conexiune. Statusul nu a fost salvat.",
+                Severity.Error);
+        }
+
+        StateHasChanged();
+    }
+    private async Task GoBack()
+    {
+        await JS.InvokeVoidAsync("history.back");
+    }
+
+    private int CountByStatus(ApplicationState s) =>
+        _applications.Count(a => a.Status == s);
+
+    private static string GetStatusLabel(ApplicationState s) => s switch
+    {
+        ApplicationState.Pending => "Nou",
+        ApplicationState.InReview => "În analiză",
+        ApplicationState.Interview => "Interviu",
+        ApplicationState.Accepted => "Acceptat",
+        ApplicationState.Rejected => "Respins",
+        ApplicationState.Withdrawn => "Retras",
+        _ => s.ToString()
+    };
+
+    private static string GetInitials(string? name)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+            return "?";
+
+        var parts = name.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length >= 2)
+            return $"{char.ToUpper(parts[0][0])}{char.ToUpper(parts[1][0])}";
+
+        return name.Length >= 2 ? name[..2].ToUpper() : name.ToUpper();
+    }
+}

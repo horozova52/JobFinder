@@ -5,9 +5,19 @@
 @using Microsoft.AspNetCore.SignalR.Client
 @inject HttpClient Http
 @inject NavigationManager Navigation
+@inject IJSRuntime JS
+
 @implements IAsyncDisposable
 
 <PageTitle>Mesagerie - JobFinder</PageTitle>
+
+<button @onclick="GoBack"
+        style="display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:600;
+               letter-spacing:1px; text-transform:uppercase; color:#6b7280;
+               background:none; border:none; cursor:pointer; padding:0;
+               margin-bottom:24px;">
+    ← Înapoi
+</button>
 
 @* ── Titlu ── *@
 <div style="margin-bottom:24px;">
@@ -16,6 +26,8 @@
     </h1>
     
 </div>
+
+
 
 @if (_loading)
 {
@@ -435,7 +447,10 @@ else
         if (local.Date == DateTime.Now.Date.AddDays(-1)) return "ieri";
         return local.ToString("dd MMM");
     }
-
+    private async Task GoBack()
+    {
+        await JS.InvokeVoidAsync("history.back");
+    }
     public async ValueTask DisposeAsync()
     {
         if (_hubConnection != null)

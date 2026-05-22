@@ -5,15 +5,17 @@
 @inject HttpClient Http
 @inject ISnackbar Snackbar
 @inject NavigationManager Navigation
+@inject IJSRuntime JS
 
 <PageTitle>Editare anunț - JobFinder</PageTitle>
 
-<a href="/employer/jobs"
-   style="display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:600;
-          letter-spacing:1px; text-transform:uppercase; color:#6b7280; text-decoration:none;
-          margin-bottom:24px;">
-    ← Înapoi la anunțuri
-</a>
+<button @onclick="GoBack"
+        style="display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:600;
+               letter-spacing:1px; text-transform:uppercase; color:#6b7280;
+               background:none; border:none; cursor:pointer; padding:0;
+               margin-bottom:24px;">
+    ← Înapoi
+</button>
 
 @if (_loading)
 {
@@ -385,5 +387,9 @@ else
         }
         catch { Snackbar.Add("Eroare de conexiune. Încercați din nou.", Severity.Error); }
         finally { _saving = false; }
+    }
+    private async Task GoBack()
+    {
+        await JS.InvokeVoidAsync("history.back");
     }
 }

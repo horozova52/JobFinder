@@ -1,0 +1,310 @@
+﻿@page "/employer/jobs/{Id:int}"
+@layout EmployerLayout
+
+@using JobFinder.Shared.DTOs.Jobs
+@using JobFinder.Shared.DTOs.Applications
+@using JobFinder.Shared.Enums
+@using System.Net.Http.Json
+
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+
+<PageTitle>Detalii anunț - JobFinder</PageTitle>
+
+@* ── Înapoi ── *@
+<button @onclick="GoBack"
+        style="display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:600;
+               letter-spacing:1px; text-transform:uppercase; color:#6b7280;
+               background:none; border:none; cursor:pointer; padding:0;
+               margin-bottom:24px;">
+    ← Înapoi la anunțuri
+</button>
+
+@if (_loading)
+{
+    <div style="display:flex; flex-direction:column; gap:16px;">
+        <div style="height:80px; border-radius:16px;
+                        background:linear-gradient(90deg,#f3f4f6 25%,#e9eaec 50%,#f3f4f6 75%);
+                        background-size:800px 100%; animation:shimmer 1.4s infinite;"></div>
+        <div style="height:300px; border-radius:16px;
+                        background:linear-gradient(90deg,#f3f4f6 25%,#e9eaec 50%,#f3f4f6 75%);
+                        background-size:800px 100%; animation:shimmer 1.4s infinite;"></div>
+    </div>
+}
+else if (_job == null)
+{
+    <div style="background:#fff; border:1px solid #e5e7eb; border-radius:16px;
+                    text-align:center; padding:64px 32px;">
+        <MudIcon Icon="@Icons.Material.Filled.SearchOff"
+                 Style="font-size:48px; color:#d1d5db; display:block; margin:0 auto 12px;" />
+        <p style="font-size:14px; color:#6b7280; margin:0;">Anunțul nu a fost găsit.</p>
+    </div>
+}
+else
+{
+    @* ════════════════════════════════
+       HEADER — titlu + status
+    ════════════════════════════════ *@
+    <div style="display:flex; align-items:flex-start; gap:12px; margin-bottom:6px;">
+        <h1 style="font-size:24px; font-weight:700; color:#111827; margin:0; flex:1;">
+            @_job.Title
+        </h1>
+        <span style="font-size:11px; font-weight:700; padding:5px 14px; border-radius:20px;
+                         white-space:nowrap; flex-shrink:0;
+                         background:@GetStatusBg(_job.Status); color:@GetStatusFg(_job.Status);">
+            @GetStatusLabel(_job.Status)
+        </span>
+    </div>
+    <p style="font-size:14px; color:#9ca3af; margin:0 0 20px 0;">
+        @if (!string.IsNullOrWhiteSpace(_job.Location))
+        {
+            <span>@_job.Location · </span>
+        }
+        @GetJobTypeLabel(_job.JobType) · @GetEmploymentTypeLabel(_job.EmploymentType)
+    </p>
+
+    @* ── Tab-uri: Detalii (aici) / Listă / Board / Chat ── *@
+    <JobBoardTabs JobId="Id" Active="details" />
+
+    @* ════════════════════════════════
+       LAYOUT — conținut stânga + acțiuni dreapta
+    ════════════════════════════════ *@
+    <div style="display:grid; grid-template-columns:1fr 280px; gap:20px; align-items:start;">
+
+        @* ─────────── COLOANA STÂNGA — conținutul anunțului ─────────── *@
+        <div style="display:flex; flex-direction:column; gap:20px;">
+
+            @* ── DESCRIERE ── *@
+            <div style="background:#fff; border:1px solid #e5e7eb; border-radius:16px; padding:24px;">
+                <h2 style="font-size:16px; font-weight:700; color:#111827; margin:0 0 12px 0;
+                               padding-left:12px; border-left:3px solid #6366f1;">
+                    Descrierea postului
+                </h2>
+                <p style="font-size:14px; color:#374151; line-height:1.7; margin:0;
+                              white-space:pre-wrap;">
+                    @_job.Description
+                </p>
+            </div>
+
+            @* ── CERINȚE ── *@
+            @if (!string.IsNullOrWhiteSpace(_job.Requirements))
+            {
+                <div style="background:#fff; border:1px solid #e5e7eb; border-radius:16px; padding:24px;">
+                    <h2 style="font-size:16px; font-weight:700; color:#111827; margin:0 0 12px 0;
+                                       padding-left:12px; border-left:3px solid #6366f1;">
+                        Cerințe
+                    </h2>
+                    <p style="font-size:14px; color:#374151; line-height:1.7; margin:0;
+                                      white-space:pre-wrap;">
+                        @_job.Requirements
+                    </p>
+                </div>
+            }
+
+            @* ── RESPONSABILITĂȚI ── *@
+            @if (!string.IsNullOrWhiteSpace(_job.Responsibilities))
+            {
+                <div style="background:#fff; border:1px solid #e5e7eb; border-radius:16px; padding:24px;">
+                    <h2 style="font-size:16px; font-weight:700; color:#111827; margin:0 0 12px 0;
+                                       padding-left:12px; border-left:3px solid #6366f1;">
+                        Responsabilități
+                    </h2>
+                    <p style="font-size:14px; color:#374151; line-height:1.7; margin:0;
+                                      white-space:pre-wrap;">
+                        @_job.Responsibilities
+                    </p>
+                </div>
+            }
+
+            @* ── COMPETENȚE ── *@
+            @if (_job.Skills.Any())
+            {
+                <div style="background:#fff; border:1px solid #e5e7eb; border-radius:16px; padding:24px;">
+                    <h2 style="font-size:16px; font-weight:700; color:#111827; margin:0 0 14px 0;
+                                       padding-left:12px; border-left:3px solid #6366f1;">
+                        Competențe cerute
+                    </h2>
+                    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                        @foreach (var skill in _job.Skills)
+                        {
+                            <span style="font-size:12px; font-weight:600; padding:5px 14px;
+                                                     border-radius:20px; background:#f0eeff; color:#4f46e5;">
+                                @skill.SkillName
+                            </span>
+                        }
+                    </div>
+                </div>
+            }
+    </div>
+
+    @* ─────────── COLOANA DREAPTA — acțiuni + info ─────────── *@
+    <div style="display:flex; flex-direction:column; gap:20px;">
+
+        @* ── ACȚIUNI ── *@
+        <div style="background:#fff; border:1px solid #e5e7eb; border-radius:16px; padding:20px;">
+            <h3 style="font-size:11px; font-weight:700; color:#9ca3af;
+                           text-transform:uppercase; letter-spacing:1px; margin:0 0 14px 0;">
+                Acțiuni
+            </h3>
+
+            <a href="/employer/jobs/@Id/applications"
+               style="display:flex; align-items:center; justify-content:center; gap:8px;
+                          background:#6366f1; color:#fff; text-decoration:none;
+                          font-size:13px; font-weight:700; padding:12px;
+                          border-radius:10px; margin-bottom:10px;">
+                Vezi aplicările (@_applicationsCount)
+            </a>
+
+            <a href="/employer/jobs/@Id/edit"
+               style="display:flex; align-items:center; justify-content:center; gap:8px;
+                          background:#fff; color:#374151; text-decoration:none;
+                          font-size:13px; font-weight:600; padding:12px;
+                          border:1px solid #e5e7eb; border-radius:10px;">
+                Editează anunțul
+            </a>
+        </div>
+
+        @* ── DETALII PUBLICARE ── *@
+        <div style="background:#fff; border:1px solid #e5e7eb; border-radius:16px; padding:20px;">
+            <h3 style="font-size:11px; font-weight:700; color:#9ca3af;
+                           text-transform:uppercase; letter-spacing:1px; margin:0 0 14px 0;">
+                Detalii anunț
+            </h3>
+
+            <div style="display:flex; flex-direction:column; gap:12px;">
+                <div>
+                    <p style="font-size:11px; color:#9ca3af; margin:0 0 2px 0;">Salariu</p>
+                    <p style="font-size:13px; font-weight:600; color:#111827; margin:0;">
+                        @(string.IsNullOrEmpty(FormatSalary(_job))
+                                                ? (_job.IsSalaryNegotiable ? "Negociabil" : "Nespecificat")
+                                                : FormatSalary(_job))
+                    </p>
+                </div>
+                <div>
+                    <p style="font-size:11px; color:#9ca3af; margin:0 0 2px 0;">Data publicării</p>
+                    <p style="font-size:13px; font-weight:600; color:#111827; margin:0;">
+                        @(_job.PublishedAt?.ToString("dd MMMM yyyy") ?? "—")
+                    </p>
+                </div>
+                <div>
+                    <p style="font-size:11px; color:#9ca3af; margin:0 0 2px 0;">Data expirării</p>
+                    <p style="font-size:13px; font-weight:600; color:#111827; margin:0;">
+                        @(_job.ExpiresAt?.ToString("dd MMMM yyyy") ?? "—")
+                    </p>
+                </div>
+                <div>
+                    <p style="font-size:11px; color:#9ca3af; margin:0 0 2px 0;">Creat la</p>
+                    <p style="font-size:13px; font-weight:600; color:#111827; margin:0;">
+                        @_job.CreatedAt.ToString("dd MMMM yyyy")
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+}
+
+<style>
+    @@keyframes shimmer {
+        0% {
+            background-position: -800px 0;
+        }
+
+        100% {
+            background-position: 800px 0;
+        }
+    }
+</style>
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    private bool _loading = true;
+    private JobPostingDto? _job;
+    private int _applicationsCount;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var jobTask = Http.GetFromJsonAsync<JobPostingDto>($"api/jobs/{Id}");
+            var appsTask = Http.GetFromJsonAsync<List<ApplicationDto>>($"api/applications/job/{Id}");
+
+            await Task.WhenAll(jobTask, appsTask);
+
+            _job = jobTask.Result;
+            _applicationsCount = (appsTask.Result ?? new()).Count;
+        }
+        catch
+        {
+            _job = null;
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    // ── Helpere de afișare (aceeași logică ca în PublicEmployerProfile) ──
+
+    private static string GetJobTypeLabel(JobType type) => type switch
+    {
+        JobType.Remote => "Remote",
+        JobType.OnSite => "La birou",
+        JobType.Hybrid => "Hibrid",
+        _ => type.ToString()
+    };
+
+    private static string GetEmploymentTypeLabel(EmploymentType type) => type switch
+    {
+        EmploymentType.FullTime => "Full-time",
+        EmploymentType.PartTime => "Part-time",
+        EmploymentType.Contract => "Contract",
+        EmploymentType.Internship => "Internship",
+        EmploymentType.Freelance => "Freelance",
+        _ => type.ToString()
+    };
+
+    private static string FormatSalary(JobPostingDto job)
+    {
+        if (job.SalaryFrom.HasValue && job.SalaryTo.HasValue)
+            return $"{job.SalaryFrom:N0} – {job.SalaryTo:N0} MDL";
+        if (job.SalaryFrom.HasValue)
+            return $"de la {job.SalaryFrom:N0} MDL";
+        if (job.SalaryTo.HasValue)
+            return $"până la {job.SalaryTo:N0} MDL";
+        return "";
+    }
+
+    private static string GetStatusLabel(JobStatus s) => s switch
+    {
+        JobStatus.Draft => "Draft",
+        JobStatus.Published => "Activ",
+        JobStatus.Closed => "Închis",
+        JobStatus.Expired => "Expirat",
+        _ => s.ToString()
+    };
+
+    private static string GetStatusBg(JobStatus s) => s switch
+    {
+        JobStatus.Published => "#d1fae5",
+        JobStatus.Closed => "#fee2e2",
+        JobStatus.Expired => "#f3f4f6",
+        JobStatus.Draft => "#fef9c3",
+        _ => "#f3f4f6"
+    };
+
+    private static string GetStatusFg(JobStatus s) => s switch
+    {
+        JobStatus.Published => "#065f46",
+        JobStatus.Closed => "#b91c1c",
+        JobStatus.Expired => "#6b7280",
+        JobStatus.Draft => "#92400e",
+        _ => "#6b7280"
+    };
+    private async Task GoBack()
+    {
+        await JS.InvokeVoidAsync("history.back");
+    }
+}

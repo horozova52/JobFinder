@@ -12,16 +12,18 @@
 @inject HttpClient Http
 @inject ISnackbar Snackbar
 @inject NavigationManager Navigation
+@inject IJSRuntime JS
 
 <PageTitle>Detalii aplicare - JobFinder</PageTitle>
 
 @* ── Înapoi ── *@
-<a href="/employer/jobs"
-   style="display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:600;
-          letter-spacing:1px; text-transform:uppercase; color:#6b7280; text-decoration:none;
-          margin-bottom:24px;">
+<button @onclick="GoBack"
+        style="display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:600;
+               letter-spacing:1px; text-transform:uppercase; color:#6b7280;
+               background:none; border:none; cursor:pointer; padding:0;
+               margin-bottom:24px;">
     ← Înapoi
-</a>
+</button>
 
 
 @if (_loading)
@@ -683,7 +685,10 @@ else
             Snackbar.Add("Eroare de conexiune.", Severity.Error);
         }
     }
-
+    private async Task GoBack()
+    {
+        await JS.InvokeVoidAsync("history.back");
+    }
     private record ConversationResult(int Id);
     // ── Match helpers ─────────────────────────────────────────────────
     private static string GetMatchBg(int s) => s switch { >= 80 => "#d1fae5", >= 50 => "#fef9c3", >= 20 => "#ede9fe", _ => "#f3f4f6" };
