@@ -2,6 +2,7 @@
 @layout EmployerLayout
 @using JobFinder.Shared.DTOs.Jobs
 @using JobFinder.Shared.Enums
+@using Microsoft.AspNetCore.Components.Web
 @inject HttpClient Http
 @inject ISnackbar Snackbar
 @inject NavigationManager Navigation
@@ -21,9 +22,7 @@
     <h1 style="font-size:22px; font-weight:700; color:#111827; margin:0 0 4px 0;">
         Creare anunț nou
     </h1>
-    <p style="font-size:14px; color:#9ca3af; margin:0;">
-        Completează detaliile și publică un nou anunț de angajare.
-    </p>
+  
 </div>
 
 <div style="display:grid; grid-template-columns:1fr 300px; gap:24px; align-items:start;">
@@ -179,15 +178,50 @@
         @* Tags *@
         <div style="background:#fff; border:1px solid #e5e7eb; border-radius:16px; padding:28px;">
             <h2 style="font-size:14px; font-weight:700; color:#111827;
-                       margin:0 0 8px 0; padding-left:12px; border-left:3px solid #6366f1;">
+               margin:0 0 8px 0; padding-left:12px; border-left:3px solid #6366f1;">
                 Tags
             </h2>
             <p style="font-size:13px; color:#9ca3af; margin:0 0 14px 0;">
-                Cuvinte cheie separate prin virgulă (ex: React, TypeScript, Agile)
+                Cuvinte cheie pentru anunț (ex: React, TypeScript, Agile)
             </p>
-            <MudTextField @bind-Value="_dto.Tags" Placeholder="React, TypeScript, CSS"
-                          Variant="Variant.Outlined" FullWidth="true"
-                          Margin="Margin.Dense" Style="border-radius:8px;" />
+
+            @* Lista tagurilor adăugate *@
+            @if (_tags.Count > 0)
+            {
+                <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px;">
+                    @foreach (var tag in _tags)
+                    {
+                        <span style="font-size:12px; font-weight:600; color:#4f46e5;
+                                     background:#f0eeff; border:1px solid #c4b5fd;
+                                     border-radius:16px; padding:5px 12px;
+                                     display:flex; align-items:center; gap:8px;">
+                            @tag
+                            <MudIconButton Icon="@Icons.Material.Filled.Close"
+                                           Size="Size.Small"
+                                           Style="color:#9ca3af; padding:0; width:16px; height:16px;"
+                                           OnClick="@(() => RemoveTag(tag))" />
+                        </span>
+                    }
+                </div>
+            }
+
+            @* Câmp adăugare tag *@
+            <div style="display:flex; gap:8px; align-items:center;">
+                <MudTextField @bind-Value="_newTag"
+                              Placeholder="Scrie un tag și apasă Enter"
+                              Variant="Variant.Outlined" FullWidth="true"
+                              Margin="Margin.Dense" Style="border-radius:8px;"
+                              OnKeyDown="OnTagKeyDown"
+                              Immediate="true" />
+                <MudButton Variant="Variant.Filled"
+                           OnClick="AddTag"
+                           Disabled="@string.IsNullOrWhiteSpace(_newTag)"
+                           Style="background:#6366f1; color:#fff; border-radius:8px;
+                          font-size:11px; font-weight:700; letter-spacing:1px;
+                          text-transform:uppercase; height:40px; flex-shrink:0;">
+                    + Adaugă
+                </MudButton>
+            </div>
         </div>
 
         @* Buton submit *@
@@ -250,6 +284,9 @@
     private bool _submitting;
     private List<JobCategoryDto> _categories = new();
 
+    private List<string> _tags = new();
+    private string _newTag = "";
+
     private readonly string[] _tips = new[]
     {
         "Titlul clar atrage candidații potriviți",
@@ -263,6 +300,35 @@
     {
         var cats = await Http.GetFromJsonAsync<List<JobCategoryDto>>("api/jobcategories");
         if (cats != null) _categories = cats;
+    }
+    private void AddTag()
+    {
+        var tag = _newTag.Trim();
+        if (string.IsNullOrWhiteSpace(tag)) return;
+
+        if (!_tags.Any(t => t.Equals(tag, StringComparison.OrdinalIgnoreCase)))
+        {
+            _tags.Add(tag);
+            SyncTags();
+        }
+        _newTag = "";
+    }
+
+    private void RemoveTag(string tag)
+    {
+        _tags.Remove(tag);
+        SyncTags();
+    }
+
+    private void OnTagKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+            AddTag();
+    }
+
+    private void SyncTags()
+    {
+        _dto.Tags = _tags.Count > 0 ? string.Join(", ", _tags) : null;
     }
 
     private async Task GoBack()

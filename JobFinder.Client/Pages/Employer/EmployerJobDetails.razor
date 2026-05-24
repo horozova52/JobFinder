@@ -8,28 +8,24 @@
 
 @inject HttpClient Http
 @inject NavigationManager Navigation
-@inject IJSRuntime JS
+@inject ISnackbar Snackbar
 
 <PageTitle>Detalii anunț - JobFinder</PageTitle>
 
 @* ── Înapoi ── *@
-<button @onclick="GoBack"
-        style="display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:600;
-               letter-spacing:1px; text-transform:uppercase; color:#6b7280;
-               background:none; border:none; cursor:pointer; padding:0;
-               margin-bottom:24px;">
+<a href="/employer/jobs"
+   style="display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:600;
+          letter-spacing:1px; text-transform:uppercase; color:#6b7280; text-decoration:none;
+          margin-bottom:24px;">
     ← Înapoi la anunțuri
-</button>
+</a>
 
 @if (_loading)
 {
-    <div style="display:flex; flex-direction:column; gap:16px;">
-        <div style="height:80px; border-radius:16px;
-                        background:linear-gradient(90deg,#f3f4f6 25%,#e9eaec 50%,#f3f4f6 75%);
-                        background-size:800px 100%; animation:shimmer 1.4s infinite;"></div>
-        <div style="height:300px; border-radius:16px;
-                        background:linear-gradient(90deg,#f3f4f6 25%,#e9eaec 50%,#f3f4f6 75%);
-                        background-size:800px 100%; animation:shimmer 1.4s infinite;"></div>
+    <div style="display:flex; flex-direction:column; align-items:center;
+                    justify-content:center; padding:120px 32px; gap:14px;">
+        <div class="job-spinner"></div>
+        <p style="font-size:13px; color:#9ca3af; margin:0;">Se încarcă...</p>
     </div>
 }
 else if (_job == null)
@@ -136,33 +132,59 @@ else
                     </div>
                 </div>
             }
-    </div>
+        </div>
 
-    @* ─────────── COLOANA DREAPTA — acțiuni + info ─────────── *@
-    <div style="display:flex; flex-direction:column; gap:20px;">
+        @* ─────────── COLOANA DREAPTA — acțiuni + info ─────────── *@
+        <div style="display:flex; flex-direction:column; gap:20px;">
 
-        @* ── ACȚIUNI ── *@
-        <div style="background:#fff; border:1px solid #e5e7eb; border-radius:16px; padding:20px;">
-            <h3 style="font-size:11px; font-weight:700; color:#9ca3af;
-                           text-transform:uppercase; letter-spacing:1px; margin:0 0 14px 0;">
-                Acțiuni
-            </h3>
+            @* ── ACȚIUNI ── *@
+            <div style="background:#fff; border:1px solid #e5e7eb; border-radius:16px; padding:20px;">
+                <h3 style="font-size:11px; font-weight:700; color:#9ca3af;
+                               text-transform:uppercase; letter-spacing:1px; margin:0 0 14px 0;">
+                    Acțiuni
+                </h3>
 
-            <a href="/employer/jobs/@Id/applications"
-               style="display:flex; align-items:center; justify-content:center; gap:8px;
-                          background:#6366f1; color:#fff; text-decoration:none;
-                          font-size:13px; font-weight:700; padding:12px;
-                          border-radius:10px; margin-bottom:10px;">
-                Vezi aplicările (@_applicationsCount)
-            </a>
+                <a href="/employer/jobs/@Id/applications"
+                   style="display:flex; align-items:center; justify-content:center; gap:8px;
+                              background:#6366f1; color:#fff; text-decoration:none;
+                              font-size:13px; font-weight:700; padding:12px;
+                              border-radius:10px; margin-bottom:10px;">
+                    Vezi aplicările (@_applicationsCount)
+                </a>
 
-            <a href="/employer/jobs/@Id/edit"
-               style="display:flex; align-items:center; justify-content:center; gap:8px;
-                          background:#fff; color:#374151; text-decoration:none;
-                          font-size:13px; font-weight:600; padding:12px;
-                          border:1px solid #e5e7eb; border-radius:10px;">
-                Editează anunțul
-            </a>
+                <a href="/employer/jobs/@Id/edit"
+                   style="display:flex; align-items:center; justify-content:center; gap:8px;
+                              background:#fff; color:#374151; text-decoration:none;
+                              font-size:13px; font-weight:600; padding:12px;
+                              border:1px solid #e5e7eb; border-radius:10px; margin-bottom:10px;">
+                    Editează anunțul
+                </a>
+
+                @* Dezactivare — doar pentru anunțuri publicate *@
+                @if (_job.Status == JobStatus.Published)
+                {
+                    <button @onclick="@(() => _showDeactivateDialog = true)"
+                            disabled="@_processing"
+                            style="width:100%; display:flex; align-items:center; justify-content:center;
+                                           gap:8px; background:#fff; color:#92400e;
+                                           font-size:13px; font-weight:600; padding:12px;
+                                           border:1px solid #fde68a; border-radius:10px;
+                                           cursor:pointer; margin-bottom:10px;
+                                           opacity:@(_processing ? "0.6" : "1");">
+                        Dezactivează anunțul
+                    </button>
+                }
+
+            @* Ștergere — întotdeauna disponibilă *@
+            <button @onclick="@(() => _showDeleteDialog = true)"
+                    disabled="@_processing"
+                    style="width:100%; display:flex; align-items:center; justify-content:center;
+                               gap:8px; background:#fff; color:#b91c1c;
+                               font-size:13px; font-weight:600; padding:12px;
+                               border:1px solid #fca5a5; border-radius:10px;
+                               cursor:pointer; opacity:@(_processing ? "0.6" : "1");">
+                Șterge anunțul
+            </button>
         </div>
 
         @* ── DETALII PUBLICARE ── *@
@@ -205,14 +227,83 @@ else
 </div>
 }
 
-<style>
-    @@keyframes shimmer {
-        0% {
-            background-position: -800px 0;
-        }
+@* ════════════════════════════════
+   DIALOG — confirmare dezactivare
+════════════════════════════════ *@
+<MudDialog @bind-Visible="_showDeactivateDialog"
+           Options="@(new DialogOptions { MaxWidth = MaxWidth.ExtraSmall, FullWidth = true })">
+    <TitleContent>
+        <span style="font-size:16px; font-weight:700; color:#111827;">
+            Dezactivează anunțul?
+        </span>
+    </TitleContent>
+    <DialogContent>
+        <p style="font-size:13px; color:#6b7280; margin:0; line-height:1.6;">
+            Anunțul nu va mai fi vizibil candidaților și nu va mai primi aplicări noi.
+            Aplicările existente rămân accesibile.
+        </p>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="@(() => _showDeactivateDialog = false)"
+                   Style="color:#6b7280; font-size:13px; font-weight:600; text-transform:none;">
+            Anulează
+        </MudButton>
+        <MudButton OnClick="DeactivateJob"
+                   Variant="Variant.Filled"
+                   Disabled="@_processing"
+                   Style="background:#f59e0b; color:#fff; border-radius:10px;
+                          font-size:13px; font-weight:700; text-transform:none;
+                          padding:0 20px; height:40px;">
+            @(_processing ? "Se procesează..." : "Dezactivează")
+        </MudButton>
+    </DialogActions>
+</MudDialog>
 
-        100% {
-            background-position: 800px 0;
+@* ════════════════════════════════
+   DIALOG — confirmare ștergere
+════════════════════════════════ *@
+<MudDialog @bind-Visible="_showDeleteDialog"
+           Options="@(new DialogOptions { MaxWidth = MaxWidth.ExtraSmall, FullWidth = true })">
+    <TitleContent>
+        <span style="font-size:16px; font-weight:700; color:#b91c1c;">
+            Șterge anunțul definitiv?
+        </span>
+    </TitleContent>
+    <DialogContent>
+        <p style="font-size:13px; color:#6b7280; margin:0; line-height:1.6;">
+            Această acțiune este ireversibilă. Anunțul și datele asociate vor fi
+            șterse permanent.
+        </p>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="@(() => _showDeleteDialog = false)"
+                   Style="color:#6b7280; font-size:13px; font-weight:600; text-transform:none;">
+            Anulează
+        </MudButton>
+        <MudButton OnClick="DeleteJob"
+                   Variant="Variant.Filled"
+                   Disabled="@_processing"
+                   Style="background:#dc2626; color:#fff; border-radius:10px;
+                          font-size:13px; font-weight:700; text-transform:none;
+                          padding:0 20px; height:40px;">
+            @(_processing ? "Se șterge..." : "Șterge definitiv")
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+<style>
+    .job-spinner {
+        width: 36px;
+        height: 36px;
+        border: 3px solid #ede9fe;
+        border-top-color: #6366f1;
+        border-radius: 50%;
+        animation: job-spin 0.8s linear infinite;
+    }
+
+    @@keyframes job-spin {
+        to {
+            transform: rotate(360deg);
         }
     }
 </style>
@@ -221,8 +312,12 @@ else
     [Parameter] public int Id { get; set; }
 
     private bool _loading = true;
+    private bool _processing = false;
     private JobPostingDto? _job;
     private int _applicationsCount;
+
+    private bool _showDeactivateDialog = false;
+    private bool _showDeleteDialog = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -243,6 +338,64 @@ else
         finally
         {
             _loading = false;
+        }
+    }
+
+    // ── Dezactivare ────────────────────────────────────────────────
+    private async Task DeactivateJob()
+    {
+        if (_job == null) return;
+        _processing = true;
+        try
+        {
+            var response = await Http.PutAsync($"api/jobs/{Id}/deactivate", null);
+            if (response.IsSuccessStatusCode)
+            {
+                _job.Status = JobStatus.Closed;
+                _showDeactivateDialog = false;
+                Snackbar.Add("Anunțul a fost dezactivat.", Severity.Info);
+            }
+            else
+            {
+                Snackbar.Add("Anunțul nu a putut fi dezactivat.", Severity.Error);
+            }
+        }
+        catch
+        {
+            Snackbar.Add("Eroare de conexiune.", Severity.Error);
+        }
+        finally
+        {
+            _processing = false;
+        }
+    }
+
+    // ── Ștergere ───────────────────────────────────────────────────
+    private async Task DeleteJob()
+    {
+        _processing = true;
+        try
+        {
+            var response = await Http.DeleteAsync($"api/jobs/{Id}");
+            if (response.IsSuccessStatusCode)
+            {
+                Snackbar.Add("Anunțul a fost șters.", Severity.Success);
+                Navigation.NavigateTo("/employer/jobs");
+            }
+            else
+            {
+                _showDeleteDialog = false;
+                Snackbar.Add("Anunțul nu a putut fi șters.", Severity.Error);
+            }
+        }
+        catch
+        {
+            _showDeleteDialog = false;
+            Snackbar.Add("Eroare de conexiune.", Severity.Error);
+        }
+        finally
+        {
+            _processing = false;
         }
     }
 
@@ -303,8 +456,4 @@ else
         JobStatus.Draft => "#92400e",
         _ => "#6b7280"
     };
-    private async Task GoBack()
-    {
-        await JS.InvokeVoidAsync("history.back");
-    }
 }

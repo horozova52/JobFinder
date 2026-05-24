@@ -2,6 +2,7 @@
 @page "/candidate/jobs/{Id:int}"
 @layout CandidateLayout
 @inject HttpClient Http
+
 @inject ISnackbar Snackbar
 
 <PageTitle>@(_job?.Title ?? "Job") - JobFinder</PageTitle>
@@ -61,11 +62,12 @@ else
                         <p style="font-size:14px; color:#6b7280; margin:0;">
                             @if (_job.EmployerProfileId > 0)
                             {
-                                <a href="/company/@_job.EmployerProfileId"
+                                <a href="candidate/company/@_job.EmployerProfileId"
                                    style="color:#6366f1; text-decoration:none; font-weight:600;"
                                    onmouseover="this.style.textDecoration='underline'"
                                    onmouseout="this.style.textDecoration='none'">
                                     @_job.CompanyName
+                           
                                 </a>
                             }
                             else
@@ -298,7 +300,7 @@ else
                                   letter-spacing:1px; margin:0 0 14px 0;">
                     Despre companie
                 </p>
-                <a href="/company/@_job.EmployerProfileId"
+                <a href="/candidate/company/@_job.EmployerProfileId"
                    style="display:flex; align-items:center; gap:12px; margin-bottom:14px;
                               text-decoration:none; color:inherit; padding:8px; margin-left:-8px;
                               margin-right:-8px; border-radius:10px; transition:background 0.15s;"

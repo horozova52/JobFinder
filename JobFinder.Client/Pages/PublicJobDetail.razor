@@ -1,95 +1,4 @@
-﻿@* @page "/jobs/{Id:int}"
-@layout MainLayout
-
-<PageTitle>Frontend Developer - JobFinder</PageTitle>
-
-<div style="max-width:1152px; margin:0 auto; padding:48px 32px;">
-    <!-- Back -->
-    <a href="/jobs" style="font-size:12px; font-weight:600; letter-spacing:1px;
-                           text-transform:uppercase; color:#6b7280;
-                           text-decoration:none; display:inline-block; margin-bottom:24px;">
-        ← Înapoi la joburi
-    </a>
-
-    <!-- Header -->
-    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
-        <h1 style="font-size:24px; font-weight:700; letter-spacing:-0.5px; color:#111827; margin:0;">
-            Frontend Developer
-        </h1>
-        <StatusBadge Status="Full-time" />
-    </div>
-    <p style="font-size:14px; color:#6b7280; margin:0 0 32px 0;">
-        TechCorp · București · Publicat pe 15 ianuarie 2025
-    </p>
-
-    <div style="border-bottom:1px solid #e5e7eb; margin-bottom:32px;"></div>
-
-    <!-- Descriere -->
-    <section style="margin-bottom:32px;">
-        <h2 style="font-size:14px; font-weight:700; color:#111827; margin-bottom:12px;">
-            Descriere
-        </h2>
-        <p style="font-size:14px; color:#111827; line-height:1.7; margin:0;">
-            Căutăm un Frontend Developer experimentat pentru a se alătura echipei noastre de produs.
-            Vei lucra la aplicații web moderne folosind React și TypeScript, contribuind la arhitectura
-            și dezvoltarea componentelor UI ale platformei noastre.
-        </p>
-    </section>
-
-    <!-- Cerințe -->
-    <section style="margin-bottom:32px;">
-        <h2 style="font-size:14px; font-weight:700; color:#111827; margin-bottom:12px;">
-            Cerințe
-        </h2>
-        <div style="display:flex; flex-direction:column; gap:8px;">
-            @foreach (var req in _requirements)
-            {
-                <p style="font-size:14px; color:#111827; margin:0;">— @req</p>
-            }
-        </div>
-    </section>
-
-    <!-- Competențe -->
-    <section style="margin-bottom:32px;">
-        <h2 style="font-size:14px; font-weight:700; color:#111827; margin-bottom:12px;">
-            Competențe
-        </h2>
-        <div style="display:flex; gap:8px; flex-wrap:wrap;">
-            @foreach (var tag in _tags)
-            {
-                <span style="font-size:11px; font-weight:600; letter-spacing:1px;
-                             color:#6b7280; border:1px solid #e5e7eb; padding:4px 12px;">
-                    @tag
-                </span>
-            }
-        </div>
-    </section>
-
-    <div style="border-bottom:1px solid #e5e7eb; margin-bottom:32px;"></div>
-
-    <!-- CTA -->
-    <a href="/login"
-       style="display:inline-block; background:#111827; color:#fff;
-              padding:12px 24px; font-size:11px; font-weight:600;
-              letter-spacing:2px; text-transform:uppercase; text-decoration:none;">
-        Autentifică-te pentru a aplica
-    </a>
-</div>
-
-@code {
-    [Parameter] public int Id { get; set; }
-
-    private readonly List<string> _requirements = new()
-    {
-        "Minim 3 ani experiență cu React",
-        "Cunoștințe solide de TypeScript",
-        "Experiență cu sisteme de design",
-        "Abilitate de a lucra în echipă",
-    };
-
-    private readonly List<string> _tags = new()
-        { "React", "TypeScript", "CSS", "Tailwind", "Git" };
-} *@
+﻿
 @page "/jobs/{Id:int}"
 @layout MainLayout
 
@@ -99,6 +8,7 @@
 
 @inject HttpClient Http
 @inject NavigationManager Navigation
+@inject AuthenticationStateProvider AuthStateProvider
 
 <PageTitle>@(_job?.Title ?? "Job") - JobFinder</PageTitle>
 
@@ -290,8 +200,47 @@
     private JobPostingDto? _job;
     private bool _loading = true;
 
+    // protected override async Task OnInitializedAsync()
+    // {
+    //     var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+    //     if (authState.User.Identity?.IsAuthenticated == true &&
+    //         authState.User.IsInRole("Candidate"))
+    //     {
+    //         Navigation.NavigateTo($"/candidate/jobs/{Id}", replace: true);
+    //         return;
+    //     }
+
+    //     try
+    //     {
+    //         _job = await Http.GetFromJsonAsync<JobPostingDto>($"api/jobs/{Id}");
+    //     }
+    //     catch { }
+    //     finally
+    //     {
+    //         _loading = false;
+    //     }
+    // }
+    private string _debugInfo = "";
+
     protected override async Task OnInitializedAsync()
     {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        // ── DEBUG TEMPORAR ──
+        _debugInfo = $"IsAuthenticated={user.Identity?.IsAuthenticated}; " +
+                     $"Name={user.Identity?.Name}; " +
+                     $"IsInRole(Candidate)={user.IsInRole("Candidate")}; " +
+                     $"Claims=[{string.Join(" | ", user.Claims.Select(c => $"{c.Type}={c.Value}"))}]";
+        Console.WriteLine("DEBUG AUTH: " + _debugInfo);
+        // ── SFÂRȘIT DEBUG ──
+
+        if (user.Identity?.IsAuthenticated == true && user.IsInRole("Candidate"))
+        {
+            Navigation.NavigateTo($"/candidate/jobs/{Id}", replace: true);
+            return;
+        }
+
         try
         {
             _job = await Http.GetFromJsonAsync<JobPostingDto>($"api/jobs/{Id}");
