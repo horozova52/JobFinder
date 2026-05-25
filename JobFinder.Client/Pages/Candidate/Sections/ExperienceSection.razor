@@ -185,11 +185,78 @@
 
                                 </div>
 
-                                @* Buton editare *@
-                                <MudIconButton Icon="@Icons.Material.Outlined.Edit"
-                                               Size="Size.Small"
-                                               OnClick="@(() => StartEdit(item))"
-                                               Style="color:#9ca3af; margin-top:-4px;" />
+                                @* Zonă acțiuni — diferă după starea experienței *@
+                                <div style="display:flex; flex-direction:column;
+                                                        align-items:flex-end; gap:8px; margin-top:-4px;">
+
+                                    @if (item.Status == ExperienceStatus.PendingConfirmation)
+                                    {
+                                        <span style="font-size:10px; font-weight:700; padding:3px 10px;
+                                                                     background:#fef9c3; color:#92400e; border-radius:20px;
+                                                                     letter-spacing:0.5px; white-space:nowrap;">
+                                            ÎN AȘTEPTARE
+                                        </span>
+                                        <MudButton Variant="Variant.Filled"
+                                                   Disabled="@_isSaving"
+                                                   OnClick="@(() => ConfirmEmployment(item.Id))"
+                                                   Style="background:#16a34a; color:#fff; border-radius:0;
+                                                                          font-size:10px; font-weight:700; letter-spacing:1px;
+                                                                          text-transform:uppercase; padding:6px 14px;">
+                                            Confirmă angajarea
+                                        </MudButton>
+                                    }
+                                    else if (item.Status == ExperienceStatus.Active)
+                                    {
+                                        <span style="font-size:10px; font-weight:700; padding:3px 10px;
+                                                                     background:#dcfce7; color:#16a34a; border-radius:20px;
+                                                                     letter-spacing:0.5px; white-space:nowrap;">
+                                            ANGAJAT PRIN JOBFINDER
+                                        </span>
+                                        @if (_resignConfirmId == item.Id)
+                                        {
+                                            <div style="display:flex; gap:6px; align-items:center;">
+                                                <MudButton Variant="Variant.Filled"
+                                                           Disabled="@_isSaving"
+                                                           OnClick="@(() => Resign(item.Id))"
+                                                           Style="background:#dc2626; color:#fff; border-radius:0;
+                                                                                      font-size:10px; font-weight:700; padding:6px 12px;">
+                                                    Confirm demisia
+                                                </MudButton>
+                                                <MudButton Variant="Variant.Text"
+                                                           OnClick="@(() => _resignConfirmId = null)"
+                                                           Style="color:#6b7280; font-size:10px; padding:6px 8px;">
+                                                    Nu
+                                                </MudButton>
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <MudButton Variant="Variant.Outlined"
+                                                       OnClick="@(() => _resignConfirmId = item.Id)"
+                                                       Style="border-color:#d1d5db; color:#6b7280; border-radius:0;
+                                                                                  font-size:10px; font-weight:700; letter-spacing:1px;
+                                                                                  text-transform:uppercase; padding:6px 14px;">
+                                                Mi-am dat demisia
+                                            </MudButton>
+                                        }
+                                    }
+                                    else if (item.Status == ExperienceStatus.Ended)
+                                    {
+                                        <span style="font-size:10px; font-weight:700; padding:3px 10px;
+                                                                     background:#f3f4f6; color:#6b7280; border-radius:20px;
+                                                                     letter-spacing:0.5px; white-space:nowrap;">
+                                            ANGAJARE ÎNCHEIATĂ
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        @* Manual — experiență adăugată de candidat: editabilă normal *@
+                                        <MudIconButton Icon="@Icons.Material.Outlined.Edit"
+                                                       Size="Size.Small"
+                                                       OnClick="@(() => StartEdit(item))"
+                                                       Style="color:#9ca3af;" />
+                                    }
+                                </div>
                             </div>
                         </MudPaper>
                     }
@@ -277,6 +344,7 @@
     private bool _showValidation = false;
     private bool _confirmDelete = false;
     private int? _editingId = null;
+    private int? _resignConfirmId = null;
     private ExpDraft _draft = new();
 
     // ── Lifecycle ────────────────────────────────────────────────────────
@@ -383,7 +451,61 @@
 
         </MudGrid>
     };
+    // ── Confirmare angajare (5.3) ─────────────────────────────────────
+    private async Task ConfirmEmployment(int id)
+    {
+        _isSaving = true;
+        try
+        {
+            var response = await Http.PutAsync($"api/experience/{id}/confirm", null);
+            if (response.IsSuccessStatusCode)
+            {
+                var idx = _items.FindIndex(x => x.Id == id);
+                if (idx >= 0)
+                {
+                    _items[idx].Status = ExperienceStatus.Active;
+                    _items[idx].IsCurrent = true;
+                }
+                await ItemsChanged.InvokeAsync(_items);
+                Snackbar.Add("Angajare confirmată!", Severity.Success);
+            }
+            else
+            {
+                Snackbar.Add("Eroare la confirmare.", Severity.Error);
+            }
+        }
+        catch { Snackbar.Add("Eroare de conexiune.", Severity.Error); }
+        finally { _isSaving = false; }
+    }
 
+    // ── Demisie (5.4) ─────────────────────────────────────────────────
+    private async Task Resign(int id)
+    {
+        _isSaving = true;
+        try
+        {
+            var response = await Http.PutAsync($"api/experience/{id}/resign", null);
+            if (response.IsSuccessStatusCode)
+            {
+                var idx = _items.FindIndex(x => x.Id == id);
+                if (idx >= 0)
+                {
+                    _items[idx].Status = ExperienceStatus.Ended;
+                    _items[idx].IsCurrent = false;
+                    _items[idx].EndDate = DateTime.UtcNow;
+                }
+                _resignConfirmId = null;
+                await ItemsChanged.InvokeAsync(_items);
+                Snackbar.Add("Demisie înregistrată. Experiența rămâne în profil.", Severity.Info);
+            }
+            else
+            {
+                Snackbar.Add("Eroare la înregistrarea demisiei.", Severity.Error);
+            }
+        }
+        catch { Snackbar.Add("Eroare de conexiune.", Severity.Error); }
+        finally { _isSaving = false; }
+    }
     // ── Show/Cancel Add ───────────────────────────────────────────────────
     private void ShowAddForm()
     {

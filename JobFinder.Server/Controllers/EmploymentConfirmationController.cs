@@ -170,6 +170,7 @@ public class EmploymentConfirmationController : ControllerBase
                                              $"Validat de angajator pe {DateTime.UtcNow:dd.MM.yyyy}.",
                         EmploymentType = job.EmploymentType,
                         Location = job.Location,
+                        EmployerProfileId = employer.Id,
                     };
                     _db.Experiences.Add(experience);
                 }

@@ -36,7 +36,7 @@
             </MudText>
             <MudButton Href="/jobs" Variant="Variant.Outlined"
                        Style="margin-top:24px; border-radius:0; border-color:#6366f1; color:#6366f1;
-                              font-size:11px; font-weight:600; letter-spacing:2px; text-transform:uppercase;">
+                                  font-size:11px; font-weight:600; letter-spacing:2px; text-transform:uppercase;">
                 Înapoi la joburi
             </MudButton>
         </div>
@@ -45,8 +45,8 @@
     {
         @* ── Back link ── *@
         <a href="/jobs" style="font-size:12px; font-weight:600; letter-spacing:1px;
-                               text-transform:uppercase; color:#6b7280;
-                               text-decoration:none; display:inline-block; margin-bottom:24px;">
+                                   text-transform:uppercase; color:#6b7280;
+                                   text-decoration:none; display:inline-block; margin-bottom:24px;">
             ← Înapoi la joburi
         </a>
 
@@ -67,9 +67,9 @@
                     else
                     {
                         <div style="width:80px; height:80px; background:#ede9fe;
-                                    border:2px solid #e5e7eb; display:flex;
-                                    align-items:center; justify-content:center;
-                                    font-size:26px; font-weight:700; color:#6366f1; flex-shrink:0;">
+                                            border:2px solid #e5e7eb; display:flex;
+                                            align-items:center; justify-content:center;
+                                            font-size:26px; font-weight:700; color:#6366f1; flex-shrink:0;">
                             @GetInitials(_profile.CompanyName)
                         </div>
                     }
@@ -81,8 +81,8 @@
                             @if (_profile.IsVerified)
                             {
                                 <span style="background:#d1fae5; padding:2px 8px; font-size:10px;
-                                             font-weight:600; color:#065f46; text-transform:uppercase;
-                                             letter-spacing:1px; font-family:'Roboto Mono',monospace;">
+                                                     font-weight:600; color:#065f46; text-transform:uppercase;
+                                                     letter-spacing:1px; font-family:'Roboto Mono',monospace;">
                                     Verificat
                                 </span>
                             }
@@ -119,51 +119,32 @@
                     </div>
                 </div>
 
-                @* Contact & social links *@
-                <div style="display:flex; flex-wrap:wrap; gap:12px; padding-top:16px; border-top:1px solid #e5e7eb;">
-                    @if (!string.IsNullOrWhiteSpace(_profile.Website))
-                    {
-                        <span style="font-size:12px; color:#6b7280; display:flex; align-items:center; gap:4px;">
-                            <MudIcon Icon="@Icons.Material.Filled.Language" Size="Size.Small" Style="color:#9ca3af;" />
-                            @_profile.Website
-                        </span>
-                    }
-                    @if (!string.IsNullOrWhiteSpace(_profile.ContactEmail))
-                    {
-                        <span style="font-size:12px; color:#6b7280; display:flex; align-items:center; gap:4px;">
-                            <MudIcon Icon="@Icons.Material.Filled.Email" Size="Size.Small" Style="color:#9ca3af;" />
-                            @_profile.ContactEmail
-                        </span>
-                    }
-                    @if (!string.IsNullOrWhiteSpace(_profile.ContactPhone))
-                    {
-                        <span style="font-size:12px; color:#6b7280; display:flex; align-items:center; gap:4px;">
-                            <MudIcon Icon="@Icons.Material.Filled.Phone" Size="Size.Small" Style="color:#9ca3af;" />
-                            @_profile.ContactPhone
-                        </span>
-                    }
-                    @if (!string.IsNullOrWhiteSpace(_profile.LinkedInUrl))
-                    {
-                        <span style="font-size:12px; color:#6b7280; display:flex; align-items:center; gap:4px;">
-                            <MudIcon Icon="@Icons.Material.Filled.Link" Size="Size.Small" Style="color:#9ca3af;" />
-                            LinkedIn
-                        </span>
-                    }
-                    @if (!string.IsNullOrWhiteSpace(_profile.FacebookUrl))
-                    {
-                        <span style="font-size:12px; color:#6b7280; display:flex; align-items:center; gap:4px;">
-                            <MudIcon Icon="@Icons.Material.Filled.Link" Size="Size.Small" Style="color:#9ca3af;" />
-                            Facebook
-                        </span>
-                    }
-                    @if (!string.IsNullOrWhiteSpace(_profile.InstagramUrl))
-                    {
-                        <span style="font-size:12px; color:#6b7280; display:flex; align-items:center; gap:4px;">
-                            <MudIcon Icon="@Icons.Material.Filled.Link" Size="Size.Small" Style="color:#9ca3af;" />
-                            Instagram
-                        </span>
-                    }
-                </div>
+                @* ── Contact & web (doar informația utilă candidatului) ──
+                   LinkedIn / Facebook / Instagram au fost eliminate: erau afișate
+                   doar ca text static, fără link, și nu ajută candidatul. *@
+                @if (!string.IsNullOrWhiteSpace(_profile.Website) ||
+                            !string.IsNullOrWhiteSpace(_profile.ContactEmail))
+                {
+                    <div style="display:flex; flex-wrap:wrap; gap:16px;
+                                        padding-top:16px; border-top:1px solid #e5e7eb;">
+                        @if (!string.IsNullOrWhiteSpace(_profile.Website))
+                        {
+                            <a href="@_profile.Website" target="_blank" rel="noopener"
+                               style="font-size:12px; color:#6366f1; text-decoration:none;
+                                                  display:flex; align-items:center; gap:4px;">
+                                <MudIcon Icon="@Icons.Material.Filled.Language" Size="Size.Small" Style="color:#9ca3af;" />
+                                @_profile.Website
+                            </a>
+                        }
+                        @if (!string.IsNullOrWhiteSpace(_profile.ContactEmail))
+                        {
+                            <span style="font-size:12px; color:#6b7280; display:flex; align-items:center; gap:4px;">
+                                <MudIcon Icon="@Icons.Material.Filled.Email" Size="Size.Small" Style="color:#9ca3af;" />
+                                @_profile.ContactEmail
+                            </span>
+                        }
+                    </div>
+                }
             </div>
         </MudPaper>
 
@@ -178,8 +159,8 @@
                     @foreach (var loc in _profile.Locations)
                     {
                         <span style="font-size:12px; font-weight:600; color:#6b7280;
-                                     border:1px solid #e5e7eb; padding:6px 14px;
-                                     font-family:'Roboto Mono',monospace; display:flex; align-items:center; gap:6px;">
+                                                 border:1px solid #e5e7eb; padding:6px 14px;
+                                                 font-family:'Roboto Mono',monospace; display:flex; align-items:center; gap:6px;">
                             <MudIcon Icon="@Icons.Material.Filled.LocationOn" Size="Size.Small" Style="color:#9ca3af;" />
                             @loc.City, @loc.Country
                         </span>
@@ -217,8 +198,8 @@
                         {
                             <div>
                                 <span style="display:block; font-size:11px; font-weight:600; letter-spacing:2px;
-                                             text-transform:uppercase; color:#6366f1; margin-bottom:8px;
-                                             font-family:'Roboto Mono',monospace;">
+                                                         text-transform:uppercase; color:#6366f1; margin-bottom:8px;
+                                                         font-family:'Roboto Mono',monospace;">
                                     Misiune
                                 </span>
                                 <MudText Typo="Typo.body2" Style="color:#374151; line-height:1.6; white-space:pre-line;">
@@ -230,8 +211,8 @@
                         {
                             <div>
                                 <span style="display:block; font-size:11px; font-weight:600; letter-spacing:2px;
-                                             text-transform:uppercase; color:#6366f1; margin-bottom:8px;
-                                             font-family:'Roboto Mono',monospace;">
+                                                         text-transform:uppercase; color:#6366f1; margin-bottom:8px;
+                                                         font-family:'Roboto Mono',monospace;">
                                     Viziune
                                 </span>
                                 <MudText Typo="Typo.body2" Style="color:#374151; line-height:1.6; white-space:pre-line;">
@@ -243,8 +224,8 @@
                         {
                             <div>
                                 <span style="display:block; font-size:11px; font-weight:600; letter-spacing:2px;
-                                             text-transform:uppercase; color:#6366f1; margin-bottom:8px;
-                                             font-family:'Roboto Mono',monospace;">
+                                                         text-transform:uppercase; color:#6366f1; margin-bottom:8px;
+                                                         font-family:'Roboto Mono',monospace;">
                                     Valori
                                 </span>
                                 <MudText Typo="Typo.body2" Style="color:#374151; line-height:1.6; white-space:pre-line;">
@@ -256,8 +237,8 @@
                         {
                             <div>
                                 <span style="display:block; font-size:11px; font-weight:600; letter-spacing:2px;
-                                             text-transform:uppercase; color:#6366f1; margin-bottom:8px;
-                                             font-family:'Roboto Mono',monospace;">
+                                                         text-transform:uppercase; color:#6366f1; margin-bottom:8px;
+                                                         font-family:'Roboto Mono',monospace;">
                                     Mediu de lucru
                                 </span>
                                 <MudText Typo="Typo.body2" Style="color:#374151; line-height:1.6; white-space:pre-line;">
@@ -281,8 +262,8 @@
                     @foreach (var benefit in _profile.Benefits)
                     {
                         <span style="font-size:12px; font-weight:500; color:#6366f1;
-                                     background:#ede9fe; padding:6px 14px;
-                                     border:1px solid #c4b5fd;">
+                                                 background:#ede9fe; padding:6px 14px;
+                                                 border:1px solid #c4b5fd;">
                             @benefit
                         </span>
                     }
@@ -306,8 +287,8 @@
                             <div style="display:flex; gap:16px;">
                                 <div style="display:flex; flex-direction:column; align-items:center;">
                                     <span style="width:32px; height:32px; background:#6366f1; color:#fff;
-                                                 display:flex; align-items:center; justify-content:center;
-                                                 font-size:13px; font-weight:700; flex-shrink:0;">
+                                                             display:flex; align-items:center; justify-content:center;
+                                                             font-size:13px; font-weight:700; flex-shrink:0;">
                                         @(i + 1)
                                     </span>
                                     @if (!isLast)
@@ -333,26 +314,44 @@
             </MudPaper>
         }
 
-        @* ── Joburi active ── *@
+        @* ══════════════════════════════════════════════════════════
+           POZIȚII DESCHISE — listă expandabilă cu scor de matching
+        ══════════════════════════════════════════════════════════ *@
         @if (_jobs != null && _jobs.Any())
         {
             <MudPaper Elevation="0" Class="mb-4" Style="border:1px solid #e5e7eb;">
-                <div style="padding:14px 20px; border-bottom:1px solid #e5e7eb;">
+                <div style="padding:14px 20px; border-bottom:1px solid #e5e7eb;
+                                    display:flex; justify-content:space-between; align-items:center;">
                     <span style="@SectionLabelStyle">Poziții deschise (@_jobs.Count)</span>
+                    @if (_hasMatchData)
+                    {
+                        <span style="font-size:11px; color:#6366f1; font-weight:600;">
+                            ✦ Compatibilitate cu profilul tău
+                        </span>
+                    }
                 </div>
+
                 <div style="padding:0;">
                     @foreach (var job in _jobs)
                     {
+                        var match = GetMatch(job.Id);
+                        var expanded = _expandedJobId == job.Id;
+
+                        @* ── Rândul propriu-zis (clic = expand/collapse) ── *@
                         <div style="padding:16px 20px; border-bottom:1px solid #f3f4f6;
-                                    cursor:pointer;"
-                             @onclick="@(() => NavigateToJob(job.Id))">
-                            
-                            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                                <div>
+                                                cursor:pointer; transition:background 0.15s;
+                                                @(expanded ? "background:#f9fafb;" : "")"
+                             @onclick="@(() => ToggleExpand(job.Id))">
+
+                            <div style="display:flex; justify-content:space-between;
+                                                    align-items:flex-start; gap:16px;">
+
+                                @* ── Stânga: titlu + meta ── *@
+                                <div style="flex:1; min-width:0;">
                                     <span style="font-size:14px; font-weight:600; color:#111827; display:block;">
                                         @job.Title
                                     </span>
-                                    <div style="display:flex; gap:12px; margin-top:4px;">
+                                    <div style="display:flex; gap:12px; margin-top:4px; flex-wrap:wrap;">
                                         @if (!string.IsNullOrWhiteSpace(job.Location))
                                         {
                                             <span style="font-size:12px; color:#6b7280; display:flex; align-items:center; gap:4px;">
@@ -368,15 +367,118 @@
                                         </span>
                                     </div>
                                 </div>
-                                @if (job.SalaryFrom.HasValue || job.SalaryTo.HasValue)
+
+                                @* ── Dreapta: scor matching SAU salariu + chevron ── *@
+                                <div style="display:flex; align-items:center; gap:12px; flex-shrink:0;">
+                                    @if (_hasMatchData && match != null && match.TotalSkillsRequired > 0)
+                                    {
+                                        <div style="text-align:center;">
+                                            <div style="@(GetMatchStyle(match.MatchScore))
+                                                                        font-size:13px; font-weight:700;
+                                                                        width:46px; height:46px; border-radius:4px;
+                                                                        display:flex; align-items:center; justify-content:center;">
+                                                @match.MatchScore%
+                                            </div>
+                                            <p style="font-size:9px; color:#9ca3af; margin:2px 0 0 0;">match</p>
+                                        </div>
+                                    }
+                                    else if (job.SalaryFrom.HasValue || job.SalaryTo.HasValue)
+                                    {
+                                        <span style="font-size:12px; font-weight:600; color:#6366f1;
+                                                                     background:#ede9fe; padding:4px 10px; white-space:nowrap;">
+                                            @FormatSalary(job)
+                                        </span>
+                                    }
+                                    <MudIcon Icon="@(expanded
+                                                                                                  ? Icons.Material.Filled.ExpandLess
+                                                                                      : Icons.Material.Filled.ExpandMore)"
+                                 Size="Size.Small" Style="color:#9ca3af;" />
+                    </div>
+                </div>
+            </div>
+
+                        @* ── Panou expandat ── *@
+            @if (expanded)
+                        {
+                            <div style="padding:0 20px 20px 20px; border-bottom:1px solid #f3f4f6;
+                                                        background:#f9fafb;">
+
+                                @* Salariu (când nu a fost deja afișat în rând) *@
+                                @if (_hasMatchData && (job.SalaryFrom.HasValue || job.SalaryTo.HasValue))
                                 {
-                                    <span style="font-size:12px; font-weight:600; color:#6366f1;
-                                                 background:#ede9fe; padding:4px 10px; white-space:nowrap;">
-                                        @FormatSalary(job)
-                                    </span>
+                                    <div style="margin-bottom:12px;">
+                                        <span style="font-size:12px; font-weight:600; color:#6366f1;
+                                                                         background:#ede9fe; padding:4px 10px;">
+                                            @FormatSalary(job)
+                                        </span>
+                                    </div>
                                 }
+                                else if (!_hasMatchData && job.IsSalaryNegotiable
+                                && !job.SalaryFrom.HasValue && !job.SalaryTo.HasValue)
+                                {
+                                    <div style="margin-bottom:12px;">
+                                        <span style="font-size:12px; color:#9ca3af; font-style:italic;">
+                                            Salariu negociabil
+                                        </span>
+                                    </div>
+                                }
+
+                                @* Descriere scurtă *@
+                                @if (!string.IsNullOrWhiteSpace(job.Description))
+                                {
+                                    <p style="font-size:13px; color:#374151; line-height:1.65;
+                                                                  margin:0 0 14px 0;">
+                                        @TrimText(job.Description, 280)
+                                    </p>
+                                }
+
+                                @* Competențe cerute — bifate verde dacă le are candidatul *@
+                                @{
+                                    var skills = GetJobSkills(job.Id);
+                                }
+                                @if (skills.Any())
+                                {
+                                    <div style="margin-bottom:16px;">
+                                        <span style="display:block; font-size:11px; font-weight:600;
+                                                                         letter-spacing:1px; text-transform:uppercase;
+                                                                         color:#9ca3af; margin-bottom:8px;">
+                                            Competențe cerute
+                                        </span>
+                                        <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                                            @foreach (var skill in skills)
+                                            {
+                                                var isMatched = _hasMatchData
+                                                && _candidateSkills.Contains(skill);
+                                                <span style="font-size:11px; font-weight:600; padding:3px 9px;
+                                                                                     @(isMatched
+                                                                                                                       ? "background:#dcfce7; color:#16a34a; border:1px solid #86efac;"
+                                                                                                                       : "color:#6b7280; border:1px solid #e5e7eb;")">
+                            @(isMatched ? "✓ " : "")@skill
+                        </span>
+                                                }
+                                        </div>
+                                    </div>
+                                }
+
+                                @* Acțiune: aplică / vezi job ── difită după rol *@
+                                <div style="display:flex; gap:10px; align-items:center;">
+                                    <MudButton Variant="Variant.Filled"
+                                               OnClick="@(() => NavigateToJob(job.Id))"
+                                               Style="background:#6366f1; color:#fff; border-radius:0;
+                                                                      font-size:11px; font-weight:600; letter-spacing:2px;
+                                                                      text-transform:uppercase;">
+                                        @(_isCandidate ? "Aplică la job" : "Vezi detalii")
+                                    </MudButton>
+
+                                    @if (!_isCandidate)
+                                    {
+                                        <span style="font-size:12px; color:#9ca3af;">
+                                            Autentifică-te ca să vezi compatibilitatea cu profilul tău.
+                                        </span>
+                                    }
+                                </div>
                             </div>
-                        </div>
+                        }
                     }
                 </div>
             </MudPaper>
@@ -398,10 +500,20 @@
 @code {
     [Parameter]
     public int Id { get; set; }
+
     private bool _isCandidate;
     private EmployerProfileDto? _profile;
     private List<JobPostingDto>? _jobs;
     private bool _isLoading = true;
+
+    // ── Matching ──────────────────────────────────────────────────────
+    // Joburile cu scor vin din api/jobfeed, indexate după Id-ul jobului.
+    private Dictionary<int, JobFeedItemDto> _feedByJobId = new();
+    private HashSet<string> _candidateSkills = new(StringComparer.OrdinalIgnoreCase);
+    private bool _hasMatchData = false;
+
+    // ── Expand/collapse ───────────────────────────────────────────────
+    private int? _expandedJobId = null;
 
     private const string SectionLabelStyle =
         "font-size:11px; font-weight:600; letter-spacing:2px; " +
@@ -412,8 +524,17 @@
     {
         var authState = await AuthState.GetAuthenticationStateAsync();
         _isCandidate = authState.User.IsInRole("Candidate");
+
         await LoadData();
+
+        // Scorul de matching are sens doar pentru candidatul autentificat.
+        if (_isCandidate)
+            await LoadMatchData();
     }
+
+    private void ToggleExpand(int jobId)
+        => _expandedJobId = _expandedJobId == jobId ? null : jobId;
+
     private void NavigateToJob(int jobId)
     {
         var targetUrl = _isCandidate
@@ -421,6 +542,8 @@
             : $"/jobs/{jobId}";
         Navigation.NavigateTo(targetUrl);
     }
+
+    // ── Load profil + joburi (apelul original, nemodificat) ───────────
     private async Task LoadData()
     {
         try
@@ -460,6 +583,52 @@
         }
     }
 
+    // ── Load scoruri matching din api/jobfeed ─────────────────────────
+    // Refolosim feed-ul existent (care calculează deja scorul) și
+    // filtrăm pe client joburile acestei companii. Backend neatins.
+    private async Task LoadMatchData()
+    {
+        try
+        {
+            var feed = await Http.GetFromJsonAsync<List<JobFeedItemDto>>(
+                "api/jobfeed?pageSize=200");
+
+            if (feed == null) return;
+
+            var companyFeed = feed
+                .Where(j => j.EmployerProfileId == Id)
+                .ToList();
+
+            _feedByJobId = companyFeed.ToDictionary(j => j.Id);
+
+            // Reconstituim competențele candidatului din primele
+            // MatchedSkillsCount skill-uri ale fiecărui job — aceeași
+            // logică folosită în pagina de căutare CandidateJobs.
+            _candidateSkills.Clear();
+            foreach (var job in companyFeed.Where(j => j.MatchedSkillsCount > 0))
+            {
+                foreach (var skill in job.SkillNames.Take(job.MatchedSkillsCount))
+                    _candidateSkills.Add(skill);
+            }
+
+            _hasMatchData = companyFeed.Any(j => j.TotalSkillsRequired > 0);
+        }
+        catch
+        {
+            // Fără date de matching pagina rămâne funcțională (fără scor).
+            _hasMatchData = false;
+        }
+    }
+
+    private JobFeedItemDto? GetMatch(int jobId)
+        => _feedByJobId.TryGetValue(jobId, out var item) ? item : null;
+
+    private List<string> GetJobSkills(int jobId)
+        => _feedByJobId.TryGetValue(jobId, out var item)
+            ? item.SkillNames
+            : new List<string>();
+
+    // ── Helpers ───────────────────────────────────────────────────────
     private string GetInitials(string name)
     {
         if (string.IsNullOrWhiteSpace(name)) return "?";
@@ -500,4 +669,16 @@
             return $"până la {job.SalaryTo:N0} MDL";
         return "";
     }
+
+    private static string TrimText(string text, int maxLen)
+        => text.Length <= maxLen ? text : text[..maxLen].TrimEnd() + "…";
+
+    // Aceleași praguri de culoare ca în pagina CandidateJobs.
+    private static string GetMatchStyle(int score) => score switch
+    {
+        >= 80 => "background:#dcfce7; color:#16a34a;",
+        >= 50 => "background:#fef9c3; color:#ca8a04;",
+        >= 20 => "background:#ede9fe; color:#6366f1;",
+        _ => "background:#f3f4f6; color:#6b7280;"
+    };
 }

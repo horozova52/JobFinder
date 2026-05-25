@@ -201,8 +201,17 @@ else
                         }
                         <div>
                             <h2 style="font-size:14px; font-weight:700;
-                                       color:#111827; margin:0 0 2px 0;">
+                       color:#111827; margin:0 0 2px 0;
+                       display:flex; align-items:center; gap:8px;">
                                 @job.Title
+                                @if (job.HasApplied)
+                                {
+                                    <span style="font-size:10px; font-weight:700; padding:2px 8px;
+                                     background:#dcfce7; color:#16a34a; border-radius:20px;
+                                     letter-spacing:0.5px; white-space:nowrap;">
+                                        ✓ Aplicat
+                                    </span>
+                                }
                             </h2>
                             <p style="font-size:13px; color:#6b7280; margin:0;">
                                 @job.CompanyName

@@ -12,5 +12,7 @@ public class ExperienceDto
     public bool IsCurrent { get; set; }
     public string? Description { get; set; }
     public string? Location { get; set; }
+    public int? EmployerProfileId { get; set; }
+    public ExperienceStatus Status { get; set; } = ExperienceStatus.Manual;
     public EmploymentType? EmploymentType { get; set; }
 }

@@ -1,15 +1,16 @@
 using JobFinder.Core.Entities.Applications;
 using JobFinder.Core.Entities.Candidates;
 using JobFinder.Core.Entities.Common;
+using JobFinder.Core.Entities.Common;
 using JobFinder.Core.Entities.Documents;
 using JobFinder.Core.Entities.Employers;
 using JobFinder.Core.Entities.Identity;
 using JobFinder.Core.Entities.Jobs;
 using JobFinder.Core.Entities.Messaging;
 using JobFinder.Core.Entities.Validation;
+using JobFinder.Shared.Enums;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using JobFinder.Core.Entities.Common;
 
 namespace JobFinder.Infrastructure.Data;
 
@@ -105,6 +106,15 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
                   .WithOne(x => x.EmployerProfile)
                   .HasForeignKey(x => x.EmployerProfileId)
                   .OnDelete(DeleteBehavior.Cascade);
+        });
+        modelBuilder.Entity<Experience>(entity =>
+        {
+            entity.HasOne(e => e.EmployerProfile)
+                  .WithMany()
+                  .HasForeignKey(e => e.EmployerProfileId)
+                  .OnDelete(DeleteBehavior.SetNull);
+            entity.Property(e => e.Status)
+                  .HasDefaultValue(ExperienceStatus.Manual);
         });
 
         // JobPosting

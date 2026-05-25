@@ -29,12 +29,16 @@ public class GetJobFeedHandler : IRequestHandler<GetJobFeedQuery, GetJobFeedResu
 
         // 2. Preluăm skill-urile candidatului (dacă e autentificat)
         var candidateSkills = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var appliedJobIds = new HashSet<int>();   // NOU
         if (!string.IsNullOrEmpty(request.UserId))
         {
             var skills = await _feedRepo.GetCandidateSkillNamesAsync(
                 request.UserId, cancellationToken);
             foreach (var s in skills)
                 candidateSkills.Add(s);
+
+            appliedJobIds = await _feedRepo.GetAppliedJobIdsAsync(
+                request.UserId, cancellationToken);
         }
 
         // 3. Construim DTO-urile cu matching score
@@ -68,6 +72,7 @@ public class GetJobFeedHandler : IRequestHandler<GetJobFeedQuery, GetJobFeedResu
                 MatchScore = matchScore,
                 MatchedSkillsCount = matched,
                 TotalSkillsRequired = jobSkillNames.Count,
+                HasApplied = appliedJobIds.Contains(job.Id)   
             };
         })
         .OrderByDescending(x => candidateSkills.Count > 0 ? x.MatchScore : 0)

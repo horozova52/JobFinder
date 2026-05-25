@@ -71,7 +71,17 @@ public class JobFeedRepository : IJobFeedRepository
             .Select(cs => cs.Skill.Name)
             .ToListAsync(cancellationToken);
     }
+    public async Task<HashSet<int>> GetAppliedJobIdsAsync(
+    string userId,
+    CancellationToken cancellationToken = default)
+    {
+        var ids = await _db.Applications
+            .Where(a => a.CandidateProfile.UserId == userId)
+            .Select(a => a.JobPostingId)
+            .ToListAsync(cancellationToken);
 
+        return ids.ToHashSet();
+    }
     public async Task<int> GetPublishedJobsCountAsync(
     CancellationToken cancellationToken = default)
     {

@@ -15,7 +15,7 @@ public class JobFeedItemDto
     public bool IsSalaryNegotiable { get; set; }
     public DateTime? PublishedAt { get; set; }
     public List<string> SkillNames { get; set; } = new();
-
+    public bool HasApplied { get; set; }
 
     public int MatchScore { get; set; }     
     public int MatchedSkillsCount { get; set; }

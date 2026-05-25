@@ -1,5 +1,6 @@
 using AutoMapper;
 using JobFinder.Core.Entities.Applications;
+using JobFinder.Core.Entities.Candidates;
 using JobFinder.Core.Entities.Common;
 using JobFinder.Infrastructure.Data;
 using JobFinder.Shared.DTOs.Applications;
@@ -38,9 +39,9 @@ public class ApplicationsController : ControllerBase
         var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (string.IsNullOrEmpty(userId))
             return Unauthorized(new { message = "Utilizator neidentificat" });
-         var candidate = await _db.CandidateProfiles
-            .AsNoTracking()
-            .FirstOrDefaultAsync(c => c.UserId == userId, ct);
+        var candidate = await _db.CandidateProfiles
+           .AsNoTracking()
+           .FirstOrDefaultAsync(c => c.UserId == userId, ct);
         if (candidate == null)
             return BadRequest(new { message = "Profilul de candidat nu a fost găsit" });
 
@@ -54,7 +55,7 @@ public class ApplicationsController : ControllerBase
             CoverLetter = dto.CoverLetter
         };
         var created = await _applicationRepo.CreateAsync(application, ct);
-                // ── Notificare angajator — aplicare nouă ──────────────────────
+        // ── Notificare angajator — aplicare nouă ──────────────────────
         var jobWithEmployer = await _db.JobPostings
             .Include(j => j.EmployerProfile)
             .AsNoTracking()
@@ -145,6 +146,7 @@ public class ApplicationsController : ControllerBase
 
         var application = await _db.Applications
             .Include(a => a.JobPosting)
+                .ThenInclude(j => j.EmployerProfile)
             .Include(a => a.CandidateProfile)
             .FirstOrDefaultAsync(a => a.Id == id, ct);
 
@@ -176,8 +178,39 @@ public class ApplicationsController : ControllerBase
         if (newStatus == ApplicationState.Rejected)
             application.RejectionFeedback = dto.RejectionFeedback!.Trim();
 
+        
         await _db.SaveChangesAsync(ct);
 
+        // ── La Accepted: creăm automat experiența în așteptare ────────
+        if (newStatus == ApplicationState.Accepted)
+        {
+            var job = application.JobPosting;
+
+            var alreadyExists = await _db.Experiences.AnyAsync(e =>
+                e.CandidateProfileId == application.CandidateProfileId &&
+                e.EmployerProfileId == job.EmployerProfileId &&
+                e.Position == job.Title, ct);
+
+            if (!alreadyExists)
+            {
+                _db.Experiences.Add(new Experience
+                {
+                    CandidateProfileId = application.CandidateProfileId,
+                    EmployerProfileId = job.EmployerProfileId,
+                    CompanyName = job.EmployerProfile?.CompanyName ?? job.Title,
+                    Position = job.Title,
+                    StartDate = DateTime.UtcNow,
+                    IsCurrent = false,
+                    Status = ExperienceStatus.PendingConfirmation,
+                    EmploymentType = job.EmploymentType,
+                    Location = job.Location,
+                    Description = "Angajare prin platforma JobFinder.",
+                });
+                await _db.SaveChangesAsync(ct);
+            }
+        }
+
+       
         // ── Notificare candidat — status schimbat ─────────────────────
         var statusLabel = newStatus switch
         {
@@ -191,18 +224,43 @@ public class ApplicationsController : ControllerBase
         var candidateUserId = application.CandidateProfile.UserId;
         if (!string.IsNullOrEmpty(candidateUserId) && newStatus != ApplicationState.Withdrawn)
         {
-            var notifMessage = newStatus == ApplicationState.Rejected
-                ? $"Aplicarea ta la \"{application.JobPosting.Title}\" a fost respinsă. Angajatorul a oferit feedback."
-                : $"Aplicarea ta la \"{application.JobPosting.Title}\" este acum: {statusLabel}.";
+            string notifTitle;
+            string notifMessage;
+            string notifLink;
+            NotificationType notifType;
+
+            if (newStatus == ApplicationState.Accepted)
+            {
+                notifType = NotificationType.EmploymentConfirmed;
+                notifTitle = "Confirmă angajarea";
+                notifMessage = $"Felicitări! Ai fost acceptat la \"{application.JobPosting.Title}\". " +
+                               $"Confirmă angajarea în secțiunea Experiență din profilul tău.";
+                notifLink = "/candidate/profile";
+            }
+            else if (newStatus == ApplicationState.Rejected)
+            {
+                notifType = NotificationType.ApplicationStatusChanged;
+                notifTitle = "Status aplicare actualizat";
+                notifMessage = $"Aplicarea ta la \"{application.JobPosting.Title}\" a fost respinsă. " +
+                               $"Angajatorul a oferit feedback.";
+                notifLink = $"/candidate/applications/{application.Id}";
+            }
+            else
+            {
+                notifType = NotificationType.ApplicationStatusChanged;
+                notifTitle = "Status aplicare actualizat";
+                notifMessage = $"Aplicarea ta la \"{application.JobPosting.Title}\" este acum: {statusLabel}.";
+                notifLink = $"/candidate/applications/{application.Id}";
+            }
 
             _db.Notifications.Add(new Notification
             {
                 UserId = candidateUserId,
                 Target = NotificationTarget.Candidate,
-                Type = NotificationType.ApplicationStatusChanged,
-                Title = "Status aplicare actualizat",
+                Type = notifType,
+                Title = notifTitle,
                 Message = notifMessage,
-                Link = $"/candidate/applications/{application.Id}",
+                Link = notifLink,
                 CreatedAt = DateTime.UtcNow,
                 IsRead = false
             });
@@ -261,5 +319,5 @@ public class ApplicationsController : ControllerBase
 public class UpdateApplicationStatusDto
 {
     public int Status { get; set; }
-    public string ? RejectionFeedback { get; set; }
+    public string? RejectionFeedback { get; set; }
 }

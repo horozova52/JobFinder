@@ -15,6 +15,8 @@ public interface IJobFeedRepository
     Task<List<string>> GetCandidateSkillNamesAsync(
         string userId,
         CancellationToken cancellationToken = default);
-
+    Task<HashSet<int>> GetAppliedJobIdsAsync(
+    string userId,
+    CancellationToken cancellationToken = default);
     Task<int> GetPublishedJobsCountAsync(CancellationToken cancellationToken = default);
 }
